@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Xcode — le .xcodeproj est versionné, ses données utilisateur ne le sont pas
+DerivedData/
+build/
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+
+# Signature locale
+*.mobileprovision
+*.provisionprofile
+
+# Clips GoPro de référence, gardés en local pour les essais de copie bout-en-bout.
+# Le format est déjà figé dans Core/Tests/QuiXCoreTests/Fixtures/ (34 Ko au lieu de 194 Mo).
+*.MP4
+*.mp4
+*.LRV
+*.THM
+!Core/Tests/QuiXCoreTests/Fixtures/*.mp4
