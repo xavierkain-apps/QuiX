@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "feat/**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  core:
+    name: Core — moteur pur (Linux)
+    runs-on: ubuntu-latest
+    container: swift:6.1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tests du moteur
+        run: swift test --package-path Core
+
+      # Le moteur se pilote en ligne de commande avant d'avoir la moindre fenêtre. On le prouve
+      # ici sur les deux `moov` réels de la HERO12 : un clip tagué, un clip sans tag. C'est le
+      # garde-fou contre la régression qui coûterait le produit — voir docs/HILIGHT.md.
+      - name: Lecture des tags sur les échantillons réels
+        run: |
+          swift build --package-path Core --product quix
+          QUIX="$(swift build --package-path Core --product quix --show-bin-path)/quix"
+          FIXTURES=Core/Tests/QuiXCoreTests/Fixtures
+
+          TAGGED="$("$QUIX" hilight "$FIXTURES/hero12-un-highlight.mp4")"
+          PLAIN="$("$QUIX" hilight "$FIXTURES/hero12-sans-highlight.mp4")"
+          echo "$TAGGED"
+          echo "$PLAIN"
+
+          echo "$TAGGED" | grep -q "1 moment(s)" \
+            || { echo "::error::le clip tagué devrait porter exactement 1 moment"; exit 1; }
+          echo "$TAGGED" | grep -q "3.436 s" \
+            || { echo "::error::le moment de la HERO12 est à 3436 ms"; exit 1; }
+          echo "$PLAIN" | grep -q "0 moment(s)" \
+            || { echo "::error::le clip sans highlight ne doit porter aucun moment"; exit 1; }
+
+  app:
+    name: App — SwiftUI (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version d'Xcode
+        run: xcodebuild -version
+
+      # Sans signature : le certificat Developer ID n'existe pas sur l'exécuteur. La signature
+      # réelle et la notarisation se font sur la machine de Xavier, voir VERIFICATION.md.
+      - name: Compilation de l'application
+        run: |
+          xcodebuild build \
+            -project QuiX.xcodeproj \
+            -scheme QuiX \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
