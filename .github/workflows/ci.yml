@@ -3,11 +3,25 @@ name: CI
 permissions:
   contents: write
 
+# Un exécuteur macOS compte dix fois son temps réel dans le quota Actions : un push sur QuiX pèse
+# onze minutes, dont dix pour la seule minute de compilation du bundle. Le plan Free de
+# l'organisation en donne deux mille par mois, partagées avec les autres apps — d'où les deux
+# économies ci-dessous, qui ne coûtent aucune couverture.
+
 on:
   push:
     branches: [main, "feat/**"]
+    # Un commit qui ne touche que de la documentation n'a rien à compiler.
+    paths-ignore: ["**.md", "docs/**", ".gitignore"]
   pull_request:
+    paths-ignore: ["**.md", "docs/**", ".gitignore"]
   workflow_dispatch:
+
+# Pousser trois fois de suite abandonne les deux premières compilations au lieu de les payer.
+# Seule la dernière compte, et c'est la seule dont le résultat nous intéresse.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   core:
