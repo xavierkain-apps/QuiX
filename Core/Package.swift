@@ -7,6 +7,11 @@ import PackageDescription
 // vérifiée — vit ici, et se prouve en intégration continue sans machine Apple.
 let package = Package(
     name: "QuiXCore",
+    // Sans cette ligne, Xcode compile le paquet pour macOS 10.13 quand l'app en dépend, et les
+    // `FileHandle` qui lèvent — `read(upToCount:)`, `write(contentsOf:)`, `close()` — n'y existent
+    // pas encore. Le paquet se compile très bien seul sur Linux, où ce réglage est ignoré : c'est
+    // exactement le genre de manque que seule la compilation de l'app révèle.
+    platforms: [.macOS(.v15)],
     products: [
         .library(name: "QuiXCore", targets: ["QuiXCore"]),
         .executable(name: "quix", targets: ["quix"])
