@@ -111,5 +111,3 @@ le second devient `GX010001-101GOPRO.MP4`.
 demanderait un parseur KLV complet pour une information déjà obtenue en trente
 lignes. Noté comme filet de secours dans [HILIGHT.md](HILIGHT.md) si un modèle
 cessait un jour d'écrire HMMT.
-
-<!-- vérification du paths-ignore : ce commit ne doit déclencher aucune compilation -->
