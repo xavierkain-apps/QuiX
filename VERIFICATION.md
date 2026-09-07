@@ -14,9 +14,9 @@ CI compile l'app sur macOS. Rien de ce qui suit n'est automatisable sans matéri
 - [ ] Compiler, lancer, choisir le dossier d'import quand l'app le demande.
 - [ ] **Accorder l'accès aux volumes amovibles** quand macOS le demande, au premier branchement.
       Sans cette autorisation, l'app voit le volume monter et ne trouve aucun fichier dedans — le
-      symptôme ressemble exactement à une carte vide. Si la demande n'apparaît jamais, vérifier que
-      `NSRemovableVolumesUsageDescription` est bien dans l'`Info.plist` de l'app compilée
-      (`plutil -p QuiX.app/Contents/Info.plist`).
+      symptôme ressemble exactement à une carte vide.
+      La présence de `NSRemovableVolumesUsageDescription` dans l'`Info.plist` est vérifiée par la
+      CI ; ce qui reste à voir à la main, c'est que macOS pose bien la question.
 
 ## Le comportement quotidien
 
@@ -53,7 +53,11 @@ CI compile l'app sur macOS. Rien de ce qui suit n'est automatisable sans matéri
 
 ## Avant de distribuer
 
-- [ ] `codesign --verify --verbose QuiX.app`
-- [ ] `spctl --assess --type execute --verbose QuiX.app` après notarisation et `stapler staple`.
+`codesign --verify`, l'universalité du binaire et le runtime durci sont vérifiés par la CI à chaque
+push — voir [SIGNING.md](SIGNING.md). Ne reste que ce qui demande une vraie machine :
+
+- [ ] Télécharger l'artefact `QuiX` de la CI sur un Mac qui n'a jamais compilé le projet, et le
+      lancer. Sans les secrets de signature, Gatekeeper doit avertir une fois ; avec, il ne doit
+      rien dire du tout.
 - [ ] Lancer l'app depuis un compte utilisateur qui ne l'a jamais vue, pour retomber sur la demande
       d'autorisation des volumes amovibles à froid.

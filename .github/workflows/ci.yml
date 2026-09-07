@@ -153,7 +153,7 @@ jobs:
         run: ditto -c -k --keepParent "$APP" QuiX.zip
 
       - name: Publier l'artefact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: QuiX
           path: QuiX.zip
