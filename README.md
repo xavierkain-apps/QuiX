@@ -64,6 +64,12 @@ Au premier lancement, l'app demande où ranger les clips. Ensuite, brancher la c
 est reconnue par la présence d'un dossier `DCIM/###GOPRO`, jamais par le nom du volume. Une case
 permet de demander confirmation avant chaque import.
 
+## Signature
+
+Le job macOS produit un bundle universel à chaque push, téléchargeable en artefact. Il est signé
+Developer ID et notarisé dès que les cinq secrets de l'organisation `xavierkain-apps` existent —
+voir [SIGNING.md](SIGNING.md) — et signé ad hoc sinon.
+
 ## Tests
 
 ```sh
