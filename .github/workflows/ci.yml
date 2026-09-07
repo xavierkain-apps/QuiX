@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [main, "feat/**"]
@@ -39,22 +42,128 @@ jobs:
             || { echo "::error::le clip sans highlight ne doit porter aucun moment"; exit 1; }
 
   app:
-    name: App — SwiftUI (macOS)
+    name: App — bundle macOS
     runs-on: macos-latest
+    env:
+      # Signature Developer ID + notarisation dès que les secrets existent, signature ad hoc
+      # sinon. Le même dépôt produit donc un bundle dans les deux cas — voir SIGNING.md.
+      HAS_SIGNING: ${{ secrets.MACOS_CERT_P12 != '' && secrets.APPLE_ID != '' }}
     steps:
       - uses: actions/checkout@v5
 
       - name: Version d'Xcode
         run: xcodebuild -version
 
-      # Sans signature : le certificat Developer ID n'existe pas sur l'exécuteur. La signature
-      # réelle et la notarisation se font sur la machine de Xavier, voir VERIFICATION.md.
-      - name: Compilation de l'application
+      - name: Importer le certificat Developer ID
+        if: env.HAS_SIGNING == 'true'
+        env:
+          MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
         run: |
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          echo "$MACOS_CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 3600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" \
+            -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: \
+            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
+          security list-keychains -d user -s "$KEYCHAIN" login.keychain-db
+          rm "$RUNNER_TEMP/cert.p12"
+          IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN" \
+            | grep "Developer ID Application" | head -1 | sed 's/^.*"\(.*\)"$/\1/')
+          if [ -z "$IDENTITY" ]; then
+            echo "::error::Aucune identité « Developer ID Application » dans le certificat"
+            exit 1
+          fi
+          echo "CODESIGN_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+
+      - name: Compiler l'application
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ "$HAS_SIGNING" = "true" ]; then
+            SIGN_ARGS=(
+              CODE_SIGN_STYLE=Manual
+              "CODE_SIGN_IDENTITY=$CODESIGN_IDENTITY"
+              "DEVELOPMENT_TEAM=$APPLE_TEAM_ID"
+              "OTHER_CODE_SIGN_FLAGS=--timestamp"
+            )
+          else
+            # Signature ad hoc : le bundle se lance, mais Gatekeeper avertit au premier
+            # démarrage. C'est la seule signature possible sans le certificat de Xavier.
+            SIGN_ARGS=(CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM=)
+          fi
+
           xcodebuild build \
             -project QuiX.xcodeproj \
             -scheme QuiX \
-            -configuration Debug \
-            -destination 'platform=macOS' \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath build \
+            ONLY_ACTIVE_ARCH=NO \
+            "${SIGN_ARGS[@]}"
+
+          echo "APP=build/Build/Products/Release/QuiX.app" >> "$GITHUB_ENV"
+
+      - name: Notariser
+        if: env.HAS_SIGNING == 'true'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          ditto -c -k --keepParent "$APP" "$RUNNER_TEMP/notarize.zip"
+          xcrun notarytool submit "$RUNNER_TEMP/notarize.zip" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+          xcrun stapler staple "$APP"
+
+      - name: Vérifier le bundle
+        run: |
+          test -x "$APP/Contents/MacOS/QuiX"
+
+          # L'app ne voit aucun fichier sur la carte si macOS ne lui a pas demandé l'accès aux
+          # volumes amovibles, et il ne le demande que si cette clé est dans l'Info.plist. Le
+          # symptôme, sinon, ressemble exactement à une carte vide : à vérifier ici, pas à la main.
+          plutil -extract NSRemovableVolumesUsageDescription raw \
+            "$APP/Contents/Info.plist" > /dev/null \
+            || { echo "::error::NSRemovableVolumesUsageDescription absent de l'Info.plist"; exit 1; }
+
+          # Universelle : Xavier peut être sur Apple Silicon comme sur Intel.
+          lipo -info "$APP/Contents/MacOS/QuiX"
+          lipo -archs "$APP/Contents/MacOS/QuiX" | grep -q arm64 \
+            || { echo "::error::bundle non universel, arm64 manquant"; exit 1; }
+          lipo -archs "$APP/Contents/MacOS/QuiX" | grep -q x86_64 \
+            || { echo "::error::bundle non universel, x86_64 manquant"; exit 1; }
+
+          codesign --verify --deep --strict --verbose=2 "$APP"
+
+          if [ "$HAS_SIGNING" = "true" ]; then
+            codesign --display --verbose=4 "$APP" 2>&1 | grep -q "flags=.*runtime" \
+              || { echo "::error::runtime durci absent, la notarisation ne tiendra pas"; exit 1; }
+            spctl --assess --type execute --verbose "$APP"
+          fi
+
+      - name: Compresser l'app
+        run: ditto -c -k --keepParent "$APP" QuiX.zip
+
+      - name: Publier l'artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuiX
+          path: QuiX.zip
+          if-no-files-found: error
+
+      - name: Publier la release (tags v* uniquement)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" QuiX.zip \
+            --title "QuiX $GITHUB_REF_NAME" \
+            --generate-notes
