@@ -112,6 +112,16 @@ la caméra n'est pas branchée, aucun processus n'existe.
 L'agent lance **`open`**, pas l'exécutable : `open` se contente d'activer l'app si elle tourne déjà,
 là où lancer le binaire donnerait deux fenêtres et deux imports concurrents sur la même carte.
 
+Et **au premier plan**. On avait d'abord ouvert en arrière-plan (`open -g`) pour ne pas couper le
+travail en cours ; c'était une erreur de jugement. Brancher sa caméra est une intention explicite,
+et l'app se retrouvait à chercher du regard une fenêtre qui n'était nulle part. `open` sans `-g` ne
+suffit pas tout à fait : une app réveillée par `launchd` ne passe pas toujours devant, d'où
+l'`NSApp.activate()` au démarrage.
+
+Un agent installé par une version précédente garde le comportement qu'il avait alors. `QuiXApp` le
+compare donc au démarrage à ce qu'il devrait être, et ne le réécrit que s'il diffère — recharger
+un agent à chaque démarrage pour rien serait une façon discrète de le rendre instable.
+
 Trois détails de l'appariement ont été trouvés à l'essai, et aucun n'est devinable — **un agent qui
 n'apparie rien ne se plaint pas**, il ne se déclenche simplement jamais, et `launchctl print`
 l'affiche exactement comme s'il fonctionnait :
