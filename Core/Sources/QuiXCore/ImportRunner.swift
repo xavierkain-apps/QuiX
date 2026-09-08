@@ -45,6 +45,61 @@ public struct ImportReport: Equatable, Sendable {
 
 public enum ImportRunner {
 
+    /// Combien de fois retenter un clip que le réseau a fait échouer.
+    ///
+    /// La caméra en USB n'est pas un disque : une requête peut échouer sans que le clip soit en
+    /// cause. Abandonner à la première erreur laissait un fichier manquant qu'il fallait aller
+    /// rechercher par un second import — pour un incident qui se règle en attendant une seconde.
+    static let attempts = 3
+
+    /// Ce qu'on attend avant de réessayer. Court, puis moins court : si la caméra a besoin de
+    /// souffler, insister immédiatement ne sert à rien.
+    static let backoff: [TimeInterval] = [1, 3]
+
+    /// Copie un clip depuis la caméra, en réessayant ce qui mérite de l'être.
+    ///
+    /// La reprise rend ces tentatives presque gratuites : la seconde repart des octets déjà reçus
+    /// au lieu de tout retélécharger. Deux échecs ne se retentent jamais — une annulation demandée
+    /// par l'utilisateur, et une destination déjà occupée, qui ne s'arrangeront pas d'eux-mêmes.
+    private static func copyFromCamera(
+        _ planned: PlannedCopy,
+        fileManager: FileManager,
+        isCancelled: () -> Bool,
+        progress: (UInt64) -> Void
+    ) throws {
+        var lastFailure: Error?
+
+        for attempt in 0..<attempts {
+            if attempt > 0 {
+                if isCancelled() { throw CopyFailure.cancelled }
+                Thread.sleep(forTimeInterval: backoff[min(attempt - 1, backoff.count - 1)])
+                if isCancelled() { throw CopyFailure.cancelled }
+            }
+
+            do {
+                try RemoteVerifiedCopy.copy(
+                    from: planned.source.url,
+                    expectedSize: planned.source.size,
+                    modified: planned.source.modified,
+                    to: planned.destination,
+                    fileManager: fileManager,
+                    isCancelled: isCancelled,
+                    progress: progress
+                )
+                return
+            } catch CopyFailure.cancelled {
+                throw CopyFailure.cancelled
+            } catch let failure as CopyFailure {
+                if case .destinationExists = failure { throw failure }
+                lastFailure = failure
+            } catch {
+                lastFailure = error
+            }
+        }
+
+        throw lastFailure ?? CopyFailure.cancelled
+    }
+
     /// Exécute un plan.
     ///
     /// Deux partis pris :
@@ -101,15 +156,8 @@ public enum ImportRunner {
                         progress: onBytes
                     )
                 } else {
-                    try RemoteVerifiedCopy.copy(
-                        from: planned.source.url,
-                        expectedSize: planned.source.size,
-                        modified: planned.source.modified,
-                        to: planned.destination,
-                        fileManager: fileManager,
-                        isCancelled: isCancelled,
-                        progress: onBytes
-                    )
+                    try copyFromCamera(planned, fileManager: fileManager,
+                                       isCancelled: isCancelled, progress: onBytes)
                 }
 
                 completedBytes += planned.source.size

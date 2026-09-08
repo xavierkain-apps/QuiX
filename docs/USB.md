@@ -89,6 +89,20 @@ deux, et l'app propose d'ouvrir le bon panneau des Réglages.
 `curl` fonctionne pendant que l'app échoue — le Terminal a déjà la permission. Ce détail fait
 perdre du temps : ne pas conclure d'un `curl` qui passe que le code passera.
 
+## Une seule connexion à la fois
+
+Le serveur de la caméra n'en tient qu'une, et ça ne se voit pas tout de suite. Avec
+`URLSession.shared`, l'analyse laissait derrière elle une connexion inactive mais ouverte ; le
+premier téléchargement qui suivait en réclamait une seconde, que la caméra refusait.
+
+Le symptôme était déroutant, parce qu'il ne désignait pas le coupable : **le premier clip échouait,
+les suivants passaient**, et relancer l'import réussissait toujours — la connexion inactive ayant
+expiré entre-temps. On accusait le fichier, alors que seul son rang comptait.
+
+Toutes les requêtes passent donc par des sessions à `httpMaximumConnectionsPerHost = 1`. Et comme
+un lien USB peut lâcher pour d'autres raisons, `ImportRunner` retente trois fois avec un court
+délai — ce qui ne coûte presque rien puisque la reprise repart des octets déjà reçus.
+
 ## Deux pièges de mise en œuvre
 
 **La détection ne peut pas être événementielle.** Il n'existe pas de notification pour l'apparition

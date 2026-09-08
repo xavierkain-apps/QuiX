@@ -90,7 +90,7 @@ Gatekeeper ne doit rien dire du tout — pas même au premier lancement.
 ### Compiler soi-même
 
 ```sh
-# Le moteur : 108 tests, aucune machine Apple requise
+# Le moteur : 109 tests, aucune machine Apple requise
 swift test --package-path Core
 
 # L'outil en ligne de commande, pour voir le parseur à l'œuvre
@@ -103,9 +103,22 @@ xcodebuild build -project QuiX.xcodeproj -scheme QuiX -configuration Release   -
 cp -R build/Build/Products/Release/QuiX.app /Applications/
 ```
 
-Les trois derniers réglages signent en ad hoc, ce qui suffit pour essayer en local. Pour une vraie
-signature, ouvrir `QuiX.xcodeproj` et choisir l'équipe dans **Signing & Capabilities** — Xcode
-inscrit alors `DEVELOPMENT_TEAM` dans le projet, à committer.
+Les trois derniers réglages signent en ad hoc. Ça suffit pour essayer, mais **pas pour vivre avec** :
+une signature ad hoc change à chaque compilation, et les logiciels de sécurité — Bitdefender, Little
+Snitch — n'ont rien de stable à retenir. Ils redemandent l'autorisation après chaque reconstruction,
+en expliquant que « le processus contient des informations de signature différentes ».
+
+Si vous avez un certificat Developer ID, signez plutôt avec :
+
+```sh
+xcodebuild build -project QuiX.xcodeproj -scheme QuiX -configuration Release   -destination 'generic/platform=macOS' -derivedDataPath build ONLY_ACTIVE_ARCH=NO   CODE_SIGN_STYLE=Manual   "CODE_SIGN_IDENTITY=Developer ID Application: <votre nom> (<équipe>)"   DEVELOPMENT_TEAM=<équipe> OTHER_CODE_SIGN_FLAGS=--timestamp   CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO
+```
+
+L'identité devient stable d'une compilation à l'autre, et une autorisation donnée une fois le reste.
+`CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO` retire l'entitlement de débogage qu'Apple refuse de
+notariser — voir [SIGNING.md](SIGNING.md).
+
+`security find-identity -v -p codesigning` liste les identités disponibles.
 
 **À savoir avant d'essayer :** les deux clips GoPro complets ne sont pas dans le dépôt, seulement
 les deux `moov` de 34 Ko qui servent aux tests. Un essai bout en bout demande une vraie carte, ou

@@ -21,13 +21,18 @@ final class TinyHTTPServer {
     private let honoursRange: Bool
     /// Nombre d'octets servis avant de raccrocher, pour simuler un câble débranché.
     private let cutAfter: Int?
+    /// Combien de requêtes coupent avant que le serveur ne se comporte normalement.
+    private let cutCount: Int
+    private var served = 0
 
     private(set) var port: UInt16 = 0
 
-    init(payload: [UInt8], honoursRange: Bool = true, cutAfter: Int? = nil) throws {
+    init(payload: [UInt8], honoursRange: Bool = true,
+         cutAfter: Int? = nil, cutCount: Int = .max) throws {
         self.payload = payload
         self.honoursRange = honoursRange
         self.cutAfter = cutAfter
+        self.cutCount = cutCount
         try open()
     }
 
@@ -114,10 +119,12 @@ final class TinyHTTPServer {
 
         // Le corps annoncé reste celui du fichier complet : c'est bien une coupure en cours de
         // route, pas une réponse courte et honnête.
-        let served = cutAfter.map { Array(body.prefix($0)) } ?? body
+        let cutting = served < cutCount
+        served += 1
+        let sent = (cutting ? cutAfter.map { Array(body.prefix($0)) } : nil) ?? body
 
         var out = [UInt8](head.utf8)
-        out.append(contentsOf: served)
+        out.append(contentsOf: sent)
         out.withUnsafeBufferPointer { _ = send(client, $0.baseAddress, $0.count, 0) }
     }
 

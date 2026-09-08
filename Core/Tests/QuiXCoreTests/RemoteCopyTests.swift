@@ -250,6 +250,34 @@ final class ResumeTests: XCTestCase {
             expectedSize: UInt64(payload.count), fileManager: .default))
     }
 
+    /// Ce que voit vraiment l'utilisateur : deux coupures d'affilée, puis ça passe — sans qu'il
+    /// ait rien à refaire. C'est le scénario qui laissait un clip manquant et obligeait à relancer
+    /// un second import.
+    func testRetriesCarryTheTransferThroughRepeatedCuts() throws {
+        let destination = directory.appendingPathComponent("GX010006.MP4")
+        let flaky = try TinyHTTPServer(payload: payload, cutAfter: 90_000, cutCount: 2)
+        defer { flaky.stop() }
+
+        let plan = ImportPlan(
+            importFolder: directory,
+            copies: [PlannedCopy(
+                source: MediaFile(url: flaky.baseURL, folder: "100GOPRO",
+                                  name: GoProFileName("GX010006.MP4")!,
+                                  size: UInt64(payload.count),
+                                  modified: Date(timeIntervalSince1970: 1_700_000_000)),
+                destination: destination,
+                relativeDestination: "Clips/GX010006.MP4",
+                takeNumber: 6, isHighlighted: false)],
+            alreadyImported: [])
+
+        var index = ImportIndex()
+        let report = ImportRunner.run(plan, library: directory, index: &index)
+
+        XCTAssertEqual(report.failures.count, 0)
+        XCTAssertEqual(report.copied.count, 1)
+        XCTAssertEqual([UInt8](try Data(contentsOf: destination)), payload)
+    }
+
     /// Une reprise demandée à un serveur qui ignore `Range` ne doit pas coller le fichier entier
     /// derrière ce qu'on avait déjà.
     func testAServerThatIgnoresRangeStartsOver() throws {
