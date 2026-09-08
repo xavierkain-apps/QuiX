@@ -3,7 +3,7 @@
 Importe les clips d'une GoPro sur un Mac et sépare les prises **highlightées** du reste.
 Remplace la seule fonction de Quik Desktop qui servait encore, après son abandon par GoPro fin 2024.
 
-Branchez la carte, et vous obtenez :
+Branchez la caméra en USB-C, ou la carte dans un lecteur, et vous obtenez :
 
 ```
 ~/<votre dossier>/2026-09-07/
@@ -19,6 +19,14 @@ Les tags HiLight posés pendant le tournage sont écrits dans le MP4 lui-même, 
 `moov/udta/HMMT`. On lit cet atome — **trois `seek` et environ 34 Ko** par clip, quelle que soit sa
 taille — et on sait où va le fichier avant d'en copier le premier octet. Il n'y a jamais de tri
 après coup.
+
+Cela vaut par les **deux** sources, et c'est ce qui a demandé le plus de soin :
+
+- **la carte dans un lecteur** — un volume ordinaire, trois `seek` ;
+- **la caméra branchée en USB-C** — qui n'expose aucun disque. Elle monte un réseau et répond en
+  HTTP sur `172.2X.1YZ.51:8080`. Les trois `seek` deviennent trois requêtes `Range`, mesurées sur
+  une HERO12 : `206 Partial Content`, `Accept-Ranges: bytes`. Le tri reste donc gratuit par le
+  câble aussi — on ne rapatrie un clip que pour l'importer, jamais pour savoir où il va.
 
 Le détail du format, les mesures faites sur une vraie HERO12 et les deux pièges qu'elles ont
 révélés sont dans **[docs/HILIGHT.md](docs/HILIGHT.md)**.
@@ -51,6 +59,7 @@ swift build --package-path Core --product quix
 
 quix hilight clip.MP4                      # les instants tagués d'un clip
 quix scan /Volumes/GOPRO                   # les prises d'une carte, et lesquelles sont taguées
+quix camera                                # la GoPro branchée en USB : ses prises, sans rien copier
 quix import /Volumes/GOPRO ~/Films/GoPro --dry-run   # le plan, sans écrire un octet
 quix import /Volumes/GOPRO ~/Films/GoPro             # pour de vrai
 ```
@@ -77,7 +86,7 @@ Gatekeeper ne doit rien dire du tout — pas même au premier lancement.
 ### Compiler soi-même
 
 ```sh
-# Le moteur : 85 tests, aucune machine Apple requise
+# Le moteur : 96 tests, aucune machine Apple requise
 swift test --package-path Core
 
 # L'outil en ligne de commande, pour voir le parseur à l'œuvre
@@ -100,13 +109,30 @@ un dossier `DCIM/100GOPRO/` fabriqué à la main avec des `.MP4` dedans.
 
 ## Utiliser l'app
 
-Au premier lancement, elle demande où ranger les clips. Ensuite, brancher la carte suffit : elle
-est reconnue par la présence d'un dossier `DCIM/###GOPRO`, jamais par le nom du volume. Une case
-permet de demander confirmation avant chaque import.
+Au premier lancement, elle demande où ranger les clips. Ensuite, brancher suffit — la caméra en
+USB-C ou la carte dans un lecteur. Une case permet de demander confirmation avant chaque import.
 
-macOS demandera l'accès aux **volumes amovibles** au premier branchement. Sans cette autorisation,
-l'app voit le volume monter et ne trouve aucun fichier — le symptôme ressemble exactement à une
-carte vide.
+Si les deux sont présents, **la carte l'emporte** : elle est plus rapide, et c'est celle que vous
+avez délibérément mise dans le lecteur.
+
+### Les deux autorisations, et leurs symptômes
+
+macOS en demande une par source, et **les deux échouent de la même façon trompeuse** : l'app voit le
+matériel et ne trouve rien, exactement comme devant une carte vide.
+
+| Source | Autorisation | Où la donner |
+|---|---|---|
+| Carte dans un lecteur | **Volumes amovibles** | Confidentialité et sécurité → Fichiers et dossiers |
+| Caméra en USB-C | **Réseau local** | Confidentialité et sécurité → Réseau local |
+
+Celle du réseau local surprend, et c'est normal : branchée en USB-C, la caméra *est* un
+périphérique réseau pour macOS. Quand elle manque, l'app le dit explicitement et ouvre le bon
+panneau — elle ne se contente pas de rester vide.
+
+### Une carte reconnue, jamais devinée
+
+Un volume n'est traité que s'il porte un dossier `DCIM/###GOPRO`, jamais d'après son nom : la carte
+d'un autre appareil n'est pas touchée, même si elle s'appelle « GOPRO ».
 
 ## Signature
 

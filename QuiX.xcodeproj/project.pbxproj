@@ -177,6 +177,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "QuiX parle à votre GoPro branchée en USB-C pour y lire les clips. La caméra se présente comme un périphérique réseau : sans cette autorisation, QuiX la voit branchée sans pouvoir en lire le contenu.";
 				INFOPLIST_KEY_NSRemovableVolumesUsageDescription = "QuiX lit la carte de votre GoPro pour y repérer les clips à importer. Rien n'y est jamais modifié ni effacé.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -200,6 +201,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "QuiX parle à votre GoPro branchée en USB-C pour y lire les clips. La caméra se présente comme un périphérique réseau : sans cette autorisation, QuiX la voit branchée sans pouvoir en lire le contenu.";
 				INFOPLIST_KEY_NSRemovableVolumesUsageDescription = "QuiX lit la carte de votre GoPro pour y repérer les clips à importer. Rien n'y est jamais modifié ni effacé.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

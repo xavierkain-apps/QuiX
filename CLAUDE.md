@@ -14,13 +14,16 @@ avant d'écrire du code.
 écrit par la HERO12 de Xavier, mesuré sur deux vrais clips. Deux pièges y sont
 relevés, dont un qui casse l'app en silence.
 
+**[docs/USB.md](docs/USB.md)** — ce que la caméra est vraiment quand on la branche :
+pas un disque, mais un serveur HTTP. À lire avant de toucher au chemin USB.
+
 ## Structure
 
 - `Core/` — moteur Swift pur (parsing HMMT + import), testable sur Linux
 - `App/` — app SwiftUI macOS, compilée sur le Mac uniquement
 - `docs/` — décisions et notes
 
-## Les trois choses à ne pas oublier
+## Les quatre choses à ne pas oublier
 
 1. **Le tri est gratuit.** Les tags HiLight sont dans `moov/udta/HMMT`, et chez
    GoPro `moov` est en **fin** de fichier : trois `seek` et ~34 Ko lus suffisent
@@ -30,6 +33,9 @@ relevés, dont un qui casse l'app en silence.
    numéro de fichier GoPro. Si l'un est taggé, tous suivent.
 3. **Jamais d'effacement de la carte.** L'effacement reste une action manuelle,
    dans la caméra.
+4. **La caméra en USB n'est pas un disque.** Elle n'expose aucun stockage de masse :
+   elle monte un réseau et répond en HTTP. Le tri y reste gratuit parce qu'elle
+   honore `Range` — mesuré, pas supposé. Voir [docs/USB.md](docs/USB.md).
 
 ## Où l'on se trouve
 
