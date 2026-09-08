@@ -226,21 +226,6 @@ jobs:
 
           echo "APP=build/Build/Products/Release/QuiX.app" >> "$GITHUB_ENV"
 
-      - name: Notariser
-        if: env.CODESIGN_IDENTITY != ''
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          ditto -c -k --keepParent "$APP" "$RUNNER_TEMP/notarize.zip"
-          xcrun notarytool submit "$RUNNER_TEMP/notarize.zip" \
-            --apple-id "$APPLE_ID" \
-            --password "$APPLE_APP_PASSWORD" \
-            --team-id "$APPLE_TEAM_ID" \
-            --wait
-          xcrun stapler staple "$APP"
-
       - name: Vérifier le bundle
         run: |
           test -x "$APP/Contents/MacOS/QuiX"
@@ -262,10 +247,45 @@ jobs:
           codesign --verify --deep --strict --verbose=2 "$APP"
 
           if [ -n "$CODESIGN_IDENTITY" ]; then
+            echo "--- signature telle qu'elle a été apposée ---"
+            codesign --display --verbose=4 "$APP" 2>&1 | grep -E "Authority|TeamIdentifier|flags|Timestamp"
             codesign --display --verbose=4 "$APP" 2>&1 | grep -q "flags=.*runtime" \
-              || { echo "::error::runtime durci absent, la notarisation ne tiendra pas"; exit 1; }
-            spctl --assess --type execute --verbose "$APP"
+              || { echo "::error::runtime durci absent, Apple refusera la notarisation"; exit 1; }
+            codesign --display --verbose=4 "$APP" 2>&1 | grep -q "Authority=Developer ID Application" \
+              || { echo "::error::l'app n'est pas signée par un certificat Developer ID Application"; exit 1; }
           fi
+
+      - name: Notariser
+        if: env.CODESIGN_IDENTITY != ''
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          ditto -c -k --keepParent "$APP" "$RUNNER_TEMP/notarize.zip"
+
+          RESULT=$(xcrun notarytool submit "$RUNNER_TEMP/notarize.zip" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait --output-format json)
+          echo "$RESULT"
+
+          STATUS=$(echo "$RESULT" | jq -r '.status')
+          ID=$(echo "$RESULT" | jq -r '.id')
+
+          if [ "$STATUS" != "Accepted" ]; then
+            # Sans ce journal, un refus d'Apple ne dit rien de plus que « Invalid ». Il liste
+            # exactement quel binaire pose problème et pourquoi.
+            echo "::error::Apple a refusé la notarisation ($STATUS). Journal détaillé :"
+            xcrun notarytool log "$ID" \
+              --apple-id "$APPLE_ID" \
+              --password "$APPLE_APP_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID"
+            exit 1
+          fi
+
+          xcrun stapler staple "$APP"
 
       - name: Compresser l'app
         run: ditto -c -k --keepParent "$APP" QuiX.zip
