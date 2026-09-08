@@ -208,6 +208,13 @@ jobs:
               "CODE_SIGN_IDENTITY=$CODESIGN_IDENTITY"
               "DEVELOPMENT_TEAM=$APPLE_TEAM_ID"
               "OTHER_CODE_SIGN_FLAGS=--timestamp"
+              # Sans ça, `xcodebuild build` injecte com.apple.security.get-task-allow —
+              # l'entitlement qui autorise un débogueur à s'attacher au processus. C'est le
+              # comportement normal d'une compilation de développement, et c'est exactement ce
+              # qu'Apple refuse de notariser : il rendrait l'app inspectable sur la machine de
+              # n'importe qui. Un `xcodebuild archive` le retirerait aussi, au prix d'un plist
+              # d'export à maintenir.
+              CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO
             )
           else
             # Signature ad hoc : le bundle se lance, mais Gatekeeper avertit au premier
@@ -253,6 +260,16 @@ jobs:
               || { echo "::error::runtime durci absent, Apple refusera la notarisation"; exit 1; }
             codesign --display --verbose=4 "$APP" 2>&1 | grep -q "Authority=Developer ID Application" \
               || { echo "::error::l'app n'est pas signée par un certificat Developer ID Application"; exit 1; }
+
+            # Apple refuse tout binaire portant cet entitlement de débogage. Le vérifier ici
+            # coûte une seconde ; l'apprendre du service de notarisation coûte deux minutes et
+            # un message qui ne dit pas comment le retirer.
+            if codesign -d --entitlements - "$APP" 2>/dev/null | grep -q "get-task-allow"; then
+              echo "::error::L'exécutable demande com.apple.security.get-task-allow, qu'Apple refuse de notariser. Il manque CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO à la compilation."
+              exit 1
+            fi
+            echo "Aucun entitlement de débogage : notarisable."
+
           fi
 
       - name: Notariser
