@@ -83,7 +83,11 @@ jobs:
           # pas — quatre erreurs qui se corrigent de quatre façons différentes. Ce contrôle les
           # sépare. Il n'affiche jamais que la taille et les deux premiers octets : rien de la clé.
           RAW="$RUNNER_TEMP/cert.bin"
-          if ! printf '%s' "$MACOS_CERT_P12" | base64 --decode > "$RAW" 2>/dev/null; then
+          # Les espaces et retours à la ligne ne font pas partie du base64 : `base64 -i` en insère
+          # tous les 76 caractères, et un copier-coller peut en ajouter d'autres. On les retire
+          # avant de décoder plutôt que de faire échouer un secret qui n'a rien d'anormal.
+          CLEAN=$(printf '%s' "$MACOS_CERT_P12" | tr -d '[:space:]')
+          if ! printf '%s' "$CLEAN" | base64 --decode > "$RAW" 2>/dev/null; then
             echo "::error::MACOS_CERT_P12 n'est pas du base64 valide. Refaire : base64 -i certificat.p12 | pbcopy"
             exit 1
           fi
@@ -113,8 +117,24 @@ jobs:
             echo "::error::Le fichier est bien un .p12, mais MACOS_CERT_PASSWORD ne l'ouvre pas. C'est le mot de passe choisi au moment de l'export, pas le mot de passe de session ni l'Apple ID."
             exit 1
           else
-            echo "::error::Format non reconnu. Attendu : un .p12 exporté depuis Trousseau d'accès, encodé par « base64 -i certificat.p12 »."
-            openssl pkcs12 -in "$RAW" -passin "pass:$MACOS_CERT_PASSWORD" -nokeys -noout 2>&1 | head -5
+            echo "::error::Format non reconnu. Un .p12 commence toujours par les octets 30 82."
+            echo "Seize premiers octets : $(head -c 16 "$RAW" | xxd -p)"
+
+            # Un base64 amputé ou préfixé d'un caractère décale tout le flux de six bits : la
+            # taille reste plausible, le contenu est illisible. Si un décalage rétablit l'en-tête,
+            # c'est que le secret a été abîmé au copier-coller, pas mal fabriqué.
+            for SKIP in 1 2 3; do
+              if printf '%s' "${CLEAN:$SKIP}" | base64 --decode 2>/dev/null | head -c 2 | xxd -p | grep -q "^3082"; then
+                echo "::error::Le secret porte $SKIP caractère(s) parasite(s) en tête — le reste est un .p12 valide. Recopier la sortie de « base64 -i certificat.p12 » sans rien devant."
+                exit 1
+              fi
+            done
+            OFFSET=$(xxd -p "$RAW" | tr -d '\n' | head -c 512 | grep -bo "3082" | head -1 | cut -d: -f1)
+            if [ -n "$OFFSET" ]; then
+              echo "Un en-tête 30 82 apparaît à l'octet $((OFFSET / 2)) : le fichier est probablement préfixé."
+            fi
+            echo "Diagnostic OpenSSL :"
+            openssl pkcs12 -in "$RAW" -passin "pass:$MACOS_CERT_PASSWORD" -nokeys -noout 2>&1 | head -3
             exit 1
           fi
 
