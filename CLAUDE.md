@@ -28,5 +28,19 @@ relevés, dont un qui casse l'app en silence.
    nombre de highlights de la taille de HMMT — voir [docs/HILIGHT.md](docs/HILIGHT.md).
 2. **Une prise, un dossier.** Les chapitres d'une longue prise partagent le
    numéro de fichier GoPro. Si l'un est taggé, tous suivent.
-3. **Jamais d'effacement de la carte.** Et compilation sur le Mac, pas sur ce
-   serveur Linux saturé.
+3. **Jamais d'effacement de la carte.** L'effacement reste une action manuelle,
+   dans la caméra.
+
+## Où l'on se trouve
+
+Ce dépôt se travaille depuis deux machines, et la consigne n'est pas la même :
+
+- **Sur le serveur Linux de Xavier**, où le projet a été écrit : on écrit le code
+  et les décisions, on ne compile rien. La machine est saturée (~200 Mo de RAM
+  libre, swap au plafond) et Swift n'y est même pas installé. C'est
+  l'intégration continue qui compile et qui teste — voir
+  [.github/workflows/ci.yml](.github/workflows/ci.yml).
+- **Sur le Mac** : on compile, on lance, on essaie sur une vraie carte. Les
+  commandes exactes sont dans le [README](README.md), section « Construire sur
+  le Mac », et ce qu'il faut vérifier à la main dans
+  [VERIFICATION.md](VERIFICATION.md).
