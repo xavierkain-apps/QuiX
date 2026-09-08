@@ -71,6 +71,55 @@ jobs:
       - name: Version d'Xcode
         run: xcodebuild -version
 
+      - name: Contrôler le certificat avant de l'importer
+        if: env.HAS_SIGNING == 'true' && github.event_name != 'pull_request'
+        env:
+          MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+        run: |
+          # `security import` ne sait dire qu'une chose quand ça se passe mal :
+          # « Unknown format in import ». Ça ne distingue pas un secret qui n'est pas du base64,
+          # d'un certificat .cer sans clé privée, d'un PEM, ou d'un mot de passe qui ne correspond
+          # pas — quatre erreurs qui se corrigent de quatre façons différentes. Ce contrôle les
+          # sépare. Il n'affiche jamais que la taille et les deux premiers octets : rien de la clé.
+          RAW="$RUNNER_TEMP/cert.bin"
+          if ! printf '%s' "$MACOS_CERT_P12" | base64 --decode > "$RAW" 2>/dev/null; then
+            echo "::error::MACOS_CERT_P12 n'est pas du base64 valide. Refaire : base64 -i certificat.p12 | pbcopy"
+            exit 1
+          fi
+
+          SIZE=$(stat -f%z "$RAW" 2>/dev/null || echo 0)
+          echo "Décodé : $SIZE octets, débute par $(head -c 2 "$RAW" | xxd -p)"
+
+          if [ "$SIZE" -lt 500 ]; then
+            echo "::error::Le fichier décodé fait $SIZE octets — bien trop peu pour un .p12 (quelques kilo-octets). Le secret est probablement tronqué ou vide."
+            exit 1
+          fi
+
+          if head -c 11 "$RAW" | grep -q -- "-----BEGIN"; then
+            echo "::error::C'est un fichier PEM (texte), pas un .p12. Réexporter depuis Trousseau d'accès au format « Échange d'informations personnelles (.p12) »."
+            exit 1
+          fi
+
+          # OpenSSL 3 refuse par défaut le chiffrement hérité qu'utilise le Trousseau d'accès,
+          # d'où la seconde tentative avec -legacy. `security` accepte les deux.
+          if openssl pkcs12 -in "$RAW" -passin "pass:$MACOS_CERT_PASSWORD" -nokeys -noout 2>/dev/null \
+             || openssl pkcs12 -legacy -in "$RAW" -passin "pass:$MACOS_CERT_PASSWORD" -nokeys -noout 2>/dev/null; then
+            echo "PKCS#12 valide, et MACOS_CERT_PASSWORD correspond."
+          elif openssl x509 -inform DER -in "$RAW" -noout 2>/dev/null; then
+            echo "::error::C'est un certificat seul (.cer), sans la clé privée. Dans Trousseau d'accès, dérouler le certificat et exporter l'ensemble « certificat + clé » au format .p12 — pas le .cer téléchargé depuis le portail Apple."
+            exit 1
+          elif openssl pkcs12 -in "$RAW" -passin "pass:$MACOS_CERT_PASSWORD" -nokeys -noout 2>&1 | grep -qiE "mac verify|invalid password|wrong password"; then
+            echo "::error::Le fichier est bien un .p12, mais MACOS_CERT_PASSWORD ne l'ouvre pas. C'est le mot de passe choisi au moment de l'export, pas le mot de passe de session ni l'Apple ID."
+            exit 1
+          else
+            echo "::error::Format non reconnu. Attendu : un .p12 exporté depuis Trousseau d'accès, encodé par « base64 -i certificat.p12 »."
+            openssl pkcs12 -in "$RAW" -passin "pass:$MACOS_CERT_PASSWORD" -nokeys -noout 2>&1 | head -5
+            exit 1
+          fi
+
+          rm "$RAW"
+
       - name: Importer le certificat Developer ID
         if: env.HAS_SIGNING == 'true' && github.event_name != 'pull_request'
         env:
