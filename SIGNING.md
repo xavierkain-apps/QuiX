@@ -23,6 +23,10 @@ certificat qui signe toutes les apps distribuées hors App Store.
 base64 -i certificat.p12 | pbcopy
 ```
 
+La CI accepte aussi l'hexadécimal (`xxd -p certificat.p12 | pbcopy`) : ce sont les mêmes octets,
+et elle reconnaît lequel des deux elle a reçu. Ce qu'elle ne peut pas deviner, c'est un `.cer`
+téléchargé depuis le portail Apple — il ne contient pas la clé privée.
+
 **3. Le mot de passe d'application.** https://account.apple.com ▸ Connexion et sécurité ▸
 **Mots de passe d'application** ▸ en créer un, nom « CI apps macOS ». Ce n'est **pas** le mot de
 passe Apple.

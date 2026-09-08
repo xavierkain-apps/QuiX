@@ -82,13 +82,22 @@ jobs:
           # d'un certificat .cer sans clé privée, d'un PEM, ou d'un mot de passe qui ne correspond
           # pas — quatre erreurs qui se corrigent de quatre façons différentes. Ce contrôle les
           # sépare. Il n'affiche jamais que la taille et les deux premiers octets : rien de la clé.
-          RAW="$RUNNER_TEMP/cert.bin"
-          # Les espaces et retours à la ligne ne font pas partie du base64 : `base64 -i` en insère
-          # tous les 76 caractères, et un copier-coller peut en ajouter d'autres. On les retire
-          # avant de décoder plutôt que de faire échouer un secret qui n'a rien d'anormal.
+          RAW="$RUNNER_TEMP/cert.p12"
+          # Les espaces et retours à la ligne ne font pas partie de l'encodage : `base64 -i` en
+          # insère tous les 76 caractères, et un copier-coller peut en ajouter d'autres.
           CLEAN=$(printf '%s' "$MACOS_CERT_P12" | tr -d '[:space:]')
-          if ! printf '%s' "$CLEAN" | base64 --decode > "$RAW" 2>/dev/null; then
-            echo "::error::MACOS_CERT_P12 n'est pas du base64 valide. Refaire : base64 -i certificat.p12 | pbcopy"
+
+          # Deux encodages sont acceptés, parce que les deux se fabriquent en une commande sur un
+          # Mac et qu'ils portent exactement les mêmes octets : `base64 -i cert.p12` et
+          # `xxd -p cert.p12`. Ils se distinguent sans ambiguïté — un .p12 commence par les octets
+          # 30 82, ce qui donne « MII… » en base64 et « 3082… » en hexadécimal.
+          if printf '%s' "$CLEAN" | head -c 4 | grep -qiE '^3082$'; then
+            echo "MACOS_CERT_P12 fourni en hexadécimal."
+            printf '%s' "$CLEAN" | xxd -r -p > "$RAW"
+          elif printf '%s' "$CLEAN" | base64 --decode > "$RAW" 2>/dev/null; then
+            echo "MACOS_CERT_P12 fourni en base64."
+          else
+            echo "::error::MACOS_CERT_P12 n'est ni du base64 ni de l'hexadécimal. Refaire : base64 -i certificat.p12 | pbcopy"
             exit 1
           fi
 
@@ -138,17 +147,15 @@ jobs:
             exit 1
           fi
 
-          rm "$RAW"
+          echo "Certificat validé, laissé dans \$RUNNER_TEMP pour l'étape suivante."
 
       - name: Importer le certificat Developer ID
         if: env.HAS_SIGNING == 'true' && github.event_name != 'pull_request'
         env:
-          MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
           MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
         run: |
           KEYCHAIN_PASSWORD="$(uuidgen)"
           KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
-          echo "$MACOS_CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
           security set-keychain-settings -lut 3600 "$KEYCHAIN"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
