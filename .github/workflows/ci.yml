@@ -122,9 +122,15 @@ jobs:
           elif openssl x509 -inform DER -in "$RAW" -noout 2>/dev/null; then
             echo "::error::C'est un certificat seul (.cer), sans la clé privée. Dans Trousseau d'accès, dérouler le certificat et exporter l'ensemble « certificat + clé » au format .p12 — pas le .cer téléchargé depuis le portail Apple."
             exit 1
-          elif openssl pkcs12 -in "$RAW" -passin "pass:$MACOS_CERT_PASSWORD" -nokeys -noout 2>&1 | grep -qiE "mac verify|invalid password|wrong password"; then
-            echo "::error::Le fichier est bien un .p12, mais MACOS_CERT_PASSWORD ne l'ouvre pas. C'est le mot de passe choisi au moment de l'export, pas le mot de passe de session ni l'Apple ID."
+          elif openssl pkcs12 -in "$RAW" -passin "pass:" -nokeys -noout 2>/dev/null \
+             || openssl pkcs12 -legacy -in "$RAW" -passin "pass:" -nokeys -noout 2>/dev/null; then
+            echo "::error::Le .p12 s'ouvre sans mot de passe, mais MACOS_CERT_PASSWORD en contient un. Vider le secret, ou réexporter le certificat en choisissant un mot de passe."
             exit 1
+          elif openssl pkcs12 -in "$RAW" -passin "pass:$MACOS_CERT_PASSWORD" -nokeys -noout 2>&1 | grep -qiE "mac verify|invalid password|wrong password"; then
+            # Verdict consultatif : `security import` est le seul juge qui compte, et il accepte
+            # des chiffrements hérités qu'OpenSSL 3 refuse. On avertit et on le laisse trancher
+            # plutôt que de bloquer un certificat qui aurait peut-être marché.
+            echo "::warning::OpenSSL n'ouvre pas ce .p12 avec MACOS_CERT_PASSWORD. Si l'import échoue juste après, c'est que le mot de passe n'est pas celui choisi à l'export du certificat."
           else
             echo "::error::Format non reconnu. Un .p12 commence toujours par les octets 30 82."
             echo "Seize premiers octets : $(head -c 16 "$RAW" | xxd -p)"
