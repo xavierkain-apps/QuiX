@@ -43,12 +43,12 @@ caractères.
 https://github.com/organizations/xavierkain-apps/settings/secrets/actions ▸ **New organization
 secret**, cinq fois.
 
-Pour chacun, choisir **Repository access : All repositories**.
+Pour chacun, **Repository access : Public repositories**.
 
-C'est le réglage qui fait la différence. « Selected repositories » demanderait d'ajouter chaque
-nouvelle app à la main dans les cinq secrets ; « All repositories » veut dire qu'un dépôt créé
-demain dans l'organisation les a déjà. C'est une organisation privée qui ne contient que les apps
-de Xavier : il n'y a personne à qui les cacher.
+C'est le seul choix disponible : l'organisation est en plan **Free**, où GitHub écrit noir sur blanc
+« Organization secrets cannot be used by private repositories with your plan ». C'est pour cette
+raison que QuiX est un dépôt **public**. Le contenu des échantillons a été audité avant l'ouverture,
+voir plus bas.
 
 En ligne de commande, si tu préfères — il faut d'abord élargir le jeton, `gh` ne demande pas le
 scope `admin:org` par défaut :
@@ -63,23 +63,31 @@ gh secret set APPLE_APP_PASSWORD  --org xavierkain-apps --visibility all
 gh secret set APPLE_TEAM_ID       --org xavierkain-apps --visibility all
 ```
 
+(`--visibility all` vaut « tous les dépôts auxquels le plan donne droit », soit les publics ici.)
+
 ## Vérifier
 
-Pousser un commit sur QuiX. Dans le job « App — bundle macOS », les étapes **Importer le
-certificat Developer ID** et **Notariser** doivent **apparaître au lieu d'être sautées**, et
-l'étape de vérification doit répondre `accepted` à `spctl --assess`. C'est un signal sans
-ambiguïté : soit les deux étapes tournent, soit elles sont grisées.
+Pousser un commit. Dans le job « App — bundle macOS », les étapes **Importer le certificat
+Developer ID** et **Notariser** doivent **apparaître au lieu d'être sautées**, et l'étape de
+vérification doit répondre `accepted` à `spctl --assess`. C'est un signal sans ambiguïté : soit les
+deux étapes tournent, soit elles sont grisées.
 
-### Si elles restent grisées
+## Ce qu'un dépôt public change
 
-L'organisation est en plan **Free**. GitHub y restreint certaines fonctions d'Actions sur les
-dépôts privés, et je n'ai pas pu vérifier depuis ce serveur si les secrets d'organisation en font
-partie — le jeton n'a pas le scope `admin:org`. Le test ci-dessus tranche en une minute.
+**Le certificat reste hors d'atteinte.** GitHub retient les secrets sur toute proposition de
+modification venue d'un fork, et le workflow ajoute la garde explicite : les étapes de signature ne
+tournent que sur un `push`, jamais sur une `pull_request`. Le droit d'écriture du jeton est réduit
+au seul job qui publie une release.
 
-Si les secrets d'organisation ne passent pas sur un dépôt privé Free, il reste deux issues : poser
-les cinq secrets sur chaque dépôt (deux minutes par app, la situation actuelle de FCP CleanX), ou
-passer l'organisation en plan Team. Rien d'autre à changer dans le code : le workflow lit les
-secrets au même endroit dans les deux cas.
+**Les minutes deviennent gratuites.** Les exécuteurs standards sont sans quota sur un dépôt public,
+macOS compris. La contrainte des 2 000 minutes mensuelles de l'organisation ne s'applique plus à
+QuiX — elle ne concerne plus que les dépôts restés privés.
+
+**Les échantillons ont été nettoyés.** Voir
+[Core/Tests/QuiXCoreTests/Fixtures/README.md](Core/Tests/QuiXCoreTests/Fixtures/README.md) : les
+numéros de série de la caméra et de l'objectif, et l'empreinte binaire du boîtier, ont été
+remplacés par des zéros avant l'ouverture du dépôt — historique git réécrit compris. Aucune donnée
+GPS n'a jamais été présente : la télémétrie vit dans le `mdat`, qui n'est pas dans les échantillons.
 
 ## Ce que les secrets ne font pas tout seuls
 
@@ -88,10 +96,9 @@ Les secrets ne signent rien ; c'est `.github/workflows/ci.yml` qui les utilise. 
 app, copier le job « App — bundle macOS » de QuiX et remplacer le nom du projet, du schéma et du
 bundle suffit — c'est le seul fichier à reprendre.
 
-## Le coût en minutes
+## Pour la prochaine app
 
-Les exécuteurs macOS comptent **dix fois** leur temps réel dans le quota Actions. Le plan Free de
-l'organisation donne 2 000 minutes par mois, soit environ **200 minutes de macOS réelles** — le job
-de QuiX en consomme un peu plus d'une par push. Largement suffisant, mais c'est partagé avec FCP
-CleanX et les suivantes : à surveiller le jour où il y aura quatre apps qui compilent à chaque
-commit.
+Si elle est publique, elle hérite des cinq secrets sans rien faire, et ses minutes sont gratuites.
+
+Si elle doit rester privée, les secrets d'organisation ne l'atteindront pas : il faudra les reposer
+sur son dépôt, comme pour FCP CleanX aujourd'hui, ou passer l'organisation en plan Team.

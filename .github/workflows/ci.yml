@@ -1,7 +1,7 @@
 name: CI
 
 permissions:
-  contents: write
+  contents: read
 
 # Un exécuteur macOS compte dix fois son temps réel dans le quota Actions : un push sur QuiX pèse
 # onze minutes, dont dix pour la seule minute de compilation du bundle. Le plan Free de
@@ -58,6 +58,9 @@ jobs:
   app:
     name: App — bundle macOS
     runs-on: macos-latest
+    permissions:
+      # Le seul droit d'écriture du dépôt, et uniquement pour publier la release sur un tag.
+      contents: write
     env:
       # Signature Developer ID + notarisation dès que les secrets existent, signature ad hoc
       # sinon. Le même dépôt produit donc un bundle dans les deux cas — voir SIGNING.md.
@@ -69,7 +72,7 @@ jobs:
         run: xcodebuild -version
 
       - name: Importer le certificat Developer ID
-        if: env.HAS_SIGNING == 'true'
+        if: env.HAS_SIGNING == 'true' && github.event_name != 'pull_request'
         env:
           MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
           MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
@@ -98,7 +101,7 @@ jobs:
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          if [ "$HAS_SIGNING" = "true" ]; then
+          if [ "$HAS_SIGNING" = "true" ] && [ -n "$CODESIGN_IDENTITY" ]; then
             SIGN_ARGS=(
               CODE_SIGN_STYLE=Manual
               "CODE_SIGN_IDENTITY=$CODESIGN_IDENTITY"
@@ -123,7 +126,7 @@ jobs:
           echo "APP=build/Build/Products/Release/QuiX.app" >> "$GITHUB_ENV"
 
       - name: Notariser
-        if: env.HAS_SIGNING == 'true'
+        if: env.HAS_SIGNING == 'true' && github.event_name != 'pull_request'
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
@@ -157,7 +160,7 @@ jobs:
 
           codesign --verify --deep --strict --verbose=2 "$APP"
 
-          if [ "$HAS_SIGNING" = "true" ]; then
+          if [ -n "$CODESIGN_IDENTITY" ]; then
             codesign --display --verbose=4 "$APP" 2>&1 | grep -q "flags=.*runtime" \
               || { echo "::error::runtime durci absent, la notarisation ne tiendra pas"; exit 1; }
             spctl --assess --type execute --verbose "$APP"
