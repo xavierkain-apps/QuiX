@@ -76,6 +76,18 @@ Developer ID** et **Notariser** doivent **apparaître au lieu d'être sautées**
 vérification doit répondre `accepted` à `spctl --assess`. C'est un signal sans ambiguïté : soit les
 deux étapes tournent, soit elles sont grisées.
 
+## Deux pièges rencontrés, et réglés
+
+**Le certificat peut être fourni en hexadécimal.** `xxd -p certificat.p12` et
+`base64 -i certificat.p12` portent les mêmes octets ; la CI reconnaît lequel elle a reçu. Ce qu'elle
+refuse, à raison, c'est un `.cer` du portail Apple — il ne contient pas la clé privée.
+
+**`xcodebuild build` injecte un entitlement de débogage.** `com.apple.security.get-task-allow`
+autorise un débogueur à s'attacher au processus : normal en développement, refusé par Apple à la
+notarisation. `CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO` le retire, et la vérification le contrôle
+avant chaque soumission — une seconde ici plutôt que deux minutes d'aller-retour chez Apple pour un
+message qui ne dit pas comment s'en défaire.
+
 ## Ce qu'un dépôt public change
 
 **Le certificat reste hors d'atteinte.** GitHub retient les secrets sur toute proposition de
