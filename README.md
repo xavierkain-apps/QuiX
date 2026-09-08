@@ -148,9 +148,9 @@ panneau — elle ne se contente pas de rester vide.
 
 ### Ouvrir QuiX au branchement
 
-Une case dans la fenêtre. Quand elle est cochée, brancher la GoPro ouvre QuiX et l'import démarre —
-sous réserve de « Demander confirmation », qui garde la main si vous branchez seulement pour
-recharger.
+Une case dans la fenêtre. Quand elle est cochée, brancher la GoPro ouvre QuiX **au premier plan** et
+l'import démarre — sous réserve de « Demander confirmation », qui garde la main si vous branchez
+seulement pour recharger.
 
 QuiX ne tourne pas en attendant : il n'y a pas de processus résident, pas d'icône dans la barre des
 menus. C'est `launchd` qui le réveille à l'apparition du périphérique USB, et rien n'existe tant

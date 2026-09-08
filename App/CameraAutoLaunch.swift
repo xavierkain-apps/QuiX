@@ -11,6 +11,11 @@ import Foundation
 /// tourne déjà : `open` se contente d'activer l'app existante. Lancer directement le binaire
 /// donnerait deux fenêtres et deux imports concurrents sur la même carte.
 ///
+/// L'app passe **au premier plan**. On avait d'abord ouvert en arrière-plan pour ne pas couper le
+/// travail en cours, mais brancher sa caméra est une intention explicite : la fenêtre qu'on
+/// cherche du regard doit être là. `open` sans `-g` s'en charge, et `QuiXApp` complète en
+/// s'activant au démarrage — une app réveillée par `launchd` ne passe pas toujours devant d'elle-même.
+///
 /// Trois détails de l'appariement ont été trouvés à l'essai, et aucun n'est devinable — un agent
 /// qui n'apparie rien ne se plaint pas, il ne se déclenche simplement jamais :
 ///
@@ -44,14 +49,26 @@ enum CameraAutoLaunch {
         return launchctl(["print", "gui/\(getuid())/\(label)"]) == 0
     }
 
-    @discardableResult
-    static func enable() -> Bool {
+    /// Remet l'agent à jour s'il date d'une version précédente de l'app.
+    ///
+    /// Sans ça, un agent installé une fois garderait pour toujours le comportement qu'il avait au
+    /// moment où on a coché la case — ici, une app qui s'ouvrait derrière les autres. On ne le
+    /// réécrit que s'il diffère : recharger un agent à chaque démarrage pour rien serait une
+    /// façon discrète de le rendre instable.
+    static func refreshIfOutdated() {
+        guard FileManager.default.fileExists(atPath: plistURL.path) else { return }
+        guard let onDisk = NSDictionary(contentsOf: plistURL) as? [String: Any] else { return }
+        let wanted = agent()
+        guard !NSDictionary(dictionary: onDisk).isEqual(to: wanted) else { return }
+        enable()
+    }
+
+    /// La définition de l'agent, telle qu'elle doit être sur le disque.
+    private static func agent() -> [String: Any] {
         let bundle = Bundle.main.bundleURL.path
         let plist: [String: Any] = [
             "Label": label,
-            // `-g` : ouvrir sans passer devant ce que fait l'utilisateur. Il verra la fenêtre en
-            // revenant, plutôt que de se la prendre au milieu d'autre chose.
-            "ProgramArguments": ["/usr/bin/open", "-g", "-a", bundle],
+            "ProgramArguments": ["/usr/bin/open", "-a", bundle],
             "LaunchEvents": [
                 "com.apple.iokit.matching": [
                     "com.apple.device-attach": [
@@ -67,6 +84,12 @@ enum CameraAutoLaunch {
             "RunAtLoad": false,
             "KeepAlive": false,
         ]
+        return plist
+    }
+
+    @discardableResult
+    static func enable() -> Bool {
+        let plist = agent()
 
         do {
             try FileManager.default.createDirectory(
