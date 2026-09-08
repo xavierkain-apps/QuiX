@@ -2,8 +2,9 @@ import Foundation
 
 /// Repérage et lecture d'une carte GoPro montée comme un volume ordinaire.
 ///
-/// Le chemin nominal, c'est la carte dans un lecteur : elle apparaît sous `/Volumes/`, la copie est
-/// nettement plus rapide qu'en USB, et il n'y a pas de MTP à piloter.
+/// C'est le chemin le plus rapide : la carte apparaît sous `/Volumes/` et la copie va nettement
+/// plus vite que par le câble. L'autre source — la caméra branchée en USB-C, qui n'expose aucun
+/// volume — est traitée par `CameraScanner`, avec le même contrat et les mêmes `Take`.
 public enum CardScanner {
 
     /// Ce que le scan a trouvé.

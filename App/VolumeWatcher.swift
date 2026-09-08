@@ -2,9 +2,9 @@ import AppKit
 
 /// Surveille les volumes montés et démontés.
 ///
-/// Le chemin nominal, c'est la carte dans un lecteur : elle apparaît sous `/Volumes/` comme
-/// n'importe quel disque. La caméra branchée en USB se présente en MTP, que `NSWorkspace` ne voit
-/// pas — c'est une extension éventuelle, pas le chemin d'aujourd'hui.
+/// Ne concerne que la carte dans un lecteur : elle apparaît sous `/Volumes/` comme n'importe quel
+/// disque. La caméra branchée en USB-C, elle, n'expose aucun volume — elle monte un réseau et se
+/// lit en HTTP ; c'est `CameraWatcher` qui s'en occupe.
 @MainActor
 final class VolumeWatcher {
 

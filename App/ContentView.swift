@@ -23,15 +23,37 @@ struct ContentView: View {
         switch model.stage {
 
         case .waiting:
-            Message(title: "Branchez la carte GoPro",
+            Message(title: "Branchez la GoPro",
                     detail: model.preferences.library == nil
                         ? "Choisissez d'abord où ranger les clips."
-                        : "L'import démarrera tout seul.",
+                        : "Par le câble USB-C ou la carte dans un lecteur. L'import démarrera tout seul.",
                     symbol: "sdcard")
+
+        case .needsLocalNetwork:
+            // Le seul état où l'app est bloquée par une autorisation. Il est explicite plutôt que
+            // silencieux : sans ça, une caméra branchée et une permission refusée se ressemblent
+            // exactement — l'app a l'air de ne rien voir.
+            VStack(alignment: .leading, spacing: 12) {
+                Label("Autorisation requise", systemImage: "exclamationmark.triangle.fill")
+                    .font(.title2).foregroundStyle(.orange)
+                Text("Votre GoPro est branchée, mais macOS empêche QuiX de lui parler.")
+                Text("Branchée en USB-C, la caméra se présente comme un périphérique réseau. "
+                     + "Il faut donc autoriser QuiX dans « Réseau local ».")
+                    .font(.callout).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack {
+                    Button("Ouvrir les Réglages…") { model.openLocalNetworkSettings() }
+                        .keyboardShortcut(.defaultAction)
+                    Button("Revérifier") { model.recheckCamera() }
+                }
+                Text("Réglages Système → Confidentialité et sécurité → Réseau local → activer QuiX.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
 
         case .scanning(let done, let total):
             VStack(alignment: .leading, spacing: 12) {
-                Text("Lecture de la carte").font(.title2)
+                Text(model.camera != nil ? "Lecture de la caméra" : "Lecture de la carte")
+                    .font(.title2)
                 if total > 0 {
                     ProgressView(value: Double(done), total: Double(total))
                     Text("\(done) clip(s) sur \(total)").foregroundStyle(.secondary)
@@ -44,7 +66,7 @@ struct ContentView: View {
 
         case .needsLibrary(let result):
             VStack(alignment: .leading, spacing: 12) {
-                Text("Carte GoPro détectée").font(.title2)
+                Text(model.cameraName ?? "Carte GoPro détectée").font(.title2)
                 Text(summary(of: result))
                 Text("Il reste à choisir où ranger les clips.").foregroundStyle(.secondary)
                 Button("Choisir le dossier d'import…") { model.chooseLibrary() }
@@ -53,7 +75,7 @@ struct ContentView: View {
 
         case .ready(let result, let plan):
             VStack(alignment: .leading, spacing: 12) {
-                Text("Carte GoPro détectée").font(.title2)
+                Text(model.cameraName ?? "Carte GoPro détectée").font(.title2)
                 Text(summary(of: result))
                 if plan.isEmpty {
                     Text("Tout est déjà importé. Rien à copier.").foregroundStyle(.secondary)

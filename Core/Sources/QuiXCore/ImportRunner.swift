@@ -80,20 +80,37 @@ public enum ImportRunner {
                                     bytesCopied: completedBytes,
                                     byteCount: plan.byteCount))
 
+            let onBytes: (UInt64) -> Void = { bytes in
+                progress(ImportProgress(fileIndex: position,
+                                        fileCount: plan.copies.count,
+                                        currentFile: planned.source.filename,
+                                        bytesCopied: completedBytes + bytes,
+                                        byteCount: plan.byteCount))
+            }
+
             do {
-                try VerifiedCopy.copy(
-                    from: planned.source.url,
-                    to: planned.destination,
-                    fileManager: fileManager,
-                    isCancelled: isCancelled,
-                    progress: { bytes in
-                        progress(ImportProgress(fileIndex: position,
-                                                fileCount: plan.copies.count,
-                                                currentFile: planned.source.filename,
-                                                bytesCopied: completedBytes + bytes,
-                                                byteCount: plan.byteCount))
-                    }
-                )
+                // La source décide de la manière, pas de la garantie : carte montée ou caméra en
+                // USB, les deux chemins écrivent dans un temporaire, vérifient l'empreinte relue,
+                // et ne renomment qu'ensuite.
+                if planned.source.url.isFileURL {
+                    try VerifiedCopy.copy(
+                        from: planned.source.url,
+                        to: planned.destination,
+                        fileManager: fileManager,
+                        isCancelled: isCancelled,
+                        progress: onBytes
+                    )
+                } else {
+                    try RemoteVerifiedCopy.copy(
+                        from: planned.source.url,
+                        expectedSize: planned.source.size,
+                        modified: planned.source.modified,
+                        to: planned.destination,
+                        fileManager: fileManager,
+                        isCancelled: isCancelled,
+                        progress: onBytes
+                    )
+                }
 
                 completedBytes += planned.source.size
                 copied.append(planned)
