@@ -165,8 +165,22 @@ jobs:
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
           security set-keychain-settings -lut 3600 "$KEYCHAIN"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
-          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" \
-            -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign
+          # Un mot de passe collé depuis un gestionnaire emporte souvent une espace ou un retour
+          # à la ligne. On tente tel quel — un mot de passe a le droit de finir par une espace —
+          # puis rogné, en le disant.
+          if ! security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" \
+               -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign 2>/dev/null; then
+            TRIMMED=$(printf '%s' "$MACOS_CERT_PASSWORD" | tr -d '[:space:]')
+            if [ "$TRIMMED" != "$MACOS_CERT_PASSWORD" ] && security import "$RUNNER_TEMP/cert.p12" \
+                 -k "$KEYCHAIN" -P "$TRIMMED" -T /usr/bin/codesign 2>/dev/null; then
+              echo "::warning::MACOS_CERT_PASSWORD contenait des espaces ou un retour à la ligne parasites. À nettoyer dans le secret."
+            else
+              echo "::error::MACOS_CERT_PASSWORD n'ouvre pas le certificat. C'est le mot de passe choisi au moment de l'export .p12 depuis Trousseau d'accès — ni le mot de passe de session, ni l'Apple ID, ni le mot de passe d'application."
+              security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" \
+                -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign
+              exit 1
+            fi
+          fi
           security set-key-partition-list -S apple-tool:,apple: \
             -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" > /dev/null
           security list-keychains -d user -s "$KEYCHAIN" login.keychain-db
