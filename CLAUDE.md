@@ -31,8 +31,12 @@ pas un disque, mais un serveur HTTP. À lire avant de toucher au chemin USB.
    nombre de highlights de la taille de HMMT — voir [docs/HILIGHT.md](docs/HILIGHT.md).
 2. **Une prise, un dossier.** Les chapitres d'une longue prise partagent le
    numéro de fichier GoPro. Si l'un est taggé, tous suivent.
-3. **Jamais d'effacement de la carte.** L'effacement reste une action manuelle,
-   dans la caméra.
+3. **L'effacement ne part jamais tout seul.** Il existe désormais un bouton, dans
+   le compte rendu d'import, qui efface les clips de la caméra. Trois verrous le
+   tiennent : le bouton n'apparaît que si **chaque** fichier de la caméra est
+   retrouvé sur le Mac à la bonne taille, une alerte demande confirmation, et
+   `CameraCleanup.erase` refuse de son côté tout plan non vérifié. Rien dans une
+   détection ni dans une fin d'import ne l'enclenche.
 4. **La caméra en USB n'est pas un disque.** Elle n'expose aucun stockage de masse :
    elle monte un réseau et répond en HTTP. Le tri y reste gratuit parce qu'elle
    honore `Range` — mesuré, pas supposé. Voir [docs/USB.md](docs/USB.md).

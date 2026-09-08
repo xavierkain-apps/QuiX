@@ -135,3 +135,136 @@ final class RemoteCopyTests: XCTestCase {
                        shot.timeIntervalSince1970, accuracy: 2)
     }
 }
+
+/// La reprise d'un transfert coupé.
+///
+/// Un import USB pèse des gigaoctets et le câble se débranche : recommencer de zéro coûtait cher
+/// alors que la caméra honore `Range`. Ce qui se teste ici n'est pas seulement « ça reprend », mais
+/// que la reprise ne casse pas la chaîne de vérification.
+final class ResumeTests: XCTestCase {
+
+    private var directory: URL!
+    private let payload: [UInt8] = (0..<400_000).map { UInt8($0 % 251) }
+
+    override func setUpWithError() throws {
+        directory = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("quix-resume-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    }
+
+    override func tearDownWithError() throws {
+        try? FileManager.default.removeItem(at: directory)
+    }
+
+    private func partial(_ destination: URL) -> URL {
+        URL(fileURLWithPath: destination.path + VerifiedCopy.partialSuffix)
+    }
+    private func state(_ destination: URL) -> URL {
+        URL(fileURLWithPath: partial(destination).path + RemoteVerifiedCopy.stateSuffix)
+    }
+
+    /// Coupure puis reprise : le fichier final doit être exactement le contenu servi.
+    func testResumesWhereTheTransferStopped() throws {
+        let destination = directory.appendingPathComponent("GX010001.MP4")
+
+        let cut = try TinyHTTPServer(payload: payload, cutAfter: 150_000)
+        XCTAssertThrowsError(try RemoteVerifiedCopy.copy(
+            from: cut.baseURL, expectedSize: UInt64(payload.count),
+            modified: nil, to: destination))
+        cut.stop()
+
+        // Les octets reçus sont gardés, et l'état note où l'on en était.
+        XCTAssertTrue(FileManager.default.fileExists(atPath: partial(destination).path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: state(destination).path))
+        // Combien d'octets ont franchi le câble avant la coupure dépend du tampon réseau : ce qui
+        // compte est qu'il en reste, et pas la totalité.
+        let kept = ImportPlanner.sizeOnDisk(partial(destination)) ?? 0
+        XCTAssertGreaterThan(kept, 0)
+        XCTAssertLessThan(kept, UInt64(payload.count))
+
+        let whole = try TinyHTTPServer(payload: payload)
+        defer { whole.stop() }
+        try RemoteVerifiedCopy.copy(from: whole.baseURL, expectedSize: UInt64(payload.count),
+                                    modified: nil, to: destination)
+
+        XCTAssertEqual([UInt8](try Data(contentsOf: destination)), payload)
+        // Ni temporaire ni état ne survivent à une copie réussie.
+        XCTAssertFalse(FileManager.default.fileExists(atPath: partial(destination).path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: state(destination).path))
+    }
+
+    /// Le cas qui justifie le fichier d'état : un temporaire modifié depuis la coupure ne doit
+    /// **jamais** être repris, sinon la vérification finale comparerait le disque à lui-même et
+    /// laisserait passer un clip corrompu sans rien signaler.
+    func testRefusesToResumeOnATamperedPartial() throws {
+        let destination = directory.appendingPathComponent("GX010002.MP4")
+
+        let cut = try TinyHTTPServer(payload: payload, cutAfter: 100_000)
+        XCTAssertThrowsError(try RemoteVerifiedCopy.copy(
+            from: cut.baseURL, expectedSize: UInt64(payload.count),
+            modified: nil, to: destination))
+        cut.stop()
+
+        // On abîme un octet au milieu, sans toucher à la taille.
+        var damaged = [UInt8](try Data(contentsOf: partial(destination)))
+        try XCTSkipIf(damaged.isEmpty, "rien n'a été reçu avant la coupure")
+        damaged[damaged.count / 2] ^= 0xFF
+        try Data(damaged).write(to: partial(destination))
+
+        XCTAssertNil(RemoteVerifiedCopy.resumePoint(
+            temporary: partial(destination), state: state(destination),
+            expectedSize: UInt64(payload.count), fileManager: .default))
+
+        // Et la copie repart de zéro, donc rend le bon contenu malgré le temporaire abîmé.
+        let whole = try TinyHTTPServer(payload: payload)
+        defer { whole.stop() }
+        try RemoteVerifiedCopy.copy(from: whole.baseURL, expectedSize: UInt64(payload.count),
+                                    modified: nil, to: destination)
+        XCTAssertEqual([UInt8](try Data(contentsOf: destination)), payload)
+    }
+
+    /// Un temporaire dont la taille ne correspond plus à l'état n'est pas repris non plus.
+    func testRefusesToResumeOnASizeThatDoesNotMatchTheState() throws {
+        let destination = directory.appendingPathComponent("GX010003.MP4")
+        let cut = try TinyHTTPServer(payload: payload, cutAfter: 80_000)
+        XCTAssertThrowsError(try RemoteVerifiedCopy.copy(
+            from: cut.baseURL, expectedSize: UInt64(payload.count),
+            modified: nil, to: destination))
+        cut.stop()
+
+        let received = [UInt8](try Data(contentsOf: partial(destination)))
+        try XCTSkipIf(received.count < 2, "rien n'a été reçu avant la coupure")
+        try Data(received.dropLast(received.count / 4)).write(to: partial(destination))
+
+        XCTAssertNil(RemoteVerifiedCopy.resumePoint(
+            temporary: partial(destination), state: state(destination),
+            expectedSize: UInt64(payload.count), fileManager: .default))
+    }
+
+    /// Sans fichier d'état, on ne devine pas : on repart de zéro.
+    func testDoesNotResumeWithoutState() throws {
+        let destination = directory.appendingPathComponent("GX010004.MP4")
+        try Data(Array(payload.prefix(1_000))).write(to: partial(destination))
+        XCTAssertNil(RemoteVerifiedCopy.resumePoint(
+            temporary: partial(destination), state: state(destination),
+            expectedSize: UInt64(payload.count), fileManager: .default))
+    }
+
+    /// Une reprise demandée à un serveur qui ignore `Range` ne doit pas coller le fichier entier
+    /// derrière ce qu'on avait déjà.
+    func testAServerThatIgnoresRangeStartsOver() throws {
+        let destination = directory.appendingPathComponent("GX010005.MP4")
+
+        let cut = try TinyHTTPServer(payload: payload, cutAfter: 120_000)
+        XCTAssertThrowsError(try RemoteVerifiedCopy.copy(
+            from: cut.baseURL, expectedSize: UInt64(payload.count),
+            modified: nil, to: destination))
+        cut.stop()
+
+        let deaf = try TinyHTTPServer(payload: payload, honoursRange: false)
+        defer { deaf.stop() }
+        try RemoteVerifiedCopy.copy(from: deaf.baseURL, expectedSize: UInt64(payload.count),
+                                    modified: nil, to: destination)
+        XCTAssertEqual([UInt8](try Data(contentsOf: destination)), payload)
+    }
+}

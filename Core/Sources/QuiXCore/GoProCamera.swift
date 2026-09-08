@@ -140,6 +140,15 @@ public struct GoProCamera: Sendable, Equatable {
         return files.sorted { ($0.folder, $0.filename) < ($1.folder, $1.filename) }
     }
 
+    /// Efface un fichier de la carte, à travers la caméra.
+    ///
+    /// Le seul appel de tout QuiX qui détruit quelque chose. Il n'est jamais émis par une
+    /// détection ni par une fin d'import : uniquement depuis `CameraCleanup.erase`, qui exige que
+    /// la copie de chaque fichier soit prouvée sur le Mac au préalable.
+    public func delete(folder: String, filename: String, timeout: TimeInterval = 20) throws {
+        _ = try get(path: "/gopro/media/delete/file?path=\(folder)/\(filename)", timeout: timeout)
+    }
+
     /// L'URL de téléchargement d'un fichier de la carte.
     public func mediaURL(folder: String, filename: String) -> URL {
         baseURL.appendingPathComponent("videos/DCIM/\(folder)/\(filename)")

@@ -30,6 +30,15 @@ final class ImportModel {
     private(set) var camera: GoProCamera?
     private(set) var cameraName: String?
 
+    /// Le comparatif caméra ↔ Mac, calculé après un import depuis la caméra. `nil` pour une carte :
+    /// l'effacement ne concerne que la caméra, une carte se formate dans l'appareil.
+    private(set) var cleanup: CameraCleanup.Plan?
+    private(set) var erasing = false
+    private(set) var eraseOutcome: CameraCleanup.Outcome?
+
+    /// La dernière analyse, gardée pour établir le comparatif sans relire la caméra.
+    private var lastScan: CardScanner.Result?
+
     let preferences: Preferences
     private var watcher: VolumeWatcher?
     private var cameraWatcher: CameraWatcher?
@@ -162,6 +171,7 @@ final class ImportModel {
     }
 
     private func planOrAsk(_ result: CardScanner.Result) {
+        lastScan = result
         // Sans dossier d'import, rien ne part : la carte est lue, il ne manque que la destination.
         guard let library = preferences.library else {
             stage = .needsLibrary(result)
@@ -173,6 +183,10 @@ final class ImportModel {
                                       folderName: ImportFolderName.iso(for: Date()), index: index)
 
         if preferences.askBeforeImporting || plan.isEmpty {
+            // Le cas le plus fréquent une fois la carte à jour : plus rien à copier. C'est
+            // justement là qu'on veut pouvoir vider la caméra, donc le comparatif doit exister
+            // sans attendre un import qui n'aura pas lieu.
+            if plan.isEmpty { refreshCleanup() }
             stage = .ready(result, plan)
         } else {
             start(plan)
@@ -224,6 +238,71 @@ final class ImportModel {
     private func importFinished(_ report: ImportReport) {
         cancellation = nil
         stage = .finished(report)
+        eraseOutcome = nil
+        refreshCleanup()
+        announce(report)
+    }
+
+    /// Le comparatif entre ce que porte la caméra et ce qui est prouvé sur le Mac.
+    ///
+    /// Recalculé à partir du disque à chaque fois, jamais mémorisé : c'est ce qui fait que la
+    /// suppression d'un dossier derrière le dos de l'app retient l'effacement.
+    private func refreshCleanup() {
+        guard camera != nil, let library = preferences.library, let scan = lastScan else {
+            cleanup = nil
+            return
+        }
+        cleanup = CameraCleanup.plan(takes: scan.takes, library: library,
+                                     index: ImportIndexStore.load(fromLibrary: library))
+    }
+
+    private func announce(_ report: ImportReport) {
+        guard !report.copied.isEmpty || !report.failures.isEmpty else { return }
+        let clips = report.copied.count == 1 ? "1 clip importé" : "\(report.copied.count) clips importés"
+        var body = clips
+        if report.highlightedTakeCount > 0 {
+            body += report.highlightedTakeCount == 1
+                ? ", 1 prise taguée" : ", \(report.highlightedTakeCount) prises taguées"
+        }
+        if !report.failures.isEmpty { body += " — \(report.failures.count) en échec" }
+        Notifier.notify(title: report.wasCancelled ? "Import interrompu" : "Import terminé",
+                        body: body)
+    }
+
+    // MARK: - Effacer la caméra
+
+    /// Efface les clips de la caméra, après confirmation explicite.
+    ///
+    /// Trois verrous, et aucun n'est décoratif : le bouton n'apparaît que si le comparatif est
+    /// complet, cette alerte demande une confirmation nommant le décompte, et `CameraCleanup.erase`
+    /// refuse de son côté tout plan qui ne serait pas vérifié. Rien dans l'app n'efface sans qu'on
+    /// l'ait demandé.
+    func eraseCamera() {
+        guard let plan = cleanup, plan.isSafeToErase, let camera else { return }
+
+        let alert = NSAlert()
+        alert.alertStyle = .critical
+        alert.messageText = "Effacer \(plan.cameraCount) clip(s) de la GoPro ?"
+        alert.informativeText = """
+            Les \(plan.cameraCount) clips de la caméra sont tous présents sur ce Mac, vérifiés un             par un. Ils seront effacés de la carte et ne pourront pas être récupérés.
+            """
+        alert.addButton(withTitle: "Effacer de la GoPro")
+        alert.addButton(withTitle: "Annuler")
+        alert.buttons.first?.hasDestructiveAction = true
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+
+        erasing = true
+        Task.detached(priority: .userInitiated) { [self] in
+            let outcome = try? CameraCleanup.erase(plan, from: camera)
+            await erased(outcome)
+        }
+    }
+
+    private func erased(_ outcome: CameraCleanup.Outcome?) {
+        erasing = false
+        eraseOutcome = outcome
+        cleanup = nil
+        lastScan = nil
     }
 
     private func report(failure: String) {
