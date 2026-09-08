@@ -35,4 +35,14 @@ final class Preferences {
     var askBeforeImporting: Bool {
         didSet { defaults.set(askBeforeImporting, forKey: Key.askBeforeImporting) }
     }
+
+    /// Lancer QuiX au branchement de la caméra.
+    ///
+    /// L'état ne vit pas dans les réglages : il vit dans `launchd`, qui est seul à savoir si
+    /// l'agent est réellement chargé. Le lire ailleurs afficherait une case cochée pour un agent
+    /// que le système aurait désactivé de son côté, dans les Réglages Système.
+    var launchOnCameraConnection: Bool {
+        get { CameraAutoLaunch.isEnabled }
+        set { newValue ? CameraAutoLaunch.enable() : CameraAutoLaunch.disable() }
+    }
 }

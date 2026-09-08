@@ -103,6 +103,36 @@ Toutes les requêtes passent donc par des sessions à `httpMaximumConnectionsPer
 un lien USB peut lâcher pour d'autres raisons, `ImportRunner` retente trois fois avec un court
 délai — ce qui ne coûte presque rien puisque la reprise repart des octets déjà reçus.
 
+## Se faire réveiller au branchement
+
+Il n'y a rien à surveiller quand l'app ne tourne pas : c'est `launchd` qui réveille QuiX, par un
+agent déposé dans `~/Library/LaunchAgents` et apparié à l'apparition du périphérique USB. Tant que
+la caméra n'est pas branchée, aucun processus n'existe.
+
+L'agent lance **`open`**, pas l'exécutable : `open` se contente d'activer l'app si elle tourne déjà,
+là où lancer le binaire donnerait deux fenêtres et deux imports concurrents sur la même carte.
+
+Trois détails de l'appariement ont été trouvés à l'essai, et aucun n'est devinable — **un agent qui
+n'apparie rien ne se plaint pas**, il ne se déclenche simplement jamais, et `launchctl print`
+l'affiche exactement comme s'il fonctionnait :
+
+| | Ce qui marche | Ce qui ne marche pas |
+|---|---|---|
+| Nom de l'évènement | `com.apple.device-attach` | un nom libre — accepté, affiché, inerte |
+| `IOProviderClass` | `IOUSBDevice` | `IOUSBHostDevice`, pourtant la vraie classe du nœud |
+| Identifiants | `idVendor` **et** `idProduct` | `idVendor` seul |
+
+Mesuré en rechargeant l'agent caméra branchée : l'appariement IOKit se déclenche aussi pour un
+périphérique déjà présent, ce qui permet de vérifier sans débrancher (`runs = 1` dans
+`launchctl print`, et l'app s'ouvre).
+
+Le troisième point coûte quelque chose : l'agent ne reconnaît que le modèle mesuré, la HERO12 Black
+(`idProduct` 89). Une autre GoPro demanderait son propre identifiant :
+
+```sh
+ioreg -p IOUSB -l | grep -A20 GoPro
+```
+
 ## Deux pièges de mise en œuvre
 
 **La détection ne peut pas être événementielle.** Il n'existe pas de notification pour l'apparition
