@@ -73,6 +73,10 @@ jobs:
 
       - name: Contrôler le certificat avant de l'importer
         if: env.HAS_SIGNING == 'true' && github.event_name != 'pull_request'
+        # Un certificat mal réglé fait retomber la compilation en signature ad hoc au lieu de
+        # tout arrêter : l'artefact reste téléchargeable et testable. L'erreur reste visible en
+        # rouge dans le journal, et l'étape finale refuse quand même de publier une release.
+        continue-on-error: true
         env:
           MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
           MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
@@ -157,6 +161,7 @@ jobs:
 
       - name: Importer le certificat Developer ID
         if: env.HAS_SIGNING == 'true' && github.event_name != 'pull_request'
+        continue-on-error: true
         env:
           MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
         run: |
@@ -222,7 +227,7 @@ jobs:
           echo "APP=build/Build/Products/Release/QuiX.app" >> "$GITHUB_ENV"
 
       - name: Notariser
-        if: env.HAS_SIGNING == 'true' && github.event_name != 'pull_request'
+        if: env.CODESIGN_IDENTITY != ''
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
@@ -271,6 +276,12 @@ jobs:
           name: QuiX
           path: QuiX.zip
           if-no-files-found: error
+
+      - name: Refuser une release non signée
+        if: startsWith(github.ref, 'refs/tags/v') && env.CODESIGN_IDENTITY == ''
+        run: |
+          echo "::error::Ce tag produirait une release en signature ad hoc, que Gatekeeper refuserait sur une autre machine. Corriger les secrets avant de publier — voir SIGNING.md."
+          exit 1
 
       - name: Publier la release (tags v* uniquement)
         if: startsWith(github.ref, 'refs/tags/v')
