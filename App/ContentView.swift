@@ -1,6 +1,54 @@
 import SwiftUI
 import QuiXCore
 
+/// Le comparatif caméra ↔ Mac, et l'effacement qu'il autorise ou retient.
+///
+/// Le décompte est montré **avant** le bouton, et non en petit à côté : c'est lui qui justifie
+/// qu'on propose une opération irréversible. Quand il ne tombe pas juste, le bouton n'est pas
+/// grisé — il n'est pas là du tout, et la raison est nommée.
+private struct CameraBalance: View {
+
+    let plan: CameraCleanup.Plan
+    let erasing: Bool
+    let erase: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Sur la GoPro").font(.headline)
+
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
+                GridRow {
+                    Text("Clips sur la caméra").foregroundStyle(.secondary)
+                    Text("\(plan.cameraCount)").monospacedDigit()
+                }
+                GridRow {
+                    Text("Vérifiés sur ce Mac").foregroundStyle(.secondary)
+                    Text("\(plan.verifiedCount)").monospacedDigit()
+                        .foregroundStyle(plan.isSafeToErase ? Color.primary : Color.orange)
+                }
+            }
+            .font(.callout)
+
+            if plan.isSafeToErase {
+                Text("Chaque clip de la caméra a été retrouvé sur ce Mac, à la bonne taille.")
+                    .font(.callout).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if erasing {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Button("Effacer les clips de la GoPro…", role: .destructive, action: erase)
+                }
+            } else {
+                Label("\(plan.unverified.count) clip(s) ne sont pas confirmés sur ce Mac.",
+                      systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout).foregroundStyle(.orange)
+                Text("L'effacement n'est pas proposé tant qu'il en manque un seul.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
 struct ContentView: View {
 
     let model: ImportModel
@@ -79,6 +127,15 @@ struct ContentView: View {
                 Text(summary(of: result))
                 if plan.isEmpty {
                     Text("Tout est déjà importé. Rien à copier.").foregroundStyle(.secondary)
+                    if let cleanup = model.cleanup {
+                        Divider()
+                        CameraBalance(plan: cleanup, erasing: model.erasing,
+                                      erase: model.eraseCamera)
+                    }
+                    if let outcome = model.eraseOutcome {
+                        Label("\(outcome.erased.count) clip(s) effacé(s) de la GoPro",
+                              systemImage: "checkmark.circle").foregroundStyle(.secondary)
+                    }
                 } else {
                     Text("\(plan.copies.count) fichier(s) à copier — \(bytes(plan.byteCount))")
                         .foregroundStyle(.secondary)
@@ -124,8 +181,23 @@ struct ContentView: View {
                         .disabled(report.copied.isEmpty)
                     Button("Terminer") { model.dismissReport() }
                 }
-                Text("La carte n'a pas été modifiée. L'effacement reste une action manuelle, dans la caméra.")
-                    .font(.callout).foregroundStyle(.secondary)
+
+                if let outcome = model.eraseOutcome {
+                    Divider()
+                    Label("\(outcome.erased.count) clip(s) effacé(s) de la GoPro",
+                          systemImage: "checkmark.circle")
+                        .foregroundStyle(.secondary)
+                    if !outcome.failed.isEmpty {
+                        Text("\(outcome.failed.count) n'ont pas pu être effacés — ils sont toujours sur la carte.")
+                            .font(.callout).foregroundStyle(.orange)
+                    }
+                } else if let plan = model.cleanup {
+                    Divider()
+                    CameraBalance(plan: plan, erasing: model.erasing, erase: model.eraseCamera)
+                } else {
+                    Text("La carte n'a pas été modifiée.")
+                        .font(.callout).foregroundStyle(.secondary)
+                }
             }
 
         case .failed(let reason):

@@ -19,12 +19,15 @@ final class TinyHTTPServer {
     private let payload: [UInt8]
     /// Pour éprouver une caméra qui ignorerait `Range` et renverrait tout.
     private let honoursRange: Bool
+    /// Nombre d'octets servis avant de raccrocher, pour simuler un câble débranché.
+    private let cutAfter: Int?
 
     private(set) var port: UInt16 = 0
 
-    init(payload: [UInt8], honoursRange: Bool = true) throws {
+    init(payload: [UInt8], honoursRange: Bool = true, cutAfter: Int? = nil) throws {
         self.payload = payload
         self.honoursRange = honoursRange
+        self.cutAfter = cutAfter
         try open()
     }
 
@@ -109,8 +112,12 @@ final class TinyHTTPServer {
         if partial { head += "Content-Range: bytes \(start)-\(end)/\(payload.count)\r\n" }
         head += "Connection: close\r\n\r\n"
 
+        // Le corps annoncé reste celui du fichier complet : c'est bien une coupure en cours de
+        // route, pas une réponse courte et honnête.
+        let served = cutAfter.map { Array(body.prefix($0)) } ?? body
+
         var out = [UInt8](head.utf8)
-        out.append(contentsOf: body)
+        out.append(contentsOf: served)
         out.withUnsafeBufferPointer { _ = send(client, $0.baseAddress, $0.count, 0) }
     }
 

@@ -3,15 +3,27 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Copie vérifiée d'un fichier servi par la caméra en HTTP.
+/// Copie vérifiée d'un fichier servi par la caméra en HTTP, **reprenable**.
 ///
-/// Mêmes garanties que `VerifiedCopy`, par les mêmes moyens : écriture dans un temporaire,
-/// empreinte calculée pendant la réception, relecture du fichier écrit, renommage seulement si tout
-/// concorde. La source n'est jamais touchée — ici c'est structurel, on ne fait que des `GET`.
+/// Mêmes garanties que `VerifiedCopy` : écriture dans un temporaire, empreinte calculée pendant la
+/// réception, relecture du fichier écrit, renommage seulement si tout concorde. La source n'est
+/// jamais touchée — ici c'est structurel, on ne fait que des `GET`.
 ///
-/// La taille attendue vient du catalogue de la caméra, pas d'un `stat` : c'est elle qui permet de
-/// détecter un transfert tronqué par un débranchement en cours de route.
+/// **La reprise.** Un clip GoPro pèse des gigaoctets et l'USB se débranche ; recommencer de zéro
+/// coûtait cher alors que la caméra honore `Range`. Un transfert interrompu laisse donc son
+/// `.quix-partiel`, et le suivant repart de l'octet où il s'était arrêté.
+///
+/// Ce qui rendait la reprise délicate, c'est la chaîne de vérification. L'empreinte d'origine se
+/// calcule sur les octets **reçus du réseau** ; la relecture finale la compare à ce qui est
+/// réellement sur le disque. Reprendre naïvement casserait ce lien : les octets du premier
+/// transfert seraient relus du disque et comparés à eux-mêmes, ce qui ne prouve plus rien. D'où le
+/// petit fichier d'état posé à côté du temporaire, qui retient l'empreinte des octets reçus. À la
+/// reprise on vérifie que le temporaire porte toujours exactement cette empreinte — le lien est
+/// rétabli — et sinon on repart de zéro.
 public enum RemoteVerifiedCopy {
+
+    /// Suffixe du fichier d'état, à côté du `.quix-partiel`.
+    static let stateSuffix = ".etat"
 
     @discardableResult
     public static func copy(
@@ -34,25 +46,40 @@ public enum RemoteVerifiedCopy {
         }
 
         let temporary = URL(fileURLWithPath: destination.path + VerifiedCopy.partialSuffix)
+        let stateFile = URL(fileURLWithPath: temporary.path + stateSuffix)
+
         try fileManager.createDirectory(at: destination.deletingLastPathComponent(),
                                         withIntermediateDirectories: true)
-        if fileManager.fileExists(atPath: temporary.path) {
-            try fileManager.removeItem(at: temporary)
-        }
-        guard fileManager.createFile(atPath: temporary.path, contents: nil) else {
-            throw CopyFailure.destinationExists(temporary)
+
+        let resume = resumePoint(temporary: temporary, state: stateFile,
+                                 expectedSize: expectedSize, fileManager: fileManager)
+        if resume == nil {
+            try? fileManager.removeItem(at: temporary)
+            try? fileManager.removeItem(at: stateFile)
+            guard fileManager.createFile(atPath: temporary.path, contents: nil) else {
+                throw CopyFailure.destinationExists(temporary)
+            }
         }
 
-        let sink = try Sink(path: temporary, isCancelled: isCancelled, progress: progress)
+        let sink = try Sink(path: temporary,
+                            startingAt: resume?.bytes ?? 0,
+                            crc: resume.map { CRC32(resuming: $0.crc) } ?? CRC32(),
+                            isCancelled: isCancelled,
+                            progress: progress)
         do {
             try sink.download(source)
         } catch {
-            try? fileManager.removeItem(at: temporary)
+            // Un transfert coupé garde ses octets : c'est tout l'intérêt. On note où on en est
+            // pour que la prochaine tentative reparte de là.
+            writeState(sink, to: stateFile)
             throw error
         }
 
         guard sink.written == expectedSize else {
+            // Une taille qui ne tombe pas juste n'est pas une interruption : les octets reçus ne
+            // valent rien, on ne propose pas de reprendre dessus.
             try? fileManager.removeItem(at: temporary)
+            try? fileManager.removeItem(at: stateFile)
             throw CopyFailure.sizeMismatch(expected: expectedSize, written: sink.written)
         }
 
@@ -61,11 +88,13 @@ public enum RemoteVerifiedCopy {
             destinationCRC = try VerifiedCopy.checksum(of: temporary)
         } catch {
             try? fileManager.removeItem(at: temporary)
+            try? fileManager.removeItem(at: stateFile)
             throw error
         }
 
         guard destinationCRC == sink.crc.value else {
             try? fileManager.removeItem(at: temporary)
+            try? fileManager.removeItem(at: stateFile)
             throw CopyFailure.checksumMismatch(source: sink.crc.value, destination: destinationCRC)
         }
 
@@ -75,10 +104,43 @@ public enum RemoteVerifiedCopy {
             try? fileManager.setAttributes([.modificationDate: modified], ofItemAtPath: temporary.path)
         }
 
+        try? fileManager.removeItem(at: stateFile)
         try fileManager.moveItem(at: temporary, to: destination)
         return sink.crc.value
         }
         }
+    }
+
+    /// Y a-t-il un transfert à reprendre, et si oui à partir d'où ?
+    ///
+    /// Rend `nil` — donc « repartir de zéro » — à la moindre incohérence. Un octet douteux repris
+    /// coûterait un clip corrompu qui passerait la vérification finale sans rien signaler, ce qui
+    /// est bien pire que de retélécharger.
+    static func resumePoint(
+        temporary: URL, state: URL, expectedSize: UInt64, fileManager: FileManager
+    ) -> (bytes: UInt64, crc: UInt32)? {
+
+        guard let raw = try? String(contentsOf: state, encoding: .utf8) else { return nil }
+        let fields = raw.split(separator: "\n").map(String.init)
+        guard fields.count == 3, fields[0] == "quix 1",
+              let bytes = UInt64(fields[1]), let crc = UInt32(fields[2]),
+              bytes > 0, bytes < expectedSize,
+              let onDisk = ImportPlanner.sizeOnDisk(temporary), onDisk == bytes
+        else { return nil }
+
+        // Le contrôle qui donne son sens à la reprise : les octets encore sur le disque sont-ils
+        // bien ceux qu'on avait reçus ? Sans lui, la vérification finale comparerait le disque à
+        // lui-même pour toute la partie déjà téléchargée.
+        guard let actual = try? VerifiedCopy.checksum(of: temporary), actual == crc else {
+            return nil
+        }
+        return (bytes, crc)
+    }
+
+    private static func writeState(_ sink: Sink, to file: URL) {
+        guard sink.written > 0 else { return }
+        try? "quix 1\n\(sink.written)\n\(sink.crc.value)\n".write(to: file, atomically: true,
+                                                                  encoding: .utf8)
     }
 
     /// Réception en flux : les octets sont écrits et empreintés au fil de l'eau, jamais accumulés
@@ -86,6 +148,7 @@ public enum RemoteVerifiedCopy {
     private final class Sink: NSObject, URLSessionDataDelegate {
         private let handle: FileHandle
         private let semaphore = DispatchSemaphore(value: 0)
+        private let resumeFrom: UInt64
 
         // Optionnelles, et relâchées dès la fin du transfert.
         //
@@ -96,15 +159,21 @@ public enum RemoteVerifiedCopy {
         private var isCancelled: (() -> Bool)?
         private var progress: ((UInt64) -> Void)?
 
-        private(set) var crc = CRC32()
-        private(set) var written: UInt64 = 0
+        private(set) var crc: CRC32
+        private(set) var written: UInt64
         private var failure: Error?
         private var status: Int = 0
 
-        init(path: URL, isCancelled: @escaping () -> Bool, progress: @escaping (UInt64) -> Void) throws {
+        init(path: URL, startingAt offset: UInt64, crc: CRC32,
+             isCancelled: @escaping () -> Bool, progress: @escaping (UInt64) -> Void) throws {
             self.handle = try FileHandle(forWritingTo: path)
+            self.resumeFrom = offset
+            self.crc = crc
+            self.written = offset
             self.isCancelled = isCancelled
             self.progress = progress
+            super.init()
+            try handle.seek(toOffset: offset)
         }
 
         func download(_ url: URL) throws {
@@ -113,6 +182,9 @@ public enum RemoteVerifiedCopy {
             // Un clip de plusieurs gigaoctets prend son temps ; c'est l'absence de données qui doit
             // faire échouer, pas la durée totale.
             request.timeoutInterval = 3600
+            if resumeFrom > 0 {
+                request.setValue("bytes=\(resumeFrom)-", forHTTPHeaderField: "Range")
+            }
             let task = session.dataTask(with: request)
             task.resume()
             semaphore.wait()
@@ -121,6 +193,7 @@ public enum RemoteVerifiedCopy {
             isCancelled = nil
             progress = nil
             session.finishTasksAndInvalidate()
+            try? handle.synchronize()
             try? handle.close()
 
             if let failure { throw failure }
@@ -133,6 +206,16 @@ public enum RemoteVerifiedCopy {
                         didReceive response: URLResponse,
                         completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
             status = (response as? HTTPURLResponse)?.statusCode ?? 0
+
+            // On a demandé une reprise et le serveur renvoie tout depuis le début : il ignore
+            // `Range`. Plutôt que d'ajouter le fichier entier à la suite de ce qu'on avait, on
+            // repart de zéro — c'est plus lent, mais c'est le seul résultat correct.
+            if resumeFrom > 0, status == 200 {
+                try? handle.truncate(atOffset: 0)
+                try? handle.seek(toOffset: 0)
+                crc = CRC32()
+                written = 0
+            }
             completionHandler(.allow)
         }
 

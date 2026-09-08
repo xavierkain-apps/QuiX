@@ -20,6 +20,14 @@ public struct CRC32: Sendable, Equatable {
 
     public init() {}
 
+    /// Reprend un calcul interrompu à partir de son empreinte partielle.
+    ///
+    /// Sert à la reprise d'un téléchargement : les octets déjà reçus ne sont pas relus depuis le
+    /// réseau, mais leur empreinte est reprise là où elle s'était arrêtée.
+    public init(resuming value: UInt32) {
+        state = value ^ 0xFFFF_FFFF
+    }
+
     public mutating func update(_ data: Data) {
         var state = self.state
         data.withUnsafeBytes { raw in

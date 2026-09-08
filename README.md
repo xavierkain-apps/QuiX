@@ -33,13 +33,17 @@ révélés sont dans **[docs/HILIGHT.md](docs/HILIGHT.md)**.
 
 ## Ce que le produit garantit
 
-- **La carte n'est jamais modifiée.** L'effacement reste une action manuelle, dans la caméra.
+- **Rien ne s'efface tout seul.** L'app peut vider la caméra, mais seulement sur un bouton, après
+  confirmation, et seulement si elle a retrouvé sur le Mac **chacun** des clips qu'elle porte, à la
+  bonne taille. Un seul manquant, et le bouton n'est pas proposé.
 - **Une prise ne se coupe pas en deux.** Les chapitres d'une longue prise partagent un numéro de
   fichier ; si un seul porte un tag, tous suivent dans `Highlights/`.
 - **Chaque copie est vérifiée** — empreinte calculée pendant l'écriture, puis relue sur le fichier
   écrit — avant d'être considérée comme importée.
 - **Rebrancher la carte ne recopie que le neuf**, via un index `nom + taille + date` rangé à la
   racine de la bibliothèque.
+- **Un transfert coupé reprend où il s'était arrêté**, sans perdre ce qui était déjà passé ni
+  affaiblir la vérification — voir [docs/USB.md](docs/USB.md).
 
 ## Disposition
 
@@ -86,7 +90,7 @@ Gatekeeper ne doit rien dire du tout — pas même au premier lancement.
 ### Compiler soi-même
 
 ```sh
-# Le moteur : 96 tests, aucune machine Apple requise
+# Le moteur : 108 tests, aucune machine Apple requise
 swift test --package-path Core
 
 # L'outil en ligne de commande, pour voir le parseur à l'œuvre
@@ -128,6 +132,15 @@ matériel et ne trouve rien, exactement comme devant une carte vide.
 Celle du réseau local surprend, et c'est normal : branchée en USB-C, la caméra *est* un
 périphérique réseau pour macOS. Quand elle manque, l'app le dit explicitement et ouvre le bon
 panneau — elle ne se contente pas de rester vide.
+
+### Effacer la caméra après import
+
+Le compte rendu d'import affiche un comparatif : combien de clips la caméra porte, combien ont été
+retrouvés sur ce Mac. Le bouton d'effacement n'apparaît que lorsque les deux nombres coïncident —
+et le décompte se refait à partir du **disque**, pas de l'index, pour qu'un dossier vidé à la main
+retienne l'effacement.
+
+C'est la seule opération irréversible de l'app, et la seule qui demande une confirmation.
 
 ### Une carte reconnue, jamais devinée
 
