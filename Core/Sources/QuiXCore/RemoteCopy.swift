@@ -177,7 +177,8 @@ public enum RemoteVerifiedCopy {
         }
 
         func download(_ url: URL) throws {
-            let session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+            let session = URLSession(configuration: HTTP.downloadConfiguration(),
+                                     delegate: self, delegateQueue: nil)
             var request = URLRequest(url: url)
             // Un clip de plusieurs gigaoctets prend son temps ; c'est l'absence de données qui doit
             // faire échouer, pas la durée totale.

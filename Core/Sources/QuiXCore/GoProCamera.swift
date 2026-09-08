@@ -191,11 +191,33 @@ public struct CameraMediaFile: Equatable, Sendable {
 /// rendre la chaîne asynchrone jusqu'ici obligerait à réécrire le parseur d'atomes, qui n'a aucune
 /// raison de savoir d'où viennent ses octets.
 enum HTTP {
+
+    /// Une seule connexion à la fois vers la caméra.
+    ///
+    /// Son serveur n'en tient qu'une. Avec `URLSession.shared`, l'analyse laissait derrière elle
+    /// une connexion inactive mais ouverte, et le premier téléchargement qui suivait en réclamait
+    /// une seconde — que la caméra refusait. Le symptôme était déroutant : le premier clip échouait,
+    /// les suivants passaient, et un second import réussissait toujours.
+    static let session: URLSession = {
+        let configuration = URLSessionConfiguration.default
+        configuration.httpMaximumConnectionsPerHost = 1
+        configuration.waitsForConnectivity = false
+        return URLSession(configuration: configuration)
+    }()
+
+    /// La même contrainte, pour les sessions à délégué des téléchargements.
+    static func downloadConfiguration() -> URLSessionConfiguration {
+        let configuration = URLSessionConfiguration.default
+        configuration.httpMaximumConnectionsPerHost = 1
+        configuration.waitsForConnectivity = false
+        return configuration
+    }
+
     static func send(_ request: URLRequest) throws -> (Data, URLResponse?) {
         let semaphore = DispatchSemaphore(value: 0)
         var result: Result<(Data, URLResponse?), Error> = .failure(GoProCamera.CameraError.notFound)
 
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+        let task = session.dataTask(with: request) { data, response, error in
             if let error {
                 result = .failure(error)
             } else {
