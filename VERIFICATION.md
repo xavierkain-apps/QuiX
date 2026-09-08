@@ -57,7 +57,7 @@ CI compile l'app sur macOS. Rien de ce qui suit n'est automatisable sans matéri
 push — voir [SIGNING.md](SIGNING.md). Ne reste que ce qui demande une vraie machine :
 
 - [ ] Télécharger l'artefact `QuiX` de la CI sur un Mac qui n'a jamais compilé le projet, et le
-      lancer. Sans les secrets de signature, Gatekeeper doit avertir une fois ; avec, il ne doit
-      rien dire du tout.
+      lancer. Il est signé Developer ID, notarisé et agrafé : **Gatekeeper ne doit rien dire du
+      tout**, pas même au premier lancement. S'il avertit, c'est que le ticket n'a pas suivi.
 - [ ] Lancer l'app depuis un compte utilisateur qui ne l'a jamais vue, pour retomber sur la demande
       d'autorisation des volumes amovibles à froid.

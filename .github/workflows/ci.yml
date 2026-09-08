@@ -304,6 +304,12 @@ jobs:
 
           xcrun stapler staple "$APP"
 
+          # Le verdict qui compte : celui que rendra le Mac de quelqu'un qui n'a jamais compilé
+          # l'app. `codesign` dit que la signature est cohérente ; `spctl` dit que Gatekeeper
+          # la laisse s'ouvrir. Ce sont deux questions différentes.
+          spctl --assess --type execute --verbose "$APP"
+          xcrun stapler validate "$APP"
+
       - name: Compresser l'app
         run: ditto -c -k --keepParent "$APP" QuiX.zip
 
