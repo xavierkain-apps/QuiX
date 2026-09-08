@@ -20,6 +20,7 @@ final class Preferences {
         self.defaults = defaults
         self.library = defaults.string(forKey: Key.library).map { URL(fileURLWithPath: $0, isDirectory: true) }
         self.askBeforeImporting = defaults.bool(forKey: Key.askBeforeImporting)
+        self.agentIsLoaded = CameraAutoLaunch.isEnabled
     }
 
     /// Racine de la bibliothèque. Les dossiers datés se créent dedans.
@@ -41,8 +42,27 @@ final class Preferences {
     /// L'état ne vit pas dans les réglages : il vit dans `launchd`, qui est seul à savoir si
     /// l'agent est réellement chargé. Le lire ailleurs afficherait une case cochée pour un agent
     /// que le système aurait désactivé de son côté, dans les Réglages Système.
+    ///
+    /// Mais il faut quand même le **stocker** ici. Une propriété purement calculée, qui serait allée
+    /// interroger `launchd` à chaque lecture, n'aurait rien donné à observer à SwiftUI : la case
+    /// changeait d'état sans que rien ne se redessine, et il fallait relancer l'app pour la voir
+    /// bouger. La valeur stockée est donc un reflet, relu de `launchd` après chaque écriture — et
+    /// jamais une source de vérité qu'on croirait sur parole.
+    private var agentIsLoaded: Bool
+
     var launchOnCameraConnection: Bool {
-        get { CameraAutoLaunch.isEnabled }
-        set { newValue ? CameraAutoLaunch.enable() : CameraAutoLaunch.disable() }
+        get { agentIsLoaded }
+        set {
+            if newValue { CameraAutoLaunch.enable() } else { CameraAutoLaunch.disable() }
+            // On réinterroge plutôt que d'écrire `newValue` : si l'installation échoue, la case
+            // doit revenir d'où elle vient au lieu d'annoncer un agent qui n'existe pas.
+            agentIsLoaded = CameraAutoLaunch.isEnabled
+        }
+    }
+
+    /// Relit l'état réel de l'agent. À appeler quand la fenêtre revient au premier plan : il a pu
+    /// être désactivé entre-temps depuis les Réglages Système.
+    func refreshLaunchAgentState() {
+        agentIsLoaded = CameraAutoLaunch.isEnabled
     }
 }

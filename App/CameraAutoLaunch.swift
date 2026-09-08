@@ -1,4 +1,6 @@
+import AppKit
 import Foundation
+import XPC
 
 /// Lancer QuiX quand la GoPro est branchée.
 ///
@@ -7,14 +9,16 @@ import Foundation
 /// à l'apparition d'un périphérique USB GoPro. Tant que la caméra n'est pas branchée, aucun
 /// processus n'existe et rien ne consomme quoi que ce soit.
 ///
-/// **L'agent lance `open`, pas l'exécutable.** C'est ce qui évite un second exemplaire quand QuiX
-/// tourne déjà : `open` se contente d'activer l'app existante. Lancer directement le binaire
-/// donnerait deux fenêtres et deux imports concurrents sur la même carte.
+/// **L'agent lance l'exécutable de l'app, et non `open`.** C'est contre-intuitif — `open` gère seul
+/// le cas de l'app déjà lancée — mais il ne sait pas *consommer* l'évènement `launchd`. Or tant
+/// qu'un évènement reste en attente, `launchd` considère le travail comme inachevé et le relance
+/// toutes les dizaines de secondes : l'app se rouvrait donc toute seule dès qu'on la fermait,
+/// caméra encore branchée. Seul un programme qui appelle `xpc_set_event_stream_handler` met fin à
+/// ce cycle, et ce programme doit donc être l'app.
 ///
-/// L'app passe **au premier plan**. On avait d'abord ouvert en arrière-plan pour ne pas couper le
-/// travail en cours, mais brancher sa caméra est une intention explicite : la fenêtre qu'on
-/// cherche du regard doit être là. `open` sans `-g` s'en charge, et `QuiXApp` complète en
-/// s'activant au démarrage — une app réveillée par `launchd` ne passe pas toujours devant d'elle-même.
+/// Le prix à payer est le second exemplaire, que `open` évitait gratuitement : `launchd` lance le
+/// binaire sans passer par LaunchServices, donc sans sa règle d'instance unique. `QuiXApp` s'en
+/// charge — le nouveau venu consomme l'évènement, ramène la fenêtre existante, et se retire.
 ///
 /// Trois détails de l'appariement ont été trouvés à l'essai, et aucun n'est devinable — un agent
 /// qui n'apparie rien ne se plaint pas, il ne se déclenche simplement jamais :
@@ -65,10 +69,11 @@ enum CameraAutoLaunch {
 
     /// La définition de l'agent, telle qu'elle doit être sur le disque.
     private static func agent() -> [String: Any] {
-        let bundle = Bundle.main.bundleURL.path
+        let executable = Bundle.main.executableURL?.path
+            ?? Bundle.main.bundleURL.appendingPathComponent("Contents/MacOS/QuiX").path
         let plist: [String: Any] = [
             "Label": label,
-            "ProgramArguments": ["/usr/bin/open", "-a", bundle],
+            "ProgramArguments": [executable],
             "LaunchEvents": [
                 "com.apple.iokit.matching": [
                     "com.apple.device-attach": [
@@ -111,6 +116,40 @@ enum CameraAutoLaunch {
     static func disable() -> Bool {
         _ = launchctl(["bootout", "gui/\(getuid())/\(label)"])
         try? FileManager.default.removeItem(at: plistURL)
+        return true
+    }
+
+    // MARK: - L'évènement qu'il faut consommer
+
+    private static let delivered = DispatchSemaphore(value: 0)
+
+    /// Consomme les évènements que `launchd` a mis en attente pour nous.
+    ///
+    /// À appeler au tout début du démarrage, **même quand l'app a été ouverte à la main** : elle
+    /// peut l'avoir été alors qu'un évènement traînait, et un évènement jamais consommé fait
+    /// relancer l'app indéfiniment.
+    static func consumeLaunchEvents() {
+        xpc_set_event_stream_handler("com.apple.iokit.matching", nil) { _ in
+            delivered.signal()
+        }
+    }
+
+    /// Laisse à `launchd` le temps de livrer son évènement avant qu'on se retire.
+    ///
+    /// Sert au second exemplaire : partir trop vite laisserait l'évènement en attente, et la
+    /// boucle de relance reprendrait exactement là où on croyait l'avoir arrêtée.
+    static func waitForLaunchEvent(timeout: TimeInterval = 3) {
+        _ = delivered.wait(timeout: .now() + timeout)
+    }
+
+    /// Un autre exemplaire de QuiX tourne-t-il déjà ? Si oui, on lui rend la main.
+    static func handOverToRunningInstance() -> Bool {
+        guard let identifier = Bundle.main.bundleIdentifier else { return false }
+        let others = NSRunningApplication
+            .runningApplications(withBundleIdentifier: identifier)
+            .filter { $0.processIdentifier != getpid() }
+        guard let existing = others.first else { return false }
+        existing.activate(options: [.activateAllWindows])
         return true
     }
 

@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import QuiXCore
 
@@ -62,6 +63,12 @@ struct ContentView: View {
         }
         .padding(24)
         .frame(minWidth: 460, minHeight: 320)
+        // L'agent a pu être désactivé depuis les Réglages Système pendant qu'on regardait
+        // ailleurs. On relit son état réel au retour, plutôt que d'afficher ce qu'on croyait.
+        .onReceive(NotificationCenter.default.publisher(
+            for: NSApplication.didBecomeActiveNotification)) { _ in
+            model.preferences.refreshLaunchAgentState()
+        }
     }
 
     // MARK: - L'état courant
