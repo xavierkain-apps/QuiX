@@ -255,6 +255,14 @@ private struct Footer: View {
             Toggle("Demander confirmation avant d'importer", isOn: $preferences.askBeforeImporting)
                 .font(.callout)
 
+            Toggle("Ouvrir QuiX quand la GoPro est branchée", isOn: $preferences.launchOnCameraConnection)
+                .font(.callout)
+
+            if preferences.launchOnCameraConnection {
+                Text("QuiX ne tourne pas en attendant : c'est macOS qui le réveille au branchement.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
             // Ce n'est pas un bug à corriger, c'est une limite du format : les highlights posés
             // après coup dans l'app mobile Quik ne sont jamais réécrits dans le MP4. Le dire ici
             // évite de chercher longtemps pourquoi une prise manque à l'appel.

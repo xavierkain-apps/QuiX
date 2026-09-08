@@ -146,6 +146,20 @@ Celle du réseau local surprend, et c'est normal : branchée en USB-C, la camér
 périphérique réseau pour macOS. Quand elle manque, l'app le dit explicitement et ouvre le bon
 panneau — elle ne se contente pas de rester vide.
 
+### Ouvrir QuiX au branchement
+
+Une case dans la fenêtre. Quand elle est cochée, brancher la GoPro ouvre QuiX et l'import démarre —
+sous réserve de « Demander confirmation », qui garde la main si vous branchez seulement pour
+recharger.
+
+QuiX ne tourne pas en attendant : il n'y a pas de processus résident, pas d'icône dans la barre des
+menus. C'est `launchd` qui le réveille à l'apparition du périphérique USB, et rien n'existe tant
+que la caméra n'est pas branchée. macOS signalera un « élément en arrière-plan » ajouté, listé dans
+Réglages Système → Général → Ouverture et extensions.
+
+L'appariement ne reconnaît que la **HERO12 Black** : les détails, et comment relever l'identifiant
+d'un autre modèle, sont dans [docs/USB.md](docs/USB.md).
+
 ### Effacer la caméra après import
 
 Le compte rendu d'import affiche un comparatif : combien de clips la caméra porte, combien ont été
