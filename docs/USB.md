@@ -109,18 +109,28 @@ Il n'y a rien à surveiller quand l'app ne tourne pas : c'est `launchd` qui rév
 agent déposé dans `~/Library/LaunchAgents` et apparié à l'apparition du périphérique USB. Tant que
 la caméra n'est pas branchée, aucun processus n'existe.
 
-L'agent lance **`open`**, pas l'exécutable : `open` se contente d'activer l'app si elle tourne déjà,
-là où lancer le binaire donnerait deux fenêtres et deux imports concurrents sur la même carte.
+L'agent lance **l'exécutable de l'app**, et non `open`. C'est contre-intuitif, parce qu'`open`
+gérait gratuitement le cas de l'app déjà lancée — mais il ne sait pas *consommer* l'évènement.
 
-Et **au premier plan**. On avait d'abord ouvert en arrière-plan (`open -g`) pour ne pas couper le
-travail en cours ; c'était une erreur de jugement. Brancher sa caméra est une intention explicite,
-et l'app se retrouvait à chercher du regard une fenêtre qui n'était nulle part. `open` sans `-g` ne
-suffit pas tout à fait : une app réveillée par `launchd` ne passe pas toujours devant, d'où
-l'`NSApp.activate()` au démarrage.
+C'est le piège le plus coûteux de tout ce chemin. Tant qu'un évènement `launchd` reste en attente,
+le travail est considéré comme inachevé et **relancé toutes les dizaines de secondes** : fermer QuiX
+caméra branchée le rouvrait dix secondes plus tard, indéfiniment. Mesuré à quatre lancements en
+35 secondes, avec ou sans `IOMatchLaunchStream` — retirer la clé ne change rien.
 
-Un agent installé par une version précédente garde le comportement qu'il avait alors. `QuiXApp` le
-compare donc au démarrage à ce qu'il devrait être, et ne le réécrit que s'il diffère — recharger
-un agent à chaque démarrage pour rien serait une façon discrète de le rendre instable.
+Seul un programme qui appelle `xpc_set_event_stream_handler("com.apple.iokit.matching", …)` met fin
+au cycle. Mesuré : `runs = 1` au lieu de 4, et plus aucune relance. Ce programme doit donc être
+l'app elle-même.
+
+Le prix à payer est le second exemplaire, qu'`open` évitait sans rien demander : `launchd` lance le
+binaire sans passer par LaunchServices, donc sans sa règle d'instance unique. Le nouveau venu
+consomme l'évènement, ramène la fenêtre existante, puis se retire — dans cet ordre, car partir avant
+la livraison relancerait la boucle.
+
+Enfin, l'app doit s'activer **impérativement**. Depuis macOS 14 l'activation est « coopérative » :
+`NSApp.activate()` peut être refusé par l'app au premier plan, et un processus sorti de `launchd`
+n'a rien pour la lui faire céder. `activate(ignoringOtherApps:)` est déprécié et reste le seul à
+fonctionner ici — brancher sa caméra est une intention explicite, qui prime sur la politesse entre
+apps.
 
 Trois détails de l'appariement ont été trouvés à l'essai, et aucun n'est devinable — **un agent qui
 n'apparie rien ne se plaint pas**, il ne se déclenche simplement jamais, et `launchctl print`
