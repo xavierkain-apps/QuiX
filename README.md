@@ -55,14 +55,58 @@ quix import /Volumes/GOPRO ~/Films/GoPro --dry-run   # le plan, sans écrire un 
 quix import /Volumes/GOPRO ~/Films/GoPro             # pour de vrai
 ```
 
-## L'app
+## Construire sur le Mac
 
-Ouvrir `QuiX.xcodeproj` dans Xcode, choisir l'équipe de développement dans **Signing &
-Capabilities**, compiler.
+Prérequis : **Xcode 16 ou plus** (le projet est au format `objectVersion 77`) et **macOS 15 ou
+plus** (cible de déploiement).
 
-Au premier lancement, l'app demande où ranger les clips. Ensuite, brancher la carte suffit : elle
+### Le plus court : prendre le bundle déjà notarisé
+
+L'intégration continue produit à chaque push un bundle universel, signé Developer ID, notarisé et
+agrafé. Rien à compiler :
+
+```sh
+gh run download --repo xavierkain-apps/QuiX --name QuiX
+ditto -x -k QuiX.zip /Applications/
+open /Applications/QuiX.app
+```
+
+`ditto` plutôt qu'`unzip` : il préserve les attributs étendus du bundle, donc la signature.
+Gatekeeper ne doit rien dire du tout — pas même au premier lancement.
+
+### Compiler soi-même
+
+```sh
+# Le moteur : 85 tests, aucune machine Apple requise
+swift test --package-path Core
+
+# L'outil en ligne de commande, pour voir le parseur à l'œuvre
+swift build --package-path Core --product quix
+"$(swift build --package-path Core --product quix --show-bin-path)/quix"   hilight Core/Tests/QuiXCoreTests/Fixtures/hero12-un-highlight.mp4
+# -> hero12-un-highlight.mp4 : 1 moment(s) — 3.436 s
+
+# L'app
+xcodebuild build -project QuiX.xcodeproj -scheme QuiX -configuration Release   -destination 'generic/platform=macOS' -derivedDataPath build ONLY_ACTIVE_ARCH=NO   CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM=
+cp -R build/Build/Products/Release/QuiX.app /Applications/
+```
+
+Les trois derniers réglages signent en ad hoc, ce qui suffit pour essayer en local. Pour une vraie
+signature, ouvrir `QuiX.xcodeproj` et choisir l'équipe dans **Signing & Capabilities** — Xcode
+inscrit alors `DEVELOPMENT_TEAM` dans le projet, à committer.
+
+**À savoir avant d'essayer :** les deux clips GoPro complets ne sont pas dans le dépôt, seulement
+les deux `moov` de 34 Ko qui servent aux tests. Un essai bout en bout demande une vraie carte, ou
+un dossier `DCIM/100GOPRO/` fabriqué à la main avec des `.MP4` dedans.
+
+## Utiliser l'app
+
+Au premier lancement, elle demande où ranger les clips. Ensuite, brancher la carte suffit : elle
 est reconnue par la présence d'un dossier `DCIM/###GOPRO`, jamais par le nom du volume. Une case
 permet de demander confirmation avant chaque import.
+
+macOS demandera l'accès aux **volumes amovibles** au premier branchement. Sans cette autorisation,
+l'app voit le volume monter et ne trouve aucun fichier — le symptôme ressemble exactement à une
+carte vide.
 
 ## Signature
 
