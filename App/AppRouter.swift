@@ -13,6 +13,7 @@ final class AppRouter {
     enum Tab: String, CaseIterable, Identifiable {
         case transfer = "Transfert"
         case library = "Bibliothèque"
+        case settings = "Réglages"
 
         var id: String { rawValue }
     }

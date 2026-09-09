@@ -66,7 +66,7 @@ struct QuiXApp: App {
             MainWindow(model: model, router: router)
                 .environment(\.appRouter, router)
         }
-        .defaultSize(width: Metrics.libraryWidth, height: 720)
+        .defaultSize(width: 1280, height: 760)
         .commands {
             // Ce que SwiftUI ajoute par défaut ne correspond à rien ici : l'app ne crée pas de
             // document, n'imprime pas, n'a pas de barre d'outils. On retire, plutôt que de laisser
@@ -84,12 +84,18 @@ struct QuiXApp: App {
                     .keyboardShortcut("1", modifiers: .command)
                 Button("Bibliothèque") { router.tab = .library }
                     .keyboardShortcut("2", modifiers: .command)
+                Button("Réglages") { router.tab = .settings }
+                    .keyboardShortcut("3", modifiers: .command)
+            }
+
+            // Les réglages sont un onglet, pas une fenêtre à part : aller les chercher dans le
+            // menu de l'app n'était pas le premier endroit où on les cherche.
+            CommandGroup(replacing: .appSettings) {
+                Button("Réglages…") { router.tab = .settings }
+                    .keyboardShortcut(",", modifiers: .command)
             }
         }
 
-        Settings {
-            SettingsWindow(model: model)
-        }
     }
 }
 

@@ -220,6 +220,7 @@ struct Segmented<Option: Hashable>: View {
                 Button { selection = option } label: {
                     Text(label(option))
                         .font(.system(size: 12.5, weight: active ? .medium : .regular))
+                        .lineLimit(1).fixedSize()
                         .foregroundStyle(active ? Ink.primary : Ink.secondary)
                         .padding(.vertical, 3).padding(.horizontal, 12)
                         .background(active ? Ink.raised : .clear,

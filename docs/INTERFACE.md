@@ -34,10 +34,12 @@ l'environnement plutôt que de main en main.
 Le Transfert perd la largeur de 860 pt que le handoff lui donnait : il partage désormais la fenêtre
 et s'étire. Sa table remplit la hauteur disponible, le pied reste ancré en bas.
 
-## Les réglages ont leur fenêtre
+## Les réglages sont un onglet
 
-Ils vivaient au pied du popover, qui n'est pas fait pour ça : on l'ouvre pour savoir où en est
-l'import, pas pour cocher des cases. Fenêtre de `Settings`, donc ⌘, comme partout sur macOS.
+Ils ont d'abord quitté le pied du popover — on l'ouvre pour savoir où en est l'import, pas pour
+cocher des cases — pour une fenêtre `Settings`, donc ⌘, comme partout sur macOS. Ce n'était pas le
+premier endroit où on les cherche : dans une app qui a déjà des onglets, on les cherche dans les
+onglets. C'en est donc un troisième, et ⌘, y mène au lieu d'ouvrir une fenêtre à part.
 
 Elle montre aussi l'**état des autorisations**, ce qu'aucun autre écran ne fait. Les deux que QuiX
 demande échouent de la même façon trompeuse — l'app voit le matériel et ne trouve rien. Faute d'API
@@ -48,7 +50,7 @@ pour interroger la permission « Réseau local », l'état se déduit de ce que 
 
 SwiftUI en ajoute par défaut qui ne correspondent à rien ici : l'app ne crée pas de document,
 n'imprime pas, n'a pas de barre d'outils. Ils sont retirés plutôt que laissés grisés, ce qui donne
-l'air d'une app inachevée. Restent les onglets, en ⌘1 et ⌘2.
+l'air d'une app inachevée. Restent les onglets, en ⌘1, ⌘2 et ⌘3.
 
 ## Ce que le popover ne peut pas faire
 
@@ -90,6 +92,20 @@ La piste de l'inspecteur place chaque tag au prorata de la durée du clip, plafo
 fichier dont la durée n'est pas encore chargée répartit ses moments régulièrement plutôt que de
 les empiler tous à gauche.
 
+## L'icône dans les notifications
+
+Une notification affichait un glyphe générique à la place de l'icône. Ni le bundle ni le catalogue
+n'étaient en cause — `Assets.car` porte bien les sept tailles, de 16 à 1024, et
+`NSWorkspace.icon(forFile:)` rend la bonne image. C'était le cache : QuiX a vécu ses premières
+versions sans icône du tout, et le centre de notifications avait gardé cette empreinte.
+
+`lsregister -f -R -trusted` sur le bundle, puis un redémarrage de NotificationCenter, remettent les
+deux d'accord. Rien à corriger dans le code — mais deux heures de perdues si l'on cherche le défaut
+là où il n'est pas.
+
+L'`.icns` généré par Xcode ne contient, lui, que 16 et 128 : c'est normal, macOS lit les autres
+tailles dans `Assets.car`. Ce n'est pas la piste.
+
 ## Un piège de mise en page
 
 `Color.clear.frame(width: 24)` ne contraint que la largeur. Une `Color` étant extensible, la hauteur
@@ -99,7 +115,7 @@ lecture du code — seulement à l'écran.
 
 ## L'icône
 
-Redessinée en Core Graphics d'après `#4c`, et non exportée d'un outil : les proportions du handoff
+Redessinée en Core Graphics d'après `#4c` — le générateur est dans [`tools/AppIcon.swift`](../tools/AppIcon.swift), et non exportée d'un outil : les proportions du handoff
 sont données en 168e, donc directement calculables à chaque taille. Le générateur est dans
 l'historique du dépôt ; les PNG sont dans `App/Assets.xcassets`.
 

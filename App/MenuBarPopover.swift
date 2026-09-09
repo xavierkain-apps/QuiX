@@ -12,8 +12,6 @@ struct MenuBarPopover: View {
     let router: AppRouter
     @Environment(\.openWindow) private var openWindow
 
-    @Environment(\.openSettings) private var openSettings
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             switch model.stage {
@@ -225,7 +223,7 @@ struct MenuBarPopover: View {
             Rule()
             HStack(spacing: 12) {
                 Button("Ouvrir QuiX") { show(router.tab) }
-                Button("Réglages…") { openSettings() }
+                Button("Réglages…") { show(.settings) }
                 Spacer()
                 Button("Quitter") { NSApp.terminate(nil) }
             }
