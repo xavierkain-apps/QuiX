@@ -127,9 +127,9 @@ un dossier `DCIM/100GOPRO/` fabriqué à la main avec des `.MP4` dedans.
 ## Utiliser l'app
 
 QuiX vit dans la **barre de menus**. Un clic ouvre un popover qui dit où en est l'import, et rien
-de plus : aucune carte, lecture en cours, import, terminé. Deux fenêtres s'ouvrent depuis là — le
-**Transfert**, vue détaillée d'un import en cours, et la **Bibliothèque**, pour retrouver les
-prises taguées après coup.
+de plus : aucune carte, lecture en cours, import, terminé. Une fenêtre s'ouvre depuis là, à trois
+onglets — **Transfert** (⌘1), vue détaillée d'un import en cours ; **Bibliothèque** (⌘2), pour
+retrouver les prises taguées ; **Réglages** (⌘3, ou ⌘,).
 
 Au premier lancement, l'app demande où ranger les clips. Ensuite, brancher suffit — la caméra en
 USB-C ou la carte dans un lecteur. Une case permet de demander confirmation avant chaque import.

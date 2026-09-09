@@ -17,11 +17,14 @@ struct MainWindow: View {
                 switch router.tab {
                 case .transfer: TransferWindow(model: model)
                 case .library: LibraryWindow(model: model, router: router)
+                case .settings: SettingsWindow(model: model)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .frame(minWidth: 900, minHeight: 600)
+        // 1180 pt de large au minimum : en dessous, le sélecteur de filtre de la Bibliothèque
+        // se retrouve à l'étroit et coupe « Highlights » sur deux lignes.
+        .frame(minWidth: 1180, minHeight: 620)
         .background(Ink.window)
         .foregroundStyle(Ink.primary)
     }

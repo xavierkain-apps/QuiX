@@ -101,20 +101,47 @@ struct TransferWindow: View {
                  + "La carte n'est jamais modifiée.")
                 .font(.system(size: 12)).foregroundStyle(Ink.primary.opacity(0.45))
                 .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: 480, alignment: .leading)
+                .frame(maxWidth: 420, alignment: .leading)
             Spacer()
-            if case .importing = model.stage {
-                Button("Arrêter") { model.cancel() }.buttonStyle(OutlinedDark())
-            }
-            if case .ready(_, let plan) = model.stage, !plan.isEmpty {
-                Button("Importer") { model.startPlannedImport() }.buttonStyle(FilledBlue())
-            } else {
-                Button("Ouvrir les highlights") { router?.tab = .library }
-                    .buttonStyle(FilledBlue())
-            }
+            actions
         }
         .padding(.init(top: 16, leading: 28, bottom: 20, trailing: 28))
         .overlay(alignment: .top) { Rule() }
+    }
+
+    @ViewBuilder
+    private var actions: some View {
+        if case .importing = model.stage {
+            Button("Arrêter") { model.cancel() }.buttonStyle(OutlinedDark())
+        }
+        if case .ready(_, let plan) = model.stage, !plan.isEmpty {
+            Button("Importer") { model.startPlannedImport() }.buttonStyle(FilledBlue())
+        } else {
+            erase
+            Button("Ouvrir les highlights") { router?.tab = .library }
+                .buttonStyle(FilledBlue())
+        }
+    }
+
+    /// L'effacement de la caméra, là où l'on vient de vérifier que tout est arrivé.
+    ///
+    /// Il existait déjà dans le popover, mais c'est ici qu'on regarde la table ligne à ligne pour
+    /// s'assurer que rien ne manque — et donc ici qu'on décide de vider la carte. Les trois verrous
+    /// ne changent pas : le bouton n'apparaît que si chaque fichier de la caméra est retrouvé sur
+    /// le Mac, une alerte demande confirmation, et le moteur refuse tout plan non vérifié.
+    @ViewBuilder
+    private var erase: some View {
+        if let plan = model.cleanup, plan.isSafeToErase {
+            if model.erasing {
+                ProgressView().controlSize(.small)
+            } else {
+                Button("Effacer la GoPro (\(plan.cameraCount))…") { model.eraseCamera() }
+                    .buttonStyle(OutlinedDark())
+            }
+        } else if let outcome = model.eraseOutcome {
+            Label("\(outcome.erased.count) effacé(s)", systemImage: "checkmark.circle")
+                .font(Type.caption).foregroundStyle(Ink.secondary)
+        }
     }
 }
 
