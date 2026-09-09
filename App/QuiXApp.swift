@@ -28,6 +28,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // l'app au premier plan peut la refuser, et un processus sorti de `launchd` n'a rien pour
         // la lui faire céder. Il faut la forme impérative, dépréciée mais seule à fonctionner —
         // ce que l'utilisateur a demandé en branchant sa caméra prime sur la politesse entre apps.
+        // Le redesign est sombre par choix, pas par suivi du thème : sans ça les barres de titre
+        // et les contrôles système restent clairs au milieu de fenêtres à l'encre.
+        NSApp.appearance = NSAppearance(named: .darkAqua)
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
 
@@ -47,14 +50,77 @@ struct QuiXApp: App {
 
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @State private var model = ImportModel()
+    @State private var router = AppRouter()
 
     var body: some Scene {
-        Window("QuiX", id: "quix") {
-            ContentView(model: model)
+        // Le siège de l'app : un item de barre de menus, et un popover qui suit l'état.
+        MenuBarExtra {
+            MenuBarPopover(model: model, router: router)
+                .environment(\.appRouter, router)
+        } label: {
+            MenuBarLabel(model: model, router: router)
         }
+        .menuBarExtraStyle(.window)
+
+        Window("QuiX", id: WindowID.main) {
+            MainWindow(model: model, router: router)
+                .environment(\.appRouter, router)
+        }
+        .defaultSize(width: 1280, height: 760)
         .commands {
-            // L'app fait une chose : il n'y a rien à créer, rien à ouvrir.
+            // Ce que SwiftUI ajoute par défaut ne correspond à rien ici : l'app ne crée pas de
+            // document, n'imprime pas, n'a pas de barre d'outils. On retire, plutôt que de laisser
+            // des menus grisés qui donnent l'air d'une app inachevée.
             CommandGroup(replacing: .newItem) {}
+            CommandGroup(replacing: .saveItem) {}
+            CommandGroup(replacing: .printItem) {}
+            CommandGroup(replacing: .undoRedo) {}
+            CommandGroup(replacing: .toolbar) {}
+            CommandGroup(replacing: .sidebar) {}
+            CommandGroup(replacing: .help) {}
+
+            CommandGroup(after: .windowArrangement) {
+                Button("Transfert") { router.tab = .transfer }
+                    .keyboardShortcut("1", modifiers: .command)
+                Button("Bibliothèque") { router.tab = .library }
+                    .keyboardShortcut("2", modifiers: .command)
+                Button("Réglages") { router.tab = .settings }
+                    .keyboardShortcut("3", modifiers: .command)
+            }
+
+            // Les réglages sont un onglet, pas une fenêtre à part : aller les chercher dans le
+            // menu de l'app n'était pas le premier endroit où on les cherche.
+            CommandGroup(replacing: .appSettings) {
+                Button("Réglages…") { router.tab = .settings }
+                    .keyboardShortcut(",", modifiers: .command)
+            }
+        }
+
+    }
+}
+
+/// L'item de barre de menus : le glyphe, et une pastille pendant un import.
+///
+/// Il porte aussi l'ouverture automatique de la fenêtre, et c'est délibéré : le popover ne peut pas
+/// s'ouvrir par programme, si bien qu'un import démarré tout seul — caméra branchée, app réveillée
+/// par `launchd` — n'aurait aucune surface où se montrer. Cette vue-ci est la seule qui vive en
+/// permanence ; la placer dans la fenêtre reviendrait à ne l'ouvrir que lorsqu'elle l'est déjà.
+private struct MenuBarLabel: View {
+    let model: ImportModel
+    let router: AppRouter
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(nsImage: MenuBarIcon.image)
+            if model.stageKind == .importing {
+                Circle().fill(Ink.blue).frame(width: 5, height: 5)
+            }
+        }
+        .onChange(of: model.stageKind) { _, kind in
+            guard kind == .importing || kind == .ready else { return }
+            router.tab = .transfer
+            openWindow(id: WindowID.main)
         }
     }
 }

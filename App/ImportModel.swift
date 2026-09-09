@@ -39,6 +39,32 @@ final class ImportModel {
     /// La dernière analyse, gardée pour établir le comparatif sans relire la caméra.
     private var lastScan: CardScanner.Result?
 
+    /// Lecture seule de la dernière analyse, pour l'affichage.
+    var lastScanResult: CardScanner.Result? { lastScan }
+
+    /// L'état, réduit à son genre — de quoi comparer sans déballer les valeurs associées.
+    enum StageKind { case waiting, needsLocalNetwork, scanning, needsLibrary, ready, importing, finished, failed }
+
+    var stageKind: StageKind {
+        switch stage {
+        case .waiting: .waiting
+        case .needsLocalNetwork: .needsLocalNetwork
+        case .scanning: .scanning
+        case .needsLibrary: .needsLibrary
+        case .ready: .ready
+        case .importing: .importing
+        case .finished: .finished
+        case .failed: .failed
+        }
+    }
+
+    /// Le plan en cours, gardé pour afficher la file des fichiers pendant la copie.
+    private(set) var activePlan: ImportPlan?
+    /// Position du fichier en cours de copie dans ce plan.
+    private var copyingIndex = 0
+    /// Début de l'import, pour l'estimation de durée restante.
+    private(set) var importStartedAt: Date?
+
     let preferences: Preferences
     private var watcher: VolumeWatcher?
     private var cameraWatcher: CameraWatcher?
@@ -182,6 +208,11 @@ final class ImportModel {
         let plan = ImportPlanner.plan(takes: result.takes, into: library,
                                       folderName: ImportFolderName.iso(for: Date()), index: index)
 
+        // Le plan est publié dès qu'il existe, et pas seulement au démarrage de la copie : la
+        // fenêtre Transfert montre la file « en attente » avant qu'on ait cliqué sur Importer.
+        activePlan = plan
+        copyingIndex = 0
+
         if preferences.askBeforeImporting || plan.isEmpty {
             // Le cas le plus fréquent une fois la carte à jour : plus rien à copier. C'est
             // justement là qu'on veut pouvoir vider la caméra, donc le comparatif doit exister
@@ -203,6 +234,9 @@ final class ImportModel {
     private func start(_ plan: ImportPlan) {
         guard let library = preferences.library else { return }
 
+        activePlan = plan
+        copyingIndex = 0
+        importStartedAt = Date()
         let flag = CancellationFlag()
         cancellation = flag
         stage = .importing(ImportProgress(fileIndex: 0, fileCount: plan.copies.count,
@@ -211,6 +245,7 @@ final class ImportModel {
         Task.detached(priority: .userInitiated) { [self] in
             var index = ImportIndexStore.load(fromLibrary: library)
             var lastPercent = -1
+            var lastFile = -1
 
             let report = ImportRunner.run(
                 plan, library: library, index: &index,
@@ -220,15 +255,23 @@ final class ImportModel {
                     // changements de pourcentage évite d'inonder l'acteur principal pour des
                     // rafraîchissements que personne ne voit.
                     let percent = Int(progress.fraction * 100)
-                    guard percent != lastPercent else { return }
+                    guard percent != lastPercent || progress.fileIndex != lastFile else { return }
                     lastPercent = percent
-                    Task { @MainActor in self.stage = .importing(progress) }
+                    lastFile = progress.fileIndex
+                    Task { @MainActor in self.advanced(progress) }
                 }
             )
 
             try? ImportIndexStore.save(index, toLibrary: library)
             await importFinished(report)
         }
+    }
+
+    /// Le passage d'un fichier au suivant compte autant que le pourcentage : sans lui, la file
+    /// afficherait le premier fichier « en cours » pendant tout un import de petits clips.
+    private func advanced(_ progress: ImportProgress) {
+        copyingIndex = progress.fileIndex
+        stage = .importing(progress)
     }
 
     func cancel() {
@@ -238,6 +281,7 @@ final class ImportModel {
     private func importFinished(_ report: ImportReport) {
         cancellation = nil
         stage = .finished(report)
+        copyingIndex = report.copied.count
         eraseOutcome = nil
         refreshCleanup()
         announce(report)
@@ -340,5 +384,118 @@ final class ImportModel {
         if let volume = card { scan(volume) }
         else if let camera { scanCamera(camera) }
         else { stage = .waiting }
+    }
+}
+
+// MARK: - La file des fichiers
+
+/// Un fichier du plan, avec où il en est.
+///
+/// Le popover et la fenêtre Transfert affichent la même file : elle est donc calculée ici, à partir
+/// du plan et de la progression, plutôt que dessinée deux fois de deux manières qui finiraient par
+/// diverger.
+struct QueuedFile: Identifiable, Equatable {
+    let id: String
+    let name: String
+    let size: UInt64
+    /// Nombre de tags HiLight du chapitre. Zéro pour un clip sans tag.
+    let tagCount: Int
+    let state: State
+
+    enum State: Equatable {
+        case pending
+        case copying
+        case verified
+        case failed(String)
+
+        /// Le mot affiché dans la colonne « Vérification ».
+        var label: String {
+            switch self {
+            case .pending: "en attente"
+            case .copying: "en cours"
+            case .verified: "vérifié"
+            case .failed(let reason): reason
+            }
+        }
+    }
+}
+
+extension ImportModel {
+
+    /// Les fichiers du plan en cours, ou ceux du dernier import terminé.
+    var queue: [QueuedFile] {
+        guard let plan = activePlan else { return [] }
+        let moments = momentsByFilename
+        let failures = failuresByPath
+
+        return plan.copies.enumerated().map { position, copy in
+            QueuedFile(
+                id: copy.relativeDestination,
+                name: copy.source.filename,
+                size: copy.source.size,
+                tagCount: moments[copy.source.filename] ?? 0,
+                state: fileState(at: position, of: copy, failures: failures)
+            )
+        }
+    }
+
+    private func fileState(at position: Int, of copy: PlannedCopy,
+                           failures: [URL: String]) -> QueuedFile.State {
+        if let reason = failures[copy.source.url] { return .failed(reason) }
+        switch stage {
+        case .finished: return .verified
+        case .importing:
+            if position < copyingIndex { return .verified }
+            return position == copyingIndex ? .copying : .pending
+        default: return .pending
+        }
+    }
+
+    private var failuresByPath: [URL: String] {
+        guard case .finished(let report) = stage else { return [:] }
+        return Dictionary(report.failures.map { ($0.source, $0.reason) },
+                          uniquingKeysWith: { first, _ in first })
+    }
+
+    /// Le nombre de moments par nom de fichier, relevé pendant l'analyse.
+    ///
+    /// Le plan ne porte qu'un booléen « la prise est taguée » ; la pastille, elle, montre un
+    /// nombre. On le retrouve dans l'analyse plutôt que de relire les clips.
+    var momentsByFilename: [String: Int] {
+        guard let scan = lastScanResult else { return [:] }
+        var counts: [String: Int] = [:]
+        for take in scan.takes {
+            for chapter in take.chapters {
+                counts[chapter.file.filename] = chapter.hiLight.moments.count
+            }
+        }
+        return counts
+    }
+}
+
+// MARK: - Ce que le popover affiche au repos
+
+extension ImportModel {
+
+    /// Le chemin du dossier d'import, raccourci avec `~`.
+    var libraryDisplayPath: String {
+        guard let library = preferences.library else { return "aucun" }
+        return (library.path as NSString).abbreviatingWithTildeInPath
+    }
+
+    /// La date du dernier import, lue des dossiers datés de la bibliothèque.
+    ///
+    /// On regarde le disque plutôt que l'index : c'est ce que l'utilisateur voit dans le Finder,
+    /// et un dossier supprimé à la main doit disparaître d'ici aussi.
+    var lastImportDate: String? {
+        guard let library = preferences.library else { return nil }
+        let entries = (try? FileManager.default.contentsOfDirectory(
+            atPath: library.path)) ?? []
+        return entries.filter(ImportModel.isDatedFolder).max()
+    }
+
+    static func isDatedFolder(_ name: String) -> Bool {
+        name.count == 10 && name.prefix(4).allSatisfy(\.isNumber)
+            && Array(name)[4] == "-" && Array(name)[7] == "-"
     }
 }

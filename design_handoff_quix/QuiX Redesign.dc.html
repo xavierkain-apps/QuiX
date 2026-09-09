@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #ecebe7; }
+  a { color: #3d5a8a; }
+  a:hover { color: #16233a; }
+  @keyframes quixPulse { 0%,100% { opacity: .35 } 50% { opacity: 1 } }
+</style>
+</helmet>
+
+<section style="padding: 72px 64px 44px; font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Helvetica, sans-serif; color: #17161a; border-bottom: .5px solid rgba(0,0,0,.12);">
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 40px; max-width: 740px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #8a877f;">Tour 4 — icône, l'objectif stylisé</div>
+    <div style="font-family: 'Instrument Serif', serif; font-size: 44px; line-height: 1.05;">La flèche entre dans l'objectif</div>
+    <div style="font-size: 15px; line-height: 1.6; color: #56534d; text-wrap: pretty;">Trois façons de dire « import vidéo » avec la même paire objectif + flèche : <a href="#4a">4a</a> l'anneau s'ouvre pour la laisser passer, <a href="#4b">4b</a> elle se pose sur une ligne d'arrivée, <a href="#4c">4c</a> l'objectif devient une bobine.</div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 40px; margin-bottom: 8px;">
+
+    <div id="4a" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; background: #17161a; color: #f7f6f3; padding: 4px 8px; border-radius: 5px;">4a</div>
+        <div style="font-size: 14px; font-weight: 590;">L'anneau ouvert</div>
+      </div>
+      <div style="display: flex; align-items: flex-end; gap: 20px;">
+        <div style="width: 168px; height: 168px; border-radius: 38px; background: linear-gradient(160deg, #22212a 0%, #101017 100%); box-shadow: 0 18px 40px -14px rgba(23,22,26,.5), inset 0 .5px 0 rgba(255,255,255,.14); display: flex; align-items: center; justify-content: center;">
+          <div style="position: relative; width: 100px; height: 100px; border-radius: 50%; border: 12px solid oklch(0.68 0.15 233); border-bottom-color: transparent; display: flex; align-items: center; justify-content: center;">
+            <div style="display: flex; flex-direction: column; align-items: center; transform: translateY(14px);">
+              <div style="width: 11px; height: 44px; border-radius: 6px 6px 0 0; background: oklch(0.86 0.07 233);"></div>
+              <div style="width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 17px solid oklch(0.86 0.07 233);"></div>
+            </div>
+          </div>
+        </div>
+        <div style="width: 64px; height: 64px; border-radius: 15px; background: linear-gradient(160deg, #22212a, #101017); display: flex; align-items: center; justify-content: center;">
+          <div style="width: 38px; height: 38px; border-radius: 50%; border: 5px solid oklch(0.68 0.15 233); border-bottom-color: transparent; display: flex; align-items: center; justify-content: center;">
+            <div style="display: flex; flex-direction: column; align-items: center; transform: translateY(6px);">
+              <div style="width: 5px; height: 17px; border-radius: 3px 3px 0 0; background: oklch(0.86 0.07 233);"></div>
+              <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 7px solid oklch(0.86 0.07 233);"></div>
+            </div>
+          </div>
+        </div>
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #17161a; display: flex; align-items: center; justify-content: center;">
+          <div style="width: 20px; height: 20px; border-radius: 50%; border: 3px solid oklch(0.68 0.15 233); border-bottom-color: transparent; display: flex; align-items: center; justify-content: center;">
+            <div style="display: flex; flex-direction: column; align-items: center; transform: translateY(3px);">
+              <div style="width: 3px; height: 8px; border-radius: 2px 2px 0 0; background: oklch(0.86 0.07 233);"></div>
+              <div style="width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 4px solid oklch(0.86 0.07 233);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="4b" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; background: #17161a; color: #f7f6f3; padding: 4px 8px; border-radius: 5px;">4b</div>
+        <div style="font-size: 14px; font-weight: 590;">La ligne d'arrivée</div>
+      </div>
+      <div style="display: flex; align-items: flex-end; gap: 20px;">
+        <div style="width: 168px; height: 168px; border-radius: 38px; background: linear-gradient(160deg, oklch(0.74 0.14 233), oklch(0.55 0.15 245)); box-shadow: 0 18px 40px -14px rgba(20,60,95,.5), inset 0 .5px 0 rgba(255,255,255,.4); display: flex; align-items: center; justify-content: center;">
+          <div style="width: 104px; height: 104px; border-radius: 50%; border: 10px solid rgba(255,255,255,.28); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px;">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+              <div style="width: 11px; height: 26px; border-radius: 6px 6px 0 0; background: #fff;"></div>
+              <div style="width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 16px solid #fff;"></div>
+            </div>
+            <div style="width: 46px; height: 9px; border-radius: 5px; background: #fff;"></div>
+          </div>
+        </div>
+        <div style="width: 64px; height: 64px; border-radius: 15px; background: linear-gradient(160deg, oklch(0.74 0.14 233), oklch(0.55 0.15 245)); display: flex; align-items: center; justify-content: center;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; border: 4px solid rgba(255,255,255,.3); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+              <div style="width: 5px; height: 10px; border-radius: 3px 3px 0 0; background: #fff;"></div>
+              <div style="width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 7px solid #fff;"></div>
+            </div>
+            <div style="width: 18px; height: 4px; border-radius: 2px; background: #fff;"></div>
+          </div>
+        </div>
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: oklch(0.68 0.15 233); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;">
+          <div style="display: flex; flex-direction: column; align-items: center;">
+            <div style="width: 3px; height: 7px; border-radius: 2px 2px 0 0; background: #fff;"></div>
+            <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid #fff;"></div>
+          </div>
+          <div style="width: 14px; height: 3px; border-radius: 2px; background: #fff;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="4c" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; background: #17161a; color: #f7f6f3; padding: 4px 8px; border-radius: 5px;">4c</div>
+        <div style="font-size: 14px; font-weight: 590;">La bobine</div>
+      </div>
+      <div style="display: flex; align-items: flex-end; gap: 20px;">
+        <div style="width: 168px; height: 168px; border-radius: 38px; background: linear-gradient(160deg, #22212a 0%, #101017 100%); box-shadow: 0 18px 40px -14px rgba(23,22,26,.5), inset 0 .5px 0 rgba(255,255,255,.14); display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="width: 10px; height: 10px; border-radius: 3px; background: rgba(255,255,255,.22);"></div>
+            <div style="width: 10px; height: 10px; border-radius: 3px; background: rgba(255,255,255,.22);"></div>
+            <div style="width: 10px; height: 10px; border-radius: 3px; background: rgba(255,255,255,.22);"></div>
+          </div>
+          <div style="width: 90px; height: 90px; border-radius: 50%; border: 11px solid oklch(0.68 0.15 233); display: flex; align-items: center; justify-content: center;">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+              <div style="width: 10px; height: 22px; border-radius: 5px 5px 0 0; background: oklch(0.86 0.07 233);"></div>
+              <div style="width: 0; height: 0; border-left: 13px solid transparent; border-right: 13px solid transparent; border-top: 14px solid oklch(0.86 0.07 233);"></div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="width: 10px; height: 10px; border-radius: 3px; background: rgba(255,255,255,.22);"></div>
+            <div style="width: 10px; height: 10px; border-radius: 3px; background: rgba(255,255,255,.22);"></div>
+            <div style="width: 10px; height: 10px; border-radius: 3px; background: rgba(255,255,255,.22);"></div>
+          </div>
+        </div>
+        <div style="width: 64px; height: 64px; border-radius: 15px; background: linear-gradient(160deg, #22212a, #101017); display: flex; align-items: center; justify-content: center; gap: 4px;">
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <div style="width: 4px; height: 4px; border-radius: 1px; background: rgba(255,255,255,.22);"></div>
+            <div style="width: 4px; height: 4px; border-radius: 1px; background: rgba(255,255,255,.22);"></div>
+            <div style="width: 4px; height: 4px; border-radius: 1px; background: rgba(255,255,255,.22);"></div>
+          </div>
+          <div style="width: 36px; height: 36px; border-radius: 50%; border: 5px solid oklch(0.68 0.15 233); display: flex; align-items: center; justify-content: center;">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+              <div style="width: 4px; height: 9px; border-radius: 2px 2px 0 0; background: oklch(0.86 0.07 233);"></div>
+              <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid oklch(0.86 0.07 233);"></div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <div style="width: 4px; height: 4px; border-radius: 1px; background: rgba(255,255,255,.22);"></div>
+            <div style="width: 4px; height: 4px; border-radius: 1px; background: rgba(255,255,255,.22);"></div>
+            <div style="width: 4px; height: 4px; border-radius: 1px; background: rgba(255,255,255,.22);"></div>
+          </div>
+        </div>
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #17161a; display: flex; align-items: center; justify-content: center;">
+          <div style="width: 20px; height: 20px; border-radius: 50%; border: 3px solid oklch(0.68 0.15 233); display: flex; align-items: center; justify-content: center;">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+              <div style="width: 2px; height: 5px; border-radius: 1px 1px 0 0; background: oklch(0.86 0.07 233);"></div>
+              <div style="width: 0; height: 0; border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 4px solid oklch(0.86 0.07 233);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section style="padding: 56px 64px 44px; font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Helvetica, sans-serif; color: #17161a; border-bottom: .5px solid rgba(0,0,0,.12);">
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 40px; max-width: 720px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #8a877f;">Tour 3 — icône</div>
+    <div style="font-family: 'Instrument Serif', serif; font-size: 44px; line-height: 1.05;">Trois icônes, bleu GoPro</div>
+    <div style="font-size: 15px; line-height: 1.6; color: #56534d; text-wrap: pretty;">Formes géométriques seules, lisibles à 16 px dans la barre de menus : <a href="#3a">3a</a> l'objectif, <a href="#3b">3b</a> la séparation, <a href="#3c">3c</a> le point de highlight. Rendu final à faire en vectoriel.</div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 40px;">
+
+    <div id="3a" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; background: #17161a; color: #f7f6f3; padding: 4px 8px; border-radius: 5px;">3a</div>
+        <div style="font-size: 14px; font-weight: 590;">L'objectif</div>
+      </div>
+      <div style="display: flex; align-items: flex-end; gap: 20px;">
+        <div style="width: 168px; height: 168px; border-radius: 38px; background: linear-gradient(160deg, #22212a 0%, #101017 100%); box-shadow: 0 18px 40px -14px rgba(23,22,26,.5), inset 0 .5px 0 rgba(255,255,255,.14); display: flex; align-items: center; justify-content: center;">
+          <div style="width: 96px; height: 96px; border-radius: 50%; border: 12px solid oklch(0.68 0.15 233); display: flex; align-items: center; justify-content: center;">
+            <div style="display: flex; flex-direction: column; align-items: center;"><div style="width: 10px; height: 26px; border-radius: 5px 5px 0 0; background: oklch(0.86 0.07 233);"></div><div style="width: 0; height: 0; border-left: 13px solid transparent; border-right: 13px solid transparent; border-top: 15px solid oklch(0.86 0.07 233);"></div></div>
+          </div>
+        </div>
+        <div style="width: 64px; height: 64px; border-radius: 15px; background: linear-gradient(160deg, #22212a, #101017); display: flex; align-items: center; justify-content: center;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; border: 5px solid oklch(0.68 0.15 233); display: flex; align-items: center; justify-content: center;">
+            <div style="display: flex; flex-direction: column; align-items: center;"><div style="width: 4px; height: 10px; border-radius: 2px 2px 0 0; background: oklch(0.86 0.07 233);"></div><div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid oklch(0.86 0.07 233);"></div></div>
+          </div>
+        </div>
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #17161a; display: flex; align-items: center; justify-content: center;">
+          <div style="width: 18px; height: 18px; border-radius: 50%; border: 3px solid oklch(0.68 0.15 233); display: flex; align-items: center; justify-content: center;"><div style="display: flex; flex-direction: column; align-items: center;"><div style="width: 2px; height: 4px; border-radius: 1px 1px 0 0; background: oklch(0.86 0.07 233);"></div><div style="width: 0; height: 0; border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 3px solid oklch(0.86 0.07 233);"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="3b" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; background: #17161a; color: #f7f6f3; padding: 4px 8px; border-radius: 5px;">3b</div>
+        <div style="font-size: 14px; font-weight: 590;">La séparation</div>
+      </div>
+      <div style="display: flex; align-items: flex-end; gap: 20px;">
+        <div style="width: 168px; height: 168px; border-radius: 38px; background: linear-gradient(160deg, oklch(0.74 0.14 233), oklch(0.58 0.15 240)); box-shadow: 0 18px 40px -14px rgba(23,60,90,.45), inset 0 .5px 0 rgba(255,255,255,.35); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;">
+          <div style="width: 86px; height: 26px; border-radius: 8px; background: #fff;"></div>
+          <div style="width: 86px; height: 26px; border-radius: 8px; background: rgba(255,255,255,.34);"></div>
+        </div>
+        <div style="width: 64px; height: 64px; border-radius: 15px; background: linear-gradient(160deg, oklch(0.74 0.14 233), oklch(0.58 0.15 240)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;">
+          <div style="width: 34px; height: 11px; border-radius: 3px; background: #fff;"></div>
+          <div style="width: 34px; height: 11px; border-radius: 3px; background: rgba(255,255,255,.34);"></div>
+        </div>
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: oklch(0.68 0.15 233); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;">
+          <div style="width: 17px; height: 6px; border-radius: 2px; background: #fff;"></div>
+          <div style="width: 17px; height: 6px; border-radius: 2px; background: rgba(255,255,255,.4);"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="3c" style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; background: #17161a; color: #f7f6f3; padding: 4px 8px; border-radius: 5px;">3c</div>
+        <div style="font-size: 14px; font-weight: 590;">Le point de highlight</div>
+      </div>
+      <div style="display: flex; align-items: flex-end; gap: 20px;">
+        <div style="width: 168px; height: 168px; border-radius: 38px; background: linear-gradient(160deg, #ffffff, #e9e6df); box-shadow: 0 18px 40px -14px rgba(23,22,26,.35), inset 0 0 0 .5px rgba(0,0,0,.1); display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <div style="width: 14px; height: 14px; border-radius: 50%; background: #cfcabf;"></div>
+          <div style="width: 52px; height: 52px; border-radius: 50%; background: oklch(0.68 0.15 233); box-shadow: 0 0 0 10px oklch(0.68 0.15 233 / .16);"></div>
+          <div style="width: 14px; height: 14px; border-radius: 50%; background: #cfcabf;"></div>
+        </div>
+        <div style="width: 64px; height: 64px; border-radius: 15px; background: linear-gradient(160deg, #ffffff, #e9e6df); box-shadow: inset 0 0 0 .5px rgba(0,0,0,.1); display: flex; align-items: center; justify-content: center; gap: 5px;">
+          <div style="width: 6px; height: 6px; border-radius: 50%; background: #cfcabf;"></div>
+          <div style="width: 21px; height: 21px; border-radius: 50%; background: oklch(0.68 0.15 233);"></div>
+          <div style="width: 6px; height: 6px; border-radius: 50%; background: #cfcabf;"></div>
+        </div>
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: #f2f0ec; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.12); display: flex; align-items: center; justify-content: center;">
+          <div style="width: 13px; height: 13px; border-radius: 50%; background: oklch(0.68 0.15 233);"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section style="padding: 72px 64px 40px; font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Helvetica, sans-serif; color: #17161a;">
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 48px; max-width: 760px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #8a877f;">Tour 2 — un seul système, trois écrans</div>
+    <div style="font-family: 'Instrument Serif', serif; font-size: 44px; line-height: 1.05;">La barre de menus, et ce qu'on ouvre depuis elle</div>
+    <div style="font-size: 15px; line-height: 1.6; color: #56534d; text-wrap: pretty;">Même encre, même bleu, même grille : <a href="#2a">2a</a> est le popover et ses quatre états, <a href="#2b">2b</a> la fenêtre de transfert reprise des offloaders pro (source → destination, file vérifiée), <a href="#2c">2c</a> la bibliothèque avec inspecteur et instants tagués sur la timeline.</div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 64px;">
+
+    <!-- ============ 2a ============ -->
+    <div id="2a" style="display: flex; flex-direction: column; gap: 18px;">
+      <div style="display: flex; align-items: baseline; gap: 12px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; background: #17161a; color: #f7f6f3; padding: 4px 8px; border-radius: 5px;">2a</div>
+        <div style="font-size: 15px; font-weight: 590;">Le popover, ses quatre états</div>
+        <div style="font-size: 13px; color: #8a877f;">retenu du tour 1, resserré</div>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 24px;">
+
+        <div style="width: 300px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8a877f;">Au repos</div>
+          <div style="border-radius: 16px; background: rgba(24,23,26,.94); box-shadow: 0 24px 56px -18px rgba(0,0,0,.55), 0 0 0 .5px rgba(255,255,255,.14); color: #f2f0ec; padding: 22px 18px 16px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="font-size: 15px; font-weight: 590;">Aucune carte</div>
+              <div style="font-size: 12.5px; line-height: 1.5; color: rgba(242,240,236,.5);">Branchez la carte, l'import démarre tout seul.</div>
+            </div>
+            <div style="height: .5px; background: rgba(255,255,255,.1);"></div>
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; color: rgba(242,240,236,.55);">
+              <div style="display: flex; justify-content: space-between;"><span>Dernier import</span><span style="font-family: 'IBM Plex Mono', monospace; color: rgba(242,240,236,.8);">2026-09-02</span></div>
+              <div style="display: flex; justify-content: space-between;"><span>Dossier</span><span style="font-family: 'IBM Plex Mono', monospace; color: rgba(242,240,236,.8);">~/Films/GoPro</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="width: 300px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8a877f;">Lecture de la carte</div>
+          <div style="border-radius: 16px; background: rgba(24,23,26,.94); box-shadow: 0 24px 56px -18px rgba(0,0,0,.55), 0 0 0 .5px rgba(255,255,255,.14); color: #f2f0ec; padding: 22px 18px 16px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 590;">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.68 0.15 233); animation: quixPulse 1.6s ease-in-out infinite;"></span>Lecture de la carte
+            </div>
+            <div style="display: flex; gap: 3px; align-items: flex-end; height: 26px;">
+              <sc-for list="{{ bars }}" as="b" hint-placeholder-count="14">
+                <span style="flex: 1; border-radius: 1px; background: rgba(255,255,255,.16); height: {{ b.h }};"></span>
+              </sc-for>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12.5px; color: rgba(242,240,236,.55);">
+              <span>9 clips sur 14</span><span>en-têtes seuls</span>
+            </div>
+            <div style="font-size: 11.5px; line-height: 1.5; color: rgba(242,240,236,.4);">Aucune vidéo n'est copiée à ce stade.</div>
+          </div>
+        </div>
+
+        <div style="width: 300px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8a877f;">Import</div>
+          <div style="border-radius: 16px; background: rgba(24,23,26,.94); box-shadow: 0 24px 56px -18px rgba(0,0,0,.55), 0 0 0 .5px rgba(255,255,255,.14); color: #f2f0ec; overflow: hidden;">
+            <div style="padding: 20px 18px 16px; display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                <span style="font-size: 15px; font-weight: 590;">Import</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: rgba(242,240,236,.5);">7,4 / 11,9 Go</span>
+              </div>
+              <div style="height: 3px; border-radius: 2px; background: rgba(255,255,255,.12); overflow: hidden;">
+                <div style="width: 62%; height: 100%; background: oklch(0.68 0.15 233);"></div>
+              </div>
+            </div>
+            <div style="padding: 0 8px 8px; display: flex; flex-direction: column;">
+              <sc-for list="{{ queue }}" as="q" hint-placeholder-count="5">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; font-size: 12.5px;" style-hover="background: rgba(255,255,255,.06)">
+                  <span style="font-family: 'IBM Plex Mono', monospace; color: rgba(242,240,236,.85);">{{ q.name }}</span>
+                  <span style="flex: 1;"></span>
+                  <sc-if value="{{ q.tags }}" hint-placeholder-val="{{ true }}">
+                    <span style="padding: 1px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 510; color: #fff; background: oklch(0.68 0.15 233);">{{ q.tags }}</span>
+                  </sc-if>
+                  <span style="font-size: 11.5px; color: rgba(242,240,236,.4); width: 44px; text-align: right;">{{ q.size }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="padding: 12px 16px 14px; border-top: .5px solid rgba(255,255,255,.08); display: flex; gap: 8px;">
+              <button style="flex: 1; border: .5px solid rgba(255,255,255,.18); border-radius: 9px; padding: 8px 14px; font-size: 13px; font-family: inherit; color: #f2f0ec; background: transparent;" style-hover="background: rgba(255,255,255,.08)">Arrêter</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="width: 300px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8a877f;">Terminé</div>
+          <div style="border-radius: 16px; background: rgba(24,23,26,.94); box-shadow: 0 24px 56px -18px rgba(0,0,0,.55), 0 0 0 .5px rgba(255,255,255,.14); color: #f2f0ec; padding: 22px 18px 16px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="font-size: 15px; font-weight: 590;">Import terminé</div>
+              <div style="font-size: 12.5px; color: rgba(242,240,236,.5);">14 fichiers — 11,9 Go — vérifiés</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div style="border-radius: 10px; background: rgba(255,255,255,.06); padding: 12px 12px 10px; display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-size: 22px; font-weight: 590; color: oklch(0.74 0.13 233);">3</span>
+                <span style="font-size: 11.5px; color: rgba(242,240,236,.5);">Highlights</span>
+              </div>
+              <div style="border-radius: 10px; background: rgba(255,255,255,.06); padding: 12px 12px 10px; display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-size: 22px; font-weight: 590;">11</span>
+                <span style="font-size: 11.5px; color: rgba(242,240,236,.5);">Clips</span>
+              </div>
+            </div>
+            <button style="border: none; border-radius: 9px; padding: 9px 14px; font-size: 13.5px; font-weight: 510; font-family: inherit; color: #fff; background: oklch(0.68 0.15 233);" style-hover="background: oklch(0.62 0.15 233)">Ouvrir les highlights</button>
+            <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size: 11.5px; line-height: 1.5; color: rgba(242,240,236,.4);">La carte n'a pas été modifiée.</div>
+            </sc-if>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ 2b ============ -->
+    <div id="2b" style="display: flex; flex-direction: column; gap: 18px;">
+      <div style="display: flex; align-items: baseline; gap: 12px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; background: #17161a; color: #f7f6f3; padding: 4px 8px; border-radius: 5px;">2b</div>
+        <div style="font-size: 15px; font-weight: 590;">Transfert</div>
+        <div style="font-size: 13px; color: rgba(242,240,236,.45);">source → destination, file vérifiée</div>
+      </div>
+
+      <div style="width: 860px; color: #f2f0ec; border-radius: 14px; overflow: hidden; background: #1a191d; box-shadow: 0 30px 70px -22px rgba(0,0,0,.6), 0 0 0 .5px rgba(255,255,255,.13);">
+        <div style="height: 46px; display: flex; align-items: center; gap: 8px; padding: 0 16px; background: #232228; border-bottom: .5px solid rgba(255,255,255,.08);">
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #ec6a5e;"></div>
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #f4bf4f;"></div>
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #61c554;"></div>
+          <div style="flex: 1; text-align: center; font-size: 13px; font-weight: 590; color: rgba(242,240,236,.55); margin-left: -60px;">Transfert</div>
+        </div>
+
+        <div style="padding: 28px 28px 24px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 20px;">
+          <div style="border: .5px solid rgba(255,255,255,.12); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; background: rgba(255,255,255,.05);">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: rgba(242,240,236,.45);">Source</div>
+            <div style="font-size: 17px; font-weight: 590; letter-spacing: -.01em;">GOPRO</div>
+            <div style="font-size: 13px; color: rgba(242,240,236,.55);">14 prises — 11,9 Go — <span style="color: oklch(0.78 0.13 233);">3 taguées</span></div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: rgba(242,240,236,.4);">/Volumes/GOPRO/DCIM/100GOPRO</div>
+          </div>
+
+          <div style="width: 34px; height: 34px; border-radius: 50%; background: oklch(0.68 0.15 233); display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff; font-weight: 590;">→</div>
+
+          <div style="border: .5px solid rgba(255,255,255,.12); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; background: rgba(255,255,255,.05);">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: rgba(242,240,236,.45);">Destination</div>
+            <div style="font-size: 17px; font-weight: 590; letter-spacing: -.01em;">2026-09-09</div>
+            <div style="font-size: 13px; color: rgba(242,240,236,.55);">Highlights / — Clips /</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: rgba(242,240,236,.4);">~/Films/GoPro</div>
+          </div>
+        </div>
+
+        <div style="padding: 0 28px 20px; display: flex; align-items: center; gap: 16px;">
+          <div style="flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,.12); overflow: hidden; display: flex;">
+            <div style="width: 62%; background: oklch(0.68 0.15 233);"></div>
+            <div style="width: 8%; background: oklch(0.88 0.05 233);"></div>
+          </div>
+          <div style="font-size: 13px; color: rgba(242,240,236,.6); white-space: nowrap;">7,4 Go sur 11,9 Go</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: rgba(242,240,236,.4); white-space: nowrap;">≈ 2 min</div>
+        </div>
+
+        <div style="border-top: .5px solid rgba(255,255,255,.08); background: rgba(255,255,255,.025);">
+          <div style="display: grid; grid-template-columns: 24px 1fr 90px 70px 100px; gap: 12px; padding: 10px 28px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: rgba(242,240,236,.4); border-bottom: .5px solid rgba(255,255,255,.07);">
+            <span></span><span>Fichier</span><span>Taille</span><span>Tags</span><span style="text-align: right;">Vérification</span>
+          </div>
+          <sc-for list="{{ queue }}" as="q" hint-placeholder-count="5">
+            <div style="display: grid; grid-template-columns: 24px 1fr 90px 70px 100px; gap: 12px; align-items: center; padding: 11px 28px; font-size: 13px; border-bottom: .5px solid rgba(255,255,255,.05);" style-hover="background: #232228">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.22);"></span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">{{ q.name }}</span>
+              <span style="color: rgba(242,240,236,.55);">{{ q.size }}</span>
+              <span style="display: flex;">
+                <sc-if value="{{ q.tags }}" hint-placeholder-val="{{ true }}">
+                  <span style="padding: 1px 7px; border-radius: 5px; font-size: 11px; font-weight: 510; color: #17161a; background: oklch(0.86 0.07 233);">{{ q.tags }}</span>
+                </sc-if>
+              </span>
+              <span style="text-align: right; font-size: 12px; color: rgba(242,240,236,.45);">{{ q.state }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="padding: 16px 28px 20px; display: flex; align-items: center; gap: 14px; border-top: .5px solid rgba(255,255,255,.08);">
+          <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+            <div style="flex: 1; font-size: 12px; line-height: 1.5; color: rgba(242,240,236,.45); max-width: 480px; text-wrap: pretty;">Empreinte calculée pendant l'écriture puis relue sur le fichier écrit. La carte n'est jamais modifiée.</div>
+          </sc-if>
+          <span style="flex: 1;"></span>
+          <button style="border: .5px solid rgba(255,255,255,.18); border-radius: 8px; padding: 7px 16px; font-size: 13.5px; font-family: inherit; background: rgba(255,255,255,.05);" style-hover="background: #232228">Arrêter</button>
+          <button style="border: none; border-radius: 8px; padding: 7px 18px; font-size: 13.5px; font-weight: 510; font-family: inherit; color: #fff; background: oklch(0.68 0.15 233);" style-hover="background: oklch(0.62 0.15 233)">Ouvrir les highlights</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 2c ============ -->
+    <div id="2c" style="display: flex; flex-direction: column; gap: 18px;">
+      <div style="display: flex; align-items: baseline; gap: 12px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; background: #17161a; color: #f7f6f3; padding: 4px 8px; border-radius: 5px;">2c</div>
+        <div style="font-size: 15px; font-weight: 590;">Bibliothèque</div>
+        <div style="font-size: 13px; color: rgba(242,240,236,.45);">grille dense, inspecteur, moments sur la timeline</div>
+      </div>
+
+      <div style="width: 1120px; color: #f2f0ec; border-radius: 14px; overflow: hidden; background: #1a191d; box-shadow: 0 30px 70px -22px rgba(0,0,0,.6), 0 0 0 .5px rgba(255,255,255,.13); display: grid; grid-template-columns: 214px 1fr 268px; min-height: 620px;">
+
+        <div style="background: #201f25; border-right: .5px solid rgba(255,255,255,.07); display: flex; flex-direction: column;">
+          <div style="height: 46px; display: flex; align-items: center; gap: 8px; padding: 0 16px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #ec6a5e;"></div>
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #f4bf4f;"></div>
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #61c554;"></div>
+          </div>
+          <div style="padding: 10px 10px 0; display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 7px; font-size: 13.5px; font-weight: 510; background: rgba(255,255,255,.09);">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.68 0.15 233);"></span>Tous les highlights
+              <span style="flex: 1;"></span><span style="font-size: 12px; color: rgba(242,240,236,.45);">62</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 9px; padding: 7px 10px; border-radius: 7px; font-size: 13.5px; color: rgba(242,240,236,.85);" style-hover="background: rgba(255,255,255,.06)">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.2);"></span>Tous les clips
+              <span style="flex: 1;"></span><span style="font-size: 12px; color: rgba(242,240,236,.45);">418</span>
+            </div>
+            <div style="padding: 20px 10px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: rgba(242,240,236,.4);">Sessions</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-radius: 7px; font-size: 13px; background: rgba(255,255,255,.05); box-shadow: 0 0 0 .5px rgba(255,255,255,.12);">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">2026-09-09</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: oklch(0.78 0.13 233);"><span style="width: 5px; height: 5px; border-radius: 50%; background: oklch(0.68 0.15 233); animation: quixPulse 1.6s ease-in-out infinite;"></span>62 %</span>
+            </div>
+            <sc-for list="{{ sessions }}" as="s" hint-placeholder-count="4">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 7px 10px; border-radius: 7px; font-size: 13px; color: rgba(242,240,236,.85);" style-hover="background: rgba(255,255,255,.06)">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">{{ s.date }}</span>
+                <span style="font-size: 12px; color: rgba(242,240,236,.45);">{{ s.count }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="padding: 14px 16px 16px; border-top: .5px solid rgba(255,255,255,.07); display: flex; flex-direction: column; gap: 5px;">
+            <span style="font-size: 11.5px; color: rgba(242,240,236,.4);">Dossier d'import</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: rgba(242,240,236,.85);">~/Films/GoPro</span>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; border-right: .5px solid rgba(255,255,255,.07);">
+          <div style="height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: .5px solid rgba(255,255,255,.07); background: #1f1e23;">
+            <div style="display: flex; align-items: baseline; gap: 10px;">
+              <span style="font-size: 13.5px; font-weight: 590;">2026-09-09</span>
+              <span style="font-size: 12.5px; color: rgba(242,240,236,.45);">14 prises — 3 taguées</span>
+            </div>
+            <div style="display: flex; gap: 4px; padding: 2px; border-radius: 8px; background: rgba(255,255,255,.08);">
+              <span style="padding: 3px 12px; border-radius: 6px; font-size: 12.5px; font-weight: 510; background: rgba(255,255,255,.05); box-shadow: 0 0 0 .5px rgba(255,255,255,.12);">Highlights</span>
+              <span style="padding: 3px 12px; border-radius: 6px; font-size: 12.5px; color: rgba(242,240,236,.55);">Clips</span>
+              <span style="padding: 3px 12px; border-radius: 6px; font-size: 12.5px; color: rgba(242,240,236,.55);">Tout</span>
+            </div>
+          </div>
+
+          <div style="padding: 18px 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+            <sc-for list="{{ shelf }}" as="t" hint-placeholder-count="8">
+              <div style="display: flex; flex-direction: column; gap: 7px;">
+                <div style="position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: repeating-linear-gradient(135deg, rgba(255,255,255,.07) 0 6px, rgba(255,255,255,.03) 6px 12px); box-shadow: 0 0 0 .5px rgba(255,255,255,.1); display: flex; align-items: flex-end; padding: 7px;">
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: rgba(242,240,236,.4);">vignette</span>
+                  <span style="position: absolute; top: 7px; left: 7px; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 590; color: #17161a; background: oklch(0.74 0.13 233);">{{ t.tags }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                  <span style="font-family: 'IBM Plex Mono', monospace;">{{ t.name }}</span>
+                  <span style="color: rgba(242,240,236,.4);">{{ t.dur }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; background: #1f1e23;">
+          <div style="height: 46px; border-bottom: .5px solid rgba(255,255,255,.07); display: flex; align-items: center; padding: 0 18px; font-size: 13px; font-weight: 590; color: rgba(242,240,236,.55);">Inspecteur</div>
+          <div style="padding: 18px; display: flex; flex-direction: column; gap: 18px;">
+            <div style="aspect-ratio: 16 / 9; border-radius: 8px; background: repeating-linear-gradient(135deg, rgba(255,255,255,.07) 0 6px, rgba(255,255,255,.03) 6px 12px); box-shadow: 0 0 0 .5px rgba(255,255,255,.1); display: flex; align-items: flex-end; padding: 8px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: rgba(242,240,236,.4);">aperçu</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px;">GX010147.MP4</div>
+              <div style="font-size: 12.5px; color: rgba(242,240,236,.45);">8:04 — 3,4 Go — 5,3K 60 i/s</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: rgba(242,240,236,.4);">4 moments</div>
+              <div style="position: relative; height: 26px; border-radius: 5px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.09) 0 3px, rgba(255,255,255,.035) 3px 6px); box-shadow: 0 0 0 .5px rgba(255,255,255,.1);">
+                <sc-for list="{{ moments }}" as="m" hint-placeholder-count="4">
+                  <span style="position: absolute; top: -3px; bottom: -3px; width: 2px; border-radius: 1px; background: oklch(0.66 0.15 233); left: {{ m.pct }};"></span>
+                </sc-for>
+              </div>
+              <div style="display: flex; flex-direction: column;">
+                <sc-for list="{{ moments }}" as="m" hint-placeholder-count="4">
+                  <div style="display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 6px; font-size: 12.5px;" style-hover="background: rgba(255,255,255,.06)">
+                    <span style="width: 3px; height: 14px; border-radius: 2px; background: oklch(0.68 0.15 233);"></span>
+                    <span style="font-family: 'IBM Plex Mono', monospace;">{{ m.at }}</span>
+                    <span style="flex: 1;"></span>
+                    <span style="font-size: 11.5px; color: rgba(242,240,236,.4);">tournage</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <button style="border: none; border-radius: 8px; padding: 8px 14px; font-size: 13.5px; font-weight: 510; font-family: inherit; color: #fff; background: oklch(0.68 0.15 233);" style-hover="background: oklch(0.62 0.15 233)">Révéler dans le Finder</button>
+            <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size: 11.5px; line-height: 1.5; color: rgba(242,240,236,.4); text-wrap: pretty;">Les highlights ajoutés après coup dans l'app Quik restent dans l'app.</div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section style="padding: 40px 64px 96px; font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', Helvetica, sans-serif; color: #1b1a18; border-top: .5px solid rgba(0,0,0,.12);">
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 48px; max-width: 720px;">
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #8a877f;">Tour 1 — QuiX pour macOS</div>
+    <div style="font-family: 'Instrument Serif', serif; font-size: 44px; line-height: 1.05;">Trois façons de dire la même chose</div>
+    <div style="font-size: 15px; line-height: 1.6; color: #56534d; text-wrap: pretty;">L'app fait un geste : brancher la carte, séparer les prises taguées du reste. <a href="#1a">1a</a> pose ce geste en pleine page, <a href="#1b">1b</a> le range dans la barre de menus, <a href="#1c">1c</a> ouvre la bibliothèque après coup.</div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 56px;">
+
+    <!-- ============ 1a ============ -->
+    <div id="1a" style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: baseline; gap: 12px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; background: #1b1a18; color: #f7f6f3; padding: 4px 8px; border-radius: 5px;">1a</div>
+        <div style="font-size: 15px; font-weight: 590;">Une seule phrase</div>
+        <div style="font-size: 13px; color: #8a877f;">fenêtre unique, tout au repos</div>
+      </div>
+
+      <div style="width: 760px; border-radius: 14px; overflow: hidden; background: #fbfaf8; box-shadow: 0 1px 1px rgba(0,0,0,.08), 0 24px 60px -20px rgba(30,26,20,.35), 0 0 0 .5px rgba(0,0,0,.12);">
+        <div style="height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 16px; background: #f2f0ec; border-bottom: .5px solid rgba(0,0,0,.09);">
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #ec6a5e;"></div>
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #f4bf4f;"></div>
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #61c554;"></div>
+          <div style="flex: 1; text-align: center; font-size: 13px; font-weight: 590; color: #6c6960; margin-left: -60px;">QuiX</div>
+        </div>
+
+        <div style="padding: 44px 44px 32px; display: flex; flex-direction: column; gap: 34px;">
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #8a877f;">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: oklch(0.55 0.13 250); animation: quixPulse 1.8s ease-in-out infinite;"></span>
+              Import en cours
+            </div>
+            <div style="font-family: 'Instrument Serif', serif; font-size: 40px; line-height: 1.1; max-width: 560px;">14 prises, dont 3 taguées</div>
+            <div style="font-size: 15px; color: #56534d;">Vers <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;">Films/GoPro/2026-09-09/</span></div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="height: 4px; border-radius: 2px; background: #e6e3dc; overflow: hidden;">
+              <div style="width: 62%; height: 100%; background: oklch(0.55 0.13 250);"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; color: #6c6960;">
+              <span style="font-family: 'IBM Plex Mono', monospace;">GX010147.MP4</span>
+              <span>7,4 Go sur 11,9 Go</span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #e6e3dc; border: .5px solid #e6e3dc; border-radius: 10px; overflow: hidden;">
+            <div style="background: #fbfaf8; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8a877f;">Highlights</div>
+              <div style="font-size: 26px; font-weight: 590; letter-spacing: -.02em;">3 <span style="font-size: 14px; font-weight: 400; color: #8a877f;">prises</span></div>
+            </div>
+            <div style="background: #fbfaf8; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8a877f;">Clips</div>
+              <div style="font-size: 26px; font-weight: 590; letter-spacing: -.02em;">11 <span style="font-size: 14px; font-weight: 400; color: #8a877f;">prises</span></div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button style="border: none; border-radius: 8px; padding: 8px 18px; font-size: 14px; font-weight: 510; font-family: inherit; color: #fff; background: oklch(0.55 0.13 250); box-shadow: 0 1px 2px rgba(0,0,0,.18);" style-hover="background: oklch(0.49 0.13 250)">Ouvrir les highlights</button>
+            <button style="border: .5px solid rgba(0,0,0,.16); border-radius: 8px; padding: 8px 16px; font-size: 14px; font-family: inherit; color: #1b1a18; background: #fff;" style-hover="background: #f2f0ec">Arrêter</button>
+          </div>
+        </div>
+
+        <div style="padding: 16px 44px 22px; border-top: .5px solid rgba(0,0,0,.08); background: #f7f5f1; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #56534d;">
+            <span style="color: #8a877f;">Dossier d'import</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">~/Films/GoPro</span>
+            <span style="flex: 1;"></span>
+            <button style="border: .5px solid rgba(0,0,0,.16); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-family: inherit; background: #fff; color: #1b1a18;" style-hover="background: #ecebe7">Modifier…</button>
+          </div>
+          <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size: 12px; line-height: 1.5; color: #8a877f; max-width: 600px; text-wrap: pretty;">Seuls les highlights posés pendant le tournage sont inscrits dans le fichier. La carte n'est jamais modifiée.</div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1b ============ -->
+    <div id="1b" style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: baseline; gap: 12px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; background: #1b1a18; color: #f7f6f3; padding: 4px 8px; border-radius: 5px;">1b</div>
+        <div style="font-size: 15px; font-weight: 590;">Barre de menus</div>
+        <div style="font-size: 13px; color: #8a877f;">jamais de fenêtre à fermer</div>
+      </div>
+
+      <div style="width: 400px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 14px; padding: 4px 14px; border-radius: 8px; background: rgba(28,26,24,.82); color: #f7f6f3; font-size: 12.5px; backdrop-filter: blur(20px);">
+          <span style="opacity: .5;">18:42</span>
+          <span style="opacity: .5;">100 %</span>
+          <span style="display: inline-flex; align-items: center; gap: 6px; font-weight: 510;"><span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.68 0.15 233);"></span>QuiX</span>
+        </div>
+
+        <div style="width: 100%; border-radius: 16px; overflow: hidden; background: rgba(32,30,28,.92); backdrop-filter: blur(40px); box-shadow: 0 30px 70px -20px rgba(0,0,0,.6), 0 0 0 .5px rgba(255,255,255,.14); color: #f2f0ec;">
+          <div style="padding: 20px 20px 16px; display: flex; flex-direction: column; gap: 14px; border-bottom: .5px solid rgba(255,255,255,.08);">
+            <div style="display: flex; align-items: baseline; justify-content: space-between;">
+              <div style="font-size: 15px; font-weight: 590;">Carte GoPro</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: rgba(242,240,236,.5);">11,9 Go</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="height: 3px; border-radius: 2px; background: rgba(255,255,255,.12); overflow: hidden;">
+                <div style="width: 62%; height: 100%; background: oklch(0.68 0.15 233);"></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 12px; color: rgba(242,240,236,.55);">
+                <span style="font-family: 'IBM Plex Mono', monospace;">GX010147.MP4</span>
+                <span>9 sur 14</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding: 8px 8px 10px; display: flex; flex-direction: column;">
+            <div style="padding: 8px 12px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: rgba(242,240,236,.4);">Highlights</div>
+            <sc-for list="{{ tagged }}" as="row" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 9px; font-size: 13.5px;" style-hover="background: rgba(255,255,255,.07)">
+                <span style="width: 3px; height: 18px; border-radius: 2px; background: oklch(0.68 0.15 233);"></span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">{{ row.name }}</span>
+                <span style="flex: 1;"></span>
+                <span style="font-size: 12px; color: rgba(242,240,236,.45);">{{ row.moments }}</span>
+              </div>
+            </sc-for>
+            <div style="padding: 14px 12px 6px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: rgba(242,240,236,.4);">Clips</div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 9px 12px; font-size: 13.5px; color: rgba(242,240,236,.7);">
+              <span style="width: 3px; height: 18px; border-radius: 2px; background: rgba(255,255,255,.18);"></span>
+              <span>11 prises sans tag</span>
+            </div>
+          </div>
+
+          <div style="padding: 12px 16px 14px; border-top: .5px solid rgba(255,255,255,.08); display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; gap: 8px;">
+              <button style="flex: 1; border: none; border-radius: 9px; padding: 9px 14px; font-size: 13.5px; font-weight: 510; font-family: inherit; color: #1b1a18; background: oklch(0.68 0.15 233);" style-hover="background: oklch(0.62 0.15 233)">Ouvrir les highlights</button>
+              <button style="border: .5px solid rgba(255,255,255,.18); border-radius: 9px; padding: 9px 14px; font-size: 13.5px; font-family: inherit; color: #f2f0ec; background: transparent;" style-hover="background: rgba(255,255,255,.08)">Arrêter</button>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: rgba(242,240,236,.5);">
+              <span>Demander confirmation</span>
+              <span style="width: 34px; height: 20px; border-radius: 10px; background: rgba(255,255,255,.16); display: inline-flex; align-items: center; padding: 2px;">
+                <span style="width: 16px; height: 16px; border-radius: 50%; background: #f2f0ec;"></span>
+              </span>
+            </div>
+            <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size: 11.5px; line-height: 1.5; color: rgba(242,240,236,.4); text-wrap: pretty;">La carte n'est jamais modifiée. L'effacement reste manuel, dans la caméra.</div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 1c ============ -->
+    <div id="1c" style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: baseline; gap: 12px;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500; background: #1b1a18; color: #f7f6f3; padding: 4px 8px; border-radius: 5px;">1c</div>
+        <div style="font-size: 15px; font-weight: 590;">Bibliothèque</div>
+        <div style="font-size: 13px; color: #8a877f;">l'import, puis ce qu'il a produit</div>
+      </div>
+
+      <div style="width: 1000px; border-radius: 14px; overflow: hidden; background: #fbfaf8; box-shadow: 0 1px 1px rgba(0,0,0,.08), 0 24px 60px -20px rgba(30,26,20,.35), 0 0 0 .5px rgba(0,0,0,.12); display: grid; grid-template-columns: 240px 1fr;">
+
+        <div style="background: #f0eeea; border-right: .5px solid rgba(0,0,0,.08); display: flex; flex-direction: column;">
+          <div style="height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 16px;">
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #ec6a5e;"></div>
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #f4bf4f;"></div>
+            <div style="width: 12px; height: 12px; border-radius: 50%; background: #61c554;"></div>
+          </div>
+          <div style="padding: 14px 12px; display: flex; flex-direction: column; gap: 2px;">
+            <div style="padding: 6px 10px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: #8a877f;">Carte</div>
+            <div style="display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 7px; background: oklch(0.55 0.14 300 / .12); font-size: 13.5px; font-weight: 510;">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background: oklch(0.55 0.14 300);"></span>GOPRO — 14 prises
+            </div>
+            <div style="padding: 18px 10px 8px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: #8a877f;">Bibliothèque</div>
+            <sc-for list="{{ sessions }}" as="s" hint-placeholder-count="4">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 7px 10px; border-radius: 7px; font-size: 13.5px; color: #38352f;" style-hover="background: rgba(0,0,0,.05)">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px;">{{ s.date }}</span>
+                <span style="font-size: 12px; color: #8a877f;">{{ s.count }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex: 1;"></div>
+          <div style="padding: 14px 16px 16px; border-top: .5px solid rgba(0,0,0,.08); display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-size: 11.5px; color: #8a877f;">Dossier d'import</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #38352f;">~/Films/GoPro</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column;">
+          <div style="height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: .5px solid rgba(0,0,0,.08); background: #f7f5f1;">
+            <div style="font-size: 13px; font-weight: 590; color: #38352f;">2026-09-09</div>
+            <div style="display: flex; gap: 4px; padding: 2px; border-radius: 8px; background: #e6e3dc;">
+              <span style="padding: 3px 12px; border-radius: 6px; font-size: 12.5px; font-weight: 510; background: #fbfaf8; box-shadow: 0 1px 1px rgba(0,0,0,.08);">Highlights</span>
+              <span style="padding: 3px 12px; border-radius: 6px; font-size: 12.5px; color: #6c6960;">Clips</span>
+            </div>
+          </div>
+
+          <div style="padding: 16px 20px 14px; display: flex; align-items: center; gap: 14px; border-bottom: .5px solid rgba(0,0,0,.08);">
+            <div style="flex: 1; height: 3px; border-radius: 2px; background: #e6e3dc; overflow: hidden;">
+              <div style="width: 62%; height: 100%; background: oklch(0.55 0.14 300);"></div>
+            </div>
+            <div style="font-size: 12.5px; color: #6c6960; white-space: nowrap;">9 sur 14 — 7,4 Go</div>
+            <button style="border: .5px solid rgba(0,0,0,.16); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-family: inherit; background: #fff;" style-hover="background: #f2f0ec">Arrêter</button>
+          </div>
+
+          <div style="padding: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+            <sc-for list="{{ takes }}" as="t" hint-placeholder-count="6">
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="position: relative; aspect-ratio: 16 / 9; border-radius: 9px; overflow: hidden; background: repeating-linear-gradient(135deg, #e4e1da 0 6px, #ecebe7 6px 12px); border: .5px solid rgba(0,0,0,.1); display: flex; align-items: flex-end; padding: 8px;">
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8a877f;">vignette</span>
+                  <span style="position: absolute; top: 8px; right: 8px; padding: 2px 7px; border-radius: 5px; font-size: 10.5px; font-weight: 510; color: #fff; background: oklch(0.55 0.14 300);">{{ t.tags }}</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 12.5px;">
+                    <span style="font-family: 'IBM Plex Mono', monospace;">{{ t.name }}</span>
+                    <span style="color: #8a877f;">{{ t.duration }}</span>
+                  </div>
+                  <div style="position: relative; height: 3px; border-radius: 2px; background: #e6e3dc;">
+                    <span style="position: absolute; top: -2px; width: 2px; height: 7px; border-radius: 1px; background: oklch(0.55 0.14 300);" style-hover="background: #1b1a18"></span>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
+            <div style="margin-top: auto; padding: 14px 20px 16px; border-top: .5px solid rgba(0,0,0,.08); font-size: 12px; color: #8a877f; text-wrap: pretty;">Les highlights ajoutés après coup dans l'app Quik restent dans l'app : ils ne sont pas réécrits dans le MP4.</div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Contenu&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      showNotes: this.props.showNotes ?? true,
+      tagged: [
+        { name: 'GX010142.MP4', moments: '2 moments' },
+        { name: 'GX010145.MP4', moments: '1 moment' },
+        { name: 'GX010147.MP4', moments: '4 moments' }
+      ],
+      sessions: [
+        { date: '2026-09-02', count: '22' },
+        { date: '2026-08-24', count: '9' },
+        { date: '2026-08-11', count: '31' },
+        { date: '2026-07-30', count: '17' }
+      ],
+      bars: [9, 16, 11, 22, 14, 26, 18, 10, 20, 13, 24, 12, 17, 8].map((h, i) => ({ h: h + 'px', i })),
+      queue: [
+        { name: 'GX010142.MP4', size: '1,9 Go', tags: '2', state: 'vérifié' },
+        { name: 'GX010145.MP4', size: '0,8 Go', tags: '1', state: 'vérifié' },
+        { name: 'GX010147.MP4', size: '3,4 Go', tags: '4', state: 'en cours' },
+        { name: 'GX010151.MP4', size: '1,1 Go', tags: '', state: 'en attente' },
+        { name: 'GX010153.MP4', size: '2,7 Go', tags: '3', state: 'en attente' }
+      ],
+      moments: [
+        { at: '0:14', pct: '3%' },
+        { at: '1:52', pct: '23%' },
+        { at: '4:31', pct: '56%' },
+        { at: '7:08', pct: '88%' }
+      ],
+      shelf: [
+        { name: 'GX010142', dur: '4:12', tags: '2' },
+        { name: 'GX010145', dur: '1:38', tags: '1' },
+        { name: 'GX010147', dur: '8:04', tags: '4' },
+        { name: 'GX010151', dur: '2:26', tags: '1' },
+        { name: 'GX010153', dur: '6:47', tags: '3' },
+        { name: 'GX010158', dur: '0:52', tags: '1' },
+        { name: 'GX010161', dur: '3:19', tags: '2' },
+        { name: 'GX010164', dur: '5:41', tags: '1' }
+      ],
+      takes: [
+        { name: 'GX010142', duration: '4:12', tags: '2' },
+        { name: 'GX010145', duration: '1:38', tags: '1' },
+        { name: 'GX010147', duration: '8:04', tags: '4' },
+        { name: 'GX010151', duration: '2:26', tags: '1' },
+        { name: 'GX010153', duration: '6:47', tags: '3' },
+        { name: 'GX010158', duration: '0:52', tags: '1' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
