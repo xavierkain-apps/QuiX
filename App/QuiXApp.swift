@@ -28,6 +28,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // l'app au premier plan peut la refuser, et un processus sorti de `launchd` n'a rien pour
         // la lui faire céder. Il faut la forme impérative, dépréciée mais seule à fonctionner —
         // ce que l'utilisateur a demandé en branchant sa caméra prime sur la politesse entre apps.
+        // Le redesign est sombre par choix, pas par suivi du thème : sans ça les barres de titre
+        // et les contrôles système restent clairs au milieu de fenêtres à l'encre.
+        NSApp.appearance = NSAppearance(named: .darkAqua)
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
 
@@ -49,12 +52,52 @@ struct QuiXApp: App {
     @State private var model = ImportModel()
 
     var body: some Scene {
-        Window("QuiX", id: "quix") {
-            ContentView(model: model)
+        // Le siège de l'app : un item de barre de menus, et un popover qui suit l'état.
+        MenuBarExtra {
+            MenuBarPopover(model: model)
+        } label: {
+            MenuBarLabel(model: model)
         }
+        .menuBarExtraStyle(.window)
+
+        Window("Transfert", id: WindowID.transfer) {
+            TransferWindow(model: model)
+        }
+        .windowResizability(.contentSize)
+        .defaultSize(width: Metrics.transferWidth, height: 640)
+
+        Window("Bibliothèque", id: WindowID.library) {
+            LibraryWindow(model: model)
+        }
+        .defaultSize(width: Metrics.libraryWidth, height: Metrics.libraryHeight)
         .commands {
             // L'app fait une chose : il n'y a rien à créer, rien à ouvrir.
             CommandGroup(replacing: .newItem) {}
+        }
+    }
+}
+
+/// L'item de barre de menus : le glyphe, et une pastille pendant un import.
+///
+/// Il porte aussi l'ouverture automatique de la fenêtre Transfert, et c'est délibéré : le popover
+/// ne peut pas s'ouvrir par programme, si bien qu'un import démarré tout seul — caméra branchée,
+/// app réveillée par `launchd` — n'aurait aucune surface où se montrer. Cette vue-ci est la seule
+/// qui vive en permanence ; la placer dans la fenêtre Transfert reviendrait à n'ouvrir celle-ci
+/// que lorsqu'elle est déjà ouverte.
+private struct MenuBarLabel: View {
+    let model: ImportModel
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(nsImage: MenuBarIcon.image)
+            if model.stageKind == .importing {
+                Circle().fill(Ink.blue).frame(width: 5, height: 5)
+            }
+        }
+        .onChange(of: model.stageKind) { _, kind in
+            guard kind == .importing || kind == .ready else { return }
+            openWindow(id: WindowID.transfer)
         }
     }
 }
