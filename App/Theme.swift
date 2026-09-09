@@ -196,3 +196,45 @@ enum Clock {
         short(Double(milliseconds) / 1000)
     }
 }
+
+/// Le sélecteur segmenté du handoff : fond discret, segment actif surélevé et liseré.
+///
+/// Il sert au filtre de la Bibliothèque comme aux onglets de la fenêtre. Générique plutôt que
+/// dupliqué : deux exemplaires à peine différents auraient fini par diverger.
+struct Segmented<Option: Hashable>: View {
+
+    @Binding var selection: Option
+    let options: [Option]
+    let label: (Option) -> String
+
+    init(selection: Binding<Option>, options: [Option], label: @escaping (Option) -> String) {
+        self._selection = selection
+        self.options = options
+        self.label = label
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(options, id: \.self) { option in
+                let active = selection == option
+                Button { selection = option } label: {
+                    Text(label(option))
+                        .font(.system(size: 12.5, weight: active ? .medium : .regular))
+                        .foregroundStyle(active ? Ink.primary : Ink.secondary)
+                        .padding(.vertical, 3).padding(.horizontal, 12)
+                        .background(active ? Ink.raised : .clear,
+                                    in: RoundedRectangle(cornerRadius: 6))
+                        .overlay {
+                            if active {
+                                RoundedRectangle(cornerRadius: 6)
+                                    .strokeBorder(Ink.rule, lineWidth: 0.5)
+                            }
+                        }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(2)
+        .background(Ink.hairline, in: RoundedRectangle(cornerRadius: 8))
+    }
+}

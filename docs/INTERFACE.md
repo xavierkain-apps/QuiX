@@ -21,15 +21,44 @@ style natif : on la pose telle quelle plutôt que d'approcher avec `.callout` et
 système restent clairs au milieu de fenêtres à l'encre — le défaut se voit tout de suite sur une
 capture, et jamais dans le code.
 
+## Une fenêtre, deux onglets
+
+Le handoff dessinait Transfert et Bibliothèque en deux fenêtres. Ce sont deux onglets d'une seule :
+« Ouvrir les highlights » ne fait plus surgir une seconde fenêtre par-dessus la première, il bascule
+d'onglet — on reste au même endroit.
+
+L'onglet courant vit dans `AppRouter`, hors des vues, parce que trois endroits le changent : le
+popover, la barre de menus, et le bouton du Transfert. Il voyage jusqu'aux vues profondes par
+l'environnement plutôt que de main en main.
+
+Le Transfert perd la largeur de 860 pt que le handoff lui donnait : il partage désormais la fenêtre
+et s'étire. Sa table remplit la hauteur disponible, le pied reste ancré en bas.
+
+## Les réglages ont leur fenêtre
+
+Ils vivaient au pied du popover, qui n'est pas fait pour ça : on l'ouvre pour savoir où en est
+l'import, pas pour cocher des cases. Fenêtre de `Settings`, donc ⌘, comme partout sur macOS.
+
+Elle montre aussi l'**état des autorisations**, ce qu'aucun autre écran ne fait. Les deux que QuiX
+demande échouent de la même façon trompeuse — l'app voit le matériel et ne trouve rien. Faute d'API
+pour interroger la permission « Réseau local », l'état se déduit de ce que la caméra répond :
+« manquante » n'est affirmé que si une caméra est branchée et refuse, « demandée au besoin » sinon.
+
+## Les menus
+
+SwiftUI en ajoute par défaut qui ne correspondent à rien ici : l'app ne crée pas de document,
+n'imprime pas, n'a pas de barre d'outils. Ils sont retirés plutôt que laissés grisés, ce qui donne
+l'air d'une app inachevée. Restent les onglets, en ⌘1 et ⌘2.
+
 ## Ce que le popover ne peut pas faire
 
 Une `MenuBarExtra` ne s'ouvre **pas** par programme. C'est sans conséquence tant que l'utilisateur
 clique, mais l'app se réveille aussi toute seule au branchement de la caméra : dans ce cas le
 popover reste fermé et rien ne s'affiche.
 
-La fenêtre Transfert s'ouvre donc d'elle-même quand l'état passe à `ready` ou `importing`. Le
-déclencheur est posé sur la vue de l'item de barre de menus, seule à vivre en permanence — le
-placer dans la fenêtre Transfert ne l'aurait ouverte que lorsqu'elle l'était déjà.
+La fenêtre s'ouvre donc d'elle-même, sur l'onglet Transfert, quand l'état passe à `ready` ou
+`importing`. Le déclencheur est posé sur la vue de l'item de barre de menus, seule à vivre en
+permanence — le placer dans la fenêtre ne l'aurait ouverte que lorsqu'elle l'était déjà.
 
 ## Une seule file, deux affichages
 
@@ -60,6 +89,13 @@ grille.
 La piste de l'inspecteur place chaque tag au prorata de la durée du clip, plafonné à 98 %. Un
 fichier dont la durée n'est pas encore chargée répartit ses moments régulièrement plutôt que de
 les empiler tous à gauche.
+
+## Un piège de mise en page
+
+`Color.clear.frame(width: 24)` ne contraint que la largeur. Une `Color` étant extensible, la hauteur
+restait libre : l'en-tête de la table s'étirait sur toute la fenêtre et poussait les lignes vers le
+bas, avec ses intitulés flottant au milieu du vide. Le défaut ne se voit ni à la compilation ni à la
+lecture du code — seulement à l'écran.
 
 ## L'icône
 

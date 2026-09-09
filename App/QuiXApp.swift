@@ -50,42 +50,58 @@ struct QuiXApp: App {
 
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @State private var model = ImportModel()
+    @State private var router = AppRouter()
 
     var body: some Scene {
         // Le siège de l'app : un item de barre de menus, et un popover qui suit l'état.
         MenuBarExtra {
-            MenuBarPopover(model: model)
+            MenuBarPopover(model: model, router: router)
+                .environment(\.appRouter, router)
         } label: {
-            MenuBarLabel(model: model)
+            MenuBarLabel(model: model, router: router)
         }
         .menuBarExtraStyle(.window)
 
-        Window("Transfert", id: WindowID.transfer) {
-            TransferWindow(model: model)
+        Window("QuiX", id: WindowID.main) {
+            MainWindow(model: model, router: router)
+                .environment(\.appRouter, router)
         }
-        .windowResizability(.contentSize)
-        .defaultSize(width: Metrics.transferWidth, height: 640)
-
-        Window("Bibliothèque", id: WindowID.library) {
-            LibraryWindow(model: model)
-        }
-        .defaultSize(width: Metrics.libraryWidth, height: Metrics.libraryHeight)
+        .defaultSize(width: Metrics.libraryWidth, height: 720)
         .commands {
-            // L'app fait une chose : il n'y a rien à créer, rien à ouvrir.
+            // Ce que SwiftUI ajoute par défaut ne correspond à rien ici : l'app ne crée pas de
+            // document, n'imprime pas, n'a pas de barre d'outils. On retire, plutôt que de laisser
+            // des menus grisés qui donnent l'air d'une app inachevée.
             CommandGroup(replacing: .newItem) {}
+            CommandGroup(replacing: .saveItem) {}
+            CommandGroup(replacing: .printItem) {}
+            CommandGroup(replacing: .undoRedo) {}
+            CommandGroup(replacing: .toolbar) {}
+            CommandGroup(replacing: .sidebar) {}
+            CommandGroup(replacing: .help) {}
+
+            CommandGroup(after: .windowArrangement) {
+                Button("Transfert") { router.tab = .transfer }
+                    .keyboardShortcut("1", modifiers: .command)
+                Button("Bibliothèque") { router.tab = .library }
+                    .keyboardShortcut("2", modifiers: .command)
+            }
+        }
+
+        Settings {
+            SettingsWindow(model: model)
         }
     }
 }
 
 /// L'item de barre de menus : le glyphe, et une pastille pendant un import.
 ///
-/// Il porte aussi l'ouverture automatique de la fenêtre Transfert, et c'est délibéré : le popover
-/// ne peut pas s'ouvrir par programme, si bien qu'un import démarré tout seul — caméra branchée,
-/// app réveillée par `launchd` — n'aurait aucune surface où se montrer. Cette vue-ci est la seule
-/// qui vive en permanence ; la placer dans la fenêtre Transfert reviendrait à n'ouvrir celle-ci
-/// que lorsqu'elle est déjà ouverte.
+/// Il porte aussi l'ouverture automatique de la fenêtre, et c'est délibéré : le popover ne peut pas
+/// s'ouvrir par programme, si bien qu'un import démarré tout seul — caméra branchée, app réveillée
+/// par `launchd` — n'aurait aucune surface où se montrer. Cette vue-ci est la seule qui vive en
+/// permanence ; la placer dans la fenêtre reviendrait à ne l'ouvrir que lorsqu'elle l'est déjà.
 private struct MenuBarLabel: View {
     let model: ImportModel
+    let router: AppRouter
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -97,7 +113,8 @@ private struct MenuBarLabel: View {
         }
         .onChange(of: model.stageKind) { _, kind in
             guard kind == .importing || kind == .ready else { return }
-            openWindow(id: WindowID.transfer)
+            router.tab = .transfer
+            openWindow(id: WindowID.main)
         }
     }
 }
