@@ -14,13 +14,16 @@ avant d'écrire du code.
 écrit par la HERO12 de Xavier, mesuré sur deux vrais clips. Deux pièges y sont
 relevés, dont un qui casse l'app en silence.
 
+**[docs/USB.md](docs/USB.md)** — ce que la caméra est vraiment quand on la branche :
+pas un disque, mais un serveur HTTP. À lire avant de toucher au chemin USB.
+
 ## Structure
 
 - `Core/` — moteur Swift pur (parsing HMMT + import), testable sur Linux
 - `App/` — app SwiftUI macOS, compilée sur le Mac uniquement
 - `docs/` — décisions et notes
 
-## Les trois choses à ne pas oublier
+## Les quatre choses à ne pas oublier
 
 1. **Le tri est gratuit.** Les tags HiLight sont dans `moov/udta/HMMT`, et chez
    GoPro `moov` est en **fin** de fichier : trois `seek` et ~34 Ko lus suffisent
@@ -28,8 +31,15 @@ relevés, dont un qui casse l'app en silence.
    nombre de highlights de la taille de HMMT — voir [docs/HILIGHT.md](docs/HILIGHT.md).
 2. **Une prise, un dossier.** Les chapitres d'une longue prise partagent le
    numéro de fichier GoPro. Si l'un est taggé, tous suivent.
-3. **Jamais d'effacement de la carte.** L'effacement reste une action manuelle,
-   dans la caméra.
+3. **L'effacement ne part jamais tout seul.** Il existe désormais un bouton, dans
+   le compte rendu d'import, qui efface les clips de la caméra. Trois verrous le
+   tiennent : le bouton n'apparaît que si **chaque** fichier de la caméra est
+   retrouvé sur le Mac à la bonne taille, une alerte demande confirmation, et
+   `CameraCleanup.erase` refuse de son côté tout plan non vérifié. Rien dans une
+   détection ni dans une fin d'import ne l'enclenche.
+4. **La caméra en USB n'est pas un disque.** Elle n'expose aucun stockage de masse :
+   elle monte un réseau et répond en HTTP. Le tri y reste gratuit parce qu'elle
+   honore `Range` — mesuré, pas supposé. Voir [docs/USB.md](docs/USB.md).
 
 ## Où l'on se trouve
 
