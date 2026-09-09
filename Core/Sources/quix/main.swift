@@ -19,6 +19,7 @@ func printUsage() {
 
     quix hilight <fichier.mp4>...        lit les tags HiLight d'un ou plusieurs clips
     quix scan <volume>                   liste les prises d'une carte et dit lesquelles sont taguées
+    quix camera                          interroge la GoPro branchée en USB et liste ses prises
     quix import <volume> <bibliothèque>  importe, en séparant Highlights/ et Clips/
         --dry-run                        montre le plan sans écrire un octet
         --date AAAA-MM-JJ                force le nom du dossier daté
@@ -139,6 +140,56 @@ func commandImport(_ arguments: [String]) -> Int32 {
     }
 }
 
+/// Interroge la caméra branchée en USB.
+///
+/// La HERO12 n'expose pas de stockage de masse par le câble : elle monte un réseau et répond en
+/// HTTP. Cette commande sert d'abord à prouver, sur une vraie caméra, que les lectures `Range`
+/// passent — c'est-à-dire que le tri reste gratuit en USB comme sur une carte.
+func commandCamera(_ arguments: [String]) -> Int32 {
+    guard let camera = GoProCamera.discover() else {
+        fail("aucune GoPro trouvée sur les réseaux USB — caméra allumée et branchée ?")
+    }
+
+    guard let info = try? camera.info() else {
+        fail("la caméra ne répond pas sur \(camera.host)")
+    }
+    print("\(info.modelName) — série \(info.serialNumber), firmware \(info.firmwareVersion)")
+    print("adresse : \(camera.baseURL.absoluteString)")
+
+    camera.enableWiredControl()
+
+    guard let files = try? camera.mediaList() else {
+        fail("catalogue illisible")
+    }
+    let videos = files.filter { GoProFileName($0.filename)?.kind.isVideo == true }
+    print("\n\(files.count) fichier(s) sur la carte, dont \(videos.count) vidéo(s)")
+    guard let sample = videos.first else {
+        print("\nCarte vide : rien à sonder. Filmez une courte séquence et relancez.")
+        return 0
+    }
+
+    print("\n── lectures partielles sur « \(sample.filename) » (\(humanBytes(sample.size)))")
+    let supported = HTTPRangeByteReader.supportsRange(url: sample.url)
+    print(supported
+        ? "   ✓ la caméra honore Range (206) — le tri sans copie fonctionne par le câble"
+        : "   ✗ la caméra ignore Range — il faudrait télécharger chaque clip pour le trier")
+    guard supported else { return 1 }
+
+    print("\nAnalyse des tags, sans copier un octet :")
+    let started = Date()
+    guard let result = try? CameraScanner.scan(camera: camera, progress: { done, total in
+        FileHandle.standardError.write("  \r\(done)/\(total)".data(using: .utf8)!)
+    }) else {
+        fail("scan impossible")
+    }
+    let elapsed = Date().timeIntervalSince(started)
+
+    print("\n\(result.takes.count) prise(s), \(result.highlightedTakes.count) highlightée(s), "
+          + "\(humanBytes(result.totalSize)) au total — analysé en \(String(format: "%.1f", elapsed)) s")
+    for take in result.takes { print(describe(take)) }
+    return 0
+}
+
 // MARK: - Aiguillage
 
 let commandLine = Array(CommandLine.arguments.dropFirst())
@@ -147,6 +198,7 @@ let rest = Array(commandLine.dropFirst())
 switch commandLine.first {
 case "hilight": exit(commandHiLight(rest))
 case "scan":    exit(commandScan(rest))
+case "camera":  exit(commandCamera(rest))
 case "import":  exit(commandImport(rest))
 default:        printUsage(); exit(commandLine.isEmpty ? 1 : 0)
 }
