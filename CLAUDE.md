@@ -20,7 +20,10 @@ pas un disque, mais un serveur HTTP. À lire avant de toucher au chemin USB.
 ## Structure
 
 - `Core/` — moteur Swift pur (parsing HMMT + import), testable sur Linux
-- `App/` — app SwiftUI macOS, compilée sur le Mac uniquement
+- `App/` — app SwiftUI macOS, compilée sur le Mac uniquement : un popover de barre
+  de menus, une fenêtre Transfert, une fenêtre Bibliothèque. Les jetons de design
+  (couleurs, échelle typographique, métriques) sont dans `App/Theme.swift` et
+  nulle part ailleurs.
 - `docs/` — décisions et notes
 
 ## Les quatre choses à ne pas oublier

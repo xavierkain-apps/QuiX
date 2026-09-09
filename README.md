@@ -126,11 +126,20 @@ un dossier `DCIM/100GOPRO/` fabriqué à la main avec des `.MP4` dedans.
 
 ## Utiliser l'app
 
-Au premier lancement, elle demande où ranger les clips. Ensuite, brancher suffit — la caméra en
+QuiX vit dans la **barre de menus**. Un clic ouvre un popover qui dit où en est l'import, et rien
+de plus : aucune carte, lecture en cours, import, terminé. Deux fenêtres s'ouvrent depuis là — le
+**Transfert**, vue détaillée d'un import en cours, et la **Bibliothèque**, pour retrouver les
+prises taguées après coup.
+
+Au premier lancement, l'app demande où ranger les clips. Ensuite, brancher suffit — la caméra en
 USB-C ou la carte dans un lecteur. Une case permet de demander confirmation avant chaque import.
 
 Si les deux sont présents, **la carte l'emporte** : elle est plus rapide, et c'est celle que vous
 avez délibérément mise dans le lecteur.
+
+La fenêtre Transfert s'ouvre d'elle-même quand un import démarre. C'est une entorse assumée au
+handoff, qui la voulait ouverte depuis le popover : celui-ci ne peut pas s'afficher par programme,
+et un import déclenché par le branchement n'aurait donc eu aucune surface où se montrer.
 
 ### Les deux autorisations, et leurs symptômes
 
@@ -159,6 +168,15 @@ Réglages Système → Général → Ouverture et extensions.
 
 L'appariement ne reconnaît que la **HERO12 Black** : les détails, et comment relever l'identifiant
 d'un autre modèle, sont dans [docs/USB.md](docs/USB.md).
+
+### La bibliothèque
+
+Trois colonnes : les sessions à gauche, la grille des prises au centre, l'inspecteur à droite.
+L'inspecteur montre les **moments** d'une prise sur une piste à l'échelle de sa durée — c'est la
+seule vue qui se serve des horodatages exacts des tags, ailleurs réduits à « taguée ou non ».
+
+Les vignettes sont extraites du clip lui-même, **au premier moment tagué** quand il y en a un :
+c'est l'image qui dit pourquoi la prise est dans `Highlights/`.
 
 ### Effacer la caméra après import
 
