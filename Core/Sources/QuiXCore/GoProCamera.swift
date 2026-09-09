@@ -78,8 +78,16 @@ public struct GoProCamera: Sendable, Equatable {
             guard let address = interface.pointee.ifa_addr,
                   address.pointee.sa_family == UInt8(AF_INET) else { continue }
 
+            // `sa_len` est un champ BSD : Linux ne l'a pas, et la taille s'y déduit de la
+            // famille d'adresse. On a déjà filtré sur `AF_INET` juste au-dessus.
+            #if canImport(Darwin)
+            let addressLength = socklen_t(address.pointee.sa_len)
+            #else
+            let addressLength = socklen_t(MemoryLayout<sockaddr_in>.size)
+            #endif
+
             var buffer = [CChar](repeating: 0, count: Int(NI_MAXHOST))
-            guard getnameinfo(address, socklen_t(address.pointee.sa_len),
+            guard getnameinfo(address, addressLength,
                               &buffer, socklen_t(buffer.count),
                               nil, 0, NI_NUMERICHOST) == 0 else { continue }
 
@@ -201,7 +209,11 @@ enum HTTP {
     static let session: URLSession = {
         let configuration = URLSessionConfiguration.default
         configuration.httpMaximumConnectionsPerHost = 1
+        // Absent de la Foundation de Linux, où la propriété est en lecture seule. La caméra est au
+        // bout d'un câble : attendre une connectivité qui ne viendra pas n'aurait aucun sens.
+        #if canImport(Darwin)
         configuration.waitsForConnectivity = false
+        #endif
         return URLSession(configuration: configuration)
     }()
 
@@ -209,19 +221,30 @@ enum HTTP {
     static func downloadConfiguration() -> URLSessionConfiguration {
         let configuration = URLSessionConfiguration.default
         configuration.httpMaximumConnectionsPerHost = 1
+        #if canImport(Darwin)
         configuration.waitsForConnectivity = false
+        #endif
         return configuration
+    }
+
+    /// Le résultat voyage par une référence, jamais par une variable capturée.
+    ///
+    /// La fermeture d'`URLSession` s'exécute sur un autre fil : muter une variable locale depuis
+    /// là est refusé par le compilateur en concurrence stricte. L'écriture et la lecture sont
+    /// séparées par la sémaphore, qui établit l'ordre entre les deux.
+    private final class Outcome: @unchecked Sendable {
+        var result: Result<(Data, URLResponse?), Error> = .failure(GoProCamera.CameraError.notFound)
     }
 
     static func send(_ request: URLRequest) throws -> (Data, URLResponse?) {
         let semaphore = DispatchSemaphore(value: 0)
-        var result: Result<(Data, URLResponse?), Error> = .failure(GoProCamera.CameraError.notFound)
+        let outcome = Outcome()
 
         let task = session.dataTask(with: request) { data, response, error in
             if let error {
-                result = .failure(error)
+                outcome.result = .failure(error)
             } else {
-                result = .success((data ?? Data(), response))
+                outcome.result = .success((data ?? Data(), response))
             }
             semaphore.signal()
         }
@@ -231,6 +254,6 @@ enum HTTP {
             task.cancel()
             throw GoProCamera.CameraError.notFound
         }
-        return try result.get()
+        return try outcome.result.get()
     }
 }

@@ -145,7 +145,11 @@ public enum RemoteVerifiedCopy {
 
     /// Réception en flux : les octets sont écrits et empreintés au fil de l'eau, jamais accumulés
     /// en mémoire. Un clip GoPro pèse couramment plusieurs gigaoctets.
-    private final class Sink: NSObject, URLSessionDataDelegate {
+    /// `@unchecked Sendable` parce que la Foundation de Linux exige un délégué `Sendable`, et que
+    /// l'état mutable ci-dessous n'est de toute façon touché que par un seul fil à la fois : les
+    /// rappels du délégué arrivent sur une file sérielle, et `download()` n'y revient qu'après la
+    /// sémaphore, levée par le dernier d'entre eux.
+    private final class Sink: NSObject, URLSessionDataDelegate, @unchecked Sendable {
         private let handle: FileHandle
         private let semaphore = DispatchSemaphore(value: 0)
         private let resumeFrom: UInt64
@@ -188,7 +192,7 @@ public enum RemoteVerifiedCopy {
             }
             let task = session.dataTask(with: request)
             task.resume()
-            semaphore.wait()
+            waitForCompletion(of: task)
             // Passé ce point, plus aucun rappel de délégué ne touche aux fermetures : la
             // sémaphore n'est levée que par `didCompleteWithError`, qui clôt le transfert.
             isCancelled = nil
@@ -200,6 +204,33 @@ public enum RemoteVerifiedCopy {
             if let failure { throw failure }
             guard (200...299).contains(status) else {
                 throw GoProCamera.CameraError.badStatus(status)
+            }
+        }
+
+        /// Combien de temps un transfert peut se taire avant qu'on le déclare perdu.
+        ///
+        /// On ne borne pas la durée totale — un clip de plusieurs gigaoctets prend légitimement
+        /// son temps — mais l'absence de progression. Sans cette borne, une attente sans fin :
+        /// un câble arraché au mauvais moment gelait l'import, sans erreur et sans reprise
+        /// possible, puisque plus rien n'avançait ni n'échouait.
+        static let stallTimeout: TimeInterval = 120
+
+        private func waitForCompletion(of task: URLSessionDataTask) {
+            var lastCount: Int64 = -1
+            var lastProgress = Date()
+
+            while semaphore.wait(timeout: .now() + 5) == .timedOut {
+                let received = task.countOfBytesReceived
+                if received != lastCount {
+                    lastCount = received
+                    lastProgress = Date()
+                } else if Date().timeIntervalSince(lastProgress) > Sink.stallTimeout {
+                    task.cancel()
+                    // `cancel()` provoque `didCompleteWithError` : on l'attend, sans s'éterniser
+                    // si ce rappel ne venait pas non plus.
+                    _ = semaphore.wait(timeout: .now() + 10)
+                    return
+                }
             }
         }
 

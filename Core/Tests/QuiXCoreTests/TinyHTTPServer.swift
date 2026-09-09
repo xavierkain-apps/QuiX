@@ -12,7 +12,7 @@ import Glibc
 /// production alors que les 85 tests passaient. Un vrai socket est le seul moyen d'exercer
 /// `URLSession` telle qu'elle se comporte vraiment, y compris la libération asynchrone de son
 /// délégué qui est précisément ce qui avait explosé.
-final class TinyHTTPServer {
+final class TinyHTTPServer: @unchecked Sendable {
 
     private var listener: Int32 = -1
     private var thread: Thread?
@@ -23,6 +23,7 @@ final class TinyHTTPServer {
     private let cutAfter: Int?
     /// Combien de requêtes coupent avant que le serveur ne se comporte normalement.
     private let cutCount: Int
+    private let counter = NSLock()
     private var served = 0
 
     private(set) var port: UInt16 = 0
@@ -39,7 +40,13 @@ final class TinyHTTPServer {
     var baseURL: URL { URL(string: "http://127.0.0.1:\(port)/clip.mp4")! }
 
     private func open() throws {
-        listener = socket(AF_INET, SOCK_STREAM, 0)
+        // `SOCK_STREAM` est un `Int32` sur Darwin et une énumération C sur Linux.
+        #if canImport(Darwin)
+        let streamType = SOCK_STREAM
+        #else
+        let streamType = Int32(SOCK_STREAM.rawValue)
+        #endif
+        listener = socket(AF_INET, streamType, 0)
         guard listener >= 0 else { throw Failure.socket }
 
         var yes: Int32 = 1
@@ -79,12 +86,24 @@ final class TinyHTTPServer {
         while listener >= 0 {
             let client = accept(listener, nil, nil)
             guard client >= 0 else { return }
-            handle(client)
-            close(client)
+
+            // Une connexion par fil. En série, une connexion ouverte sans requête — libcurl en
+            // garde en réserve, et la Foundation de Linux s'appuie dessus — bloquait `recv` et
+            // empêchait d'accepter la suivante : le client attendait une réponse que le serveur
+            // ne pouvait plus servir, et la suite de tests se figeait sans rien dire.
+            Thread { [weak self] in
+                self?.handle(client)
+                close(client)
+            }.start()
         }
     }
 
     private func handle(_ client: Int32) {
+        // Et une connexion muette ne doit pas retenir son fil indéfiniment.
+        var patience = timeval(tv_sec: 5, tv_usec: 0)
+        setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, &patience,
+                   socklen_t(MemoryLayout<timeval>.size))
+
         var buffer = [UInt8](repeating: 0, count: 4096)
         let count = recv(client, &buffer, buffer.count, 0)
         guard count > 0 else { return }
@@ -119,8 +138,10 @@ final class TinyHTTPServer {
 
         // Le corps annoncé reste celui du fichier complet : c'est bien une coupure en cours de
         // route, pas une réponse courte et honnête.
+        counter.lock()
         let cutting = served < cutCount
         served += 1
+        counter.unlock()
         let sent = (cutting ? cutAfter.map { Array(body.prefix($0)) } : nil) ?? body
 
         var out = [UInt8](head.utf8)
