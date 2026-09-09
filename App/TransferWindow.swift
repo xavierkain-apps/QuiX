@@ -8,16 +8,10 @@ import QuiXCore
 struct TransferWindow: View {
 
     let model: ImportModel
-    @Environment(\.openWindow) private var openWindow
+    @Environment(\.appRouter) private var router
 
     var body: some View {
-        VStack(spacing: 0) {
-            route
-            Spacer(minLength: 0)
-        }
-        .frame(width: Metrics.transferWidth, alignment: .top)
-        .background(Ink.window)
-        .foregroundStyle(Ink.primary)
+        route.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     @ViewBuilder
@@ -32,10 +26,16 @@ struct TransferWindow: View {
     }
 
     private var content: some View {
+        // Le haut est fixe, la table prend ce qui reste, le pied est ancré en bas. Dans une
+        // fenêtre à hauteur libre la table pouvait se contenter d'une hauteur plafonnée ; dans un
+        // onglet, ça laissait un grand vide sous son en-tête.
         VStack(spacing: 0) {
             Route(model: model)
             progress
             FileTable(files: model.queue)
+                // `.top` n'est pas décoratif : sans lui, une table plus courte que la place
+                // disponible se centre, et son en-tête flotte au milieu du vide.
+                .frame(maxHeight: .infinity, alignment: .top)
             footer
         }
     }
@@ -109,7 +109,7 @@ struct TransferWindow: View {
             if case .ready(_, let plan) = model.stage, !plan.isEmpty {
                 Button("Importer") { model.startPlannedImport() }.buttonStyle(FilledBlue())
             } else {
-                Button("Ouvrir les highlights") { openWindow(id: WindowID.library) }
+                Button("Ouvrir les highlights") { router?.tab = .library }
                     .buttonStyle(FilledBlue())
             }
         }
@@ -212,15 +212,18 @@ private struct FileTable: View {
                     ForEach(files) { file in FileRow(file: file) }
                 }
             }
-            .frame(maxHeight: 260)
+            .frame(maxHeight: .infinity)
         }
+        .frame(maxHeight: .infinity, alignment: .top)
         .background(Color.white.opacity(0.025))
         .overlay(alignment: .top) { Rule() }
     }
 
     private var header: some View {
         HStack(spacing: 12) {
-            Color.clear.frame(width: 24)
+            // La hauteur compte autant que la largeur : une `Color` sans hauteur imposée
+            // s'étire, et c'est tout l'en-tête qui part occuper la fenêtre.
+            Color.clear.frame(width: 24, height: 12)
             ColumnHeader("Fichier").frame(maxWidth: .infinity, alignment: .leading)
             ColumnHeader("Taille").frame(width: 90, alignment: .leading)
             ColumnHeader("Tags").frame(width: 70, alignment: .leading)

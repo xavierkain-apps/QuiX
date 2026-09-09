@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import QuiXCore
 
@@ -8,7 +9,10 @@ import QuiXCore
 struct MenuBarPopover: View {
 
     let model: ImportModel
+    let router: AppRouter
     @Environment(\.openWindow) private var openWindow
+
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -128,7 +132,7 @@ struct MenuBarPopover: View {
                     .font(Type.small).foregroundStyle(Ink.secondary)
                 Button("Importer") {
                     model.startPlannedImport()
-                    openWindow(id: WindowID.transfer)
+                    show(.transfer)
                 }
                 .buttonStyle(FilledBlue(fullWidth: true))
             }
@@ -182,7 +186,7 @@ struct MenuBarPopover: View {
                 Tally(number: takeCount(report) - report.highlightedTakeCount, label: "Clips")
             }
 
-            Button("Ouvrir les highlights") { openWindow(id: WindowID.library) }
+            Button("Ouvrir les highlights") { show(.library) }
                 .buttonStyle(FilledBlue(fullWidth: true))
 
             if let cleanup = model.cleanup, cleanup.isSafeToErase {
@@ -212,27 +216,31 @@ struct MenuBarPopover: View {
 
     // MARK: Pied commun
 
+    /// Le pied : deux liens, et rien d'autre.
+    ///
+    /// Les réglages en sont partis — on ouvre ce popover pour savoir où en est l'import, pas pour
+    /// cocher des cases. Ils ont leur fenêtre, et ⌘, comme partout ailleurs sur macOS.
     private var settings: some View {
         VStack(alignment: .leading, spacing: 8) {
             Rule()
-            Toggle("Demander confirmation", isOn: Binding(
-                get: { model.preferences.askBeforeImporting },
-                set: { model.preferences.askBeforeImporting = $0 }))
-            Toggle("Ouvrir au branchement", isOn: Binding(
-                get: { model.preferences.launchOnCameraConnection },
-                set: { model.preferences.launchOnCameraConnection = $0 }))
-            HStack(spacing: 10) {
-                Button("Bibliothèque…") { openWindow(id: WindowID.library) }
+            HStack(spacing: 12) {
+                Button("Ouvrir QuiX") { show(router.tab) }
+                Button("Réglages…") { openSettings() }
                 Spacer()
                 Button("Quitter") { NSApp.terminate(nil) }
             }
             .buttonStyle(.link)
             .font(Type.caption)
-            .padding(.top, 2)
         }
         .font(Type.caption)
-        .toggleStyle(.checkbox)
         .foregroundStyle(Ink.secondary)
+    }
+
+    /// Ouvre la fenêtre sur l'onglet voulu.
+    private func show(_ tab: AppRouter.Tab) {
+        router.tab = tab
+        openWindow(id: WindowID.main)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func takeCount(_ report: ImportReport) -> Int {

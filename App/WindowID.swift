@@ -1,7 +1,8 @@
 import Foundation
 
-/// Les identifiants des deux fenêtres ouvrables depuis le popover.
+/// L'identifiant de la fenêtre principale.
+///
+/// Il n'y en a qu'une : Transfert et Bibliothèque en sont deux onglets, pas deux fenêtres.
 enum WindowID {
-    static let transfer = "transfert"
-    static let library = "bibliotheque"
+    static let main = "quix"
 }

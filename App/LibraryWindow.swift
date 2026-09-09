@@ -8,6 +8,7 @@ import QuiXCore
 struct LibraryWindow: View {
 
     let model: ImportModel
+    let router: AppRouter
     @State private var library = LibraryModel()
     @State private var thumbnails = Thumbnails()
 
@@ -22,9 +23,7 @@ struct LibraryWindow: View {
             Inspector(library: library, thumbnails: thumbnails)
                 .frame(width: Metrics.inspectorWidth)
         }
-        .frame(minWidth: Metrics.libraryWidth, minHeight: Metrics.libraryHeight)
-        .background(Ink.window)
-        .foregroundStyle(Ink.primary)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear { library.load(from: model.preferences.library) }
         // Un import qui se termine ajoute une session : la bibliothèque doit la voir sans qu'on
         // ait à la rouvrir.
@@ -46,8 +45,6 @@ private struct Sidebar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Color.clear.frame(height: Metrics.headerHeight)
-
             VStack(alignment: .leading, spacing: 2) {
                 Global(dot: Ink.blue, title: "Tous les highlights", count: library.allHighlights,
                        selected: library.selectedSession == nil && library.filter == .highlights) {
@@ -73,6 +70,7 @@ private struct Sidebar: View {
                 }
             }
             .padding(.horizontal, 10)
+            .padding(.top, 10)
 
             Spacer(minLength: 0)
             Rule()
@@ -215,7 +213,8 @@ private struct Shelf: View {
                 Text(summary).font(Type.small).foregroundStyle(Ink.tertiary)
             }
             Spacer()
-            Segmented(filter: Binding(get: { library.filter }, set: { library.filter = $0 }))
+            Segmented(selection: Binding(get: { library.filter }, set: { library.filter = $0 }),
+                      options: LibraryModel.Filter.allCases, label: \.rawValue)
         }
         .padding(.horizontal, 20)
         .frame(height: Metrics.headerHeight)
@@ -228,34 +227,6 @@ private struct Shelf: View {
         let tagged = clips.filter(\.isHighlighted).count
         let plural = clips.count == 1 ? "prise" : "prises"
         return "\(clips.count) \(plural) — \(tagged) taguée\(tagged == 1 ? "" : "s")"
-    }
-}
-
-private struct Segmented: View {
-    @Binding var filter: LibraryModel.Filter
-
-    var body: some View {
-        HStack(spacing: 4) {
-            ForEach(LibraryModel.Filter.allCases, id: \.self) { option in
-                let active = filter == option
-                Button { filter = option } label: {
-                    Text(option.rawValue)
-                        .font(.system(size: 12.5, weight: active ? .medium : .regular))
-                        .foregroundStyle(active ? Ink.primary : Ink.secondary)
-                        .padding(.vertical, 3).padding(.horizontal, 12)
-                        .background(active ? Ink.raised : .clear,
-                                    in: RoundedRectangle(cornerRadius: 6))
-                        .overlay {
-                            if active {
-                                RoundedRectangle(cornerRadius: 6).strokeBorder(Ink.rule, lineWidth: 0.5)
-                            }
-                        }
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(2)
-        .background(Ink.hairline, in: RoundedRectangle(cornerRadius: 8))
     }
 }
 
