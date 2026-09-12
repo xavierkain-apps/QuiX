@@ -309,8 +309,8 @@ final class ImportModel {
                 ? ", 1 prise taguée" : ", \(report.highlightedTakeCount) prises taguées"
         }
         if !report.failures.isEmpty { body += " — \(report.failures.count) en échec" }
-        Notifier.notify(title: report.wasCancelled ? "Import interrompu" : "Import terminé",
-                        body: body)
+        Notifier.shared.notify(title: report.wasCancelled ? "Import interrompu" : "Import terminé",
+                               body: body)
     }
 
     // MARK: - Effacer la caméra

@@ -34,6 +34,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
 
+        // Le délégué des notifications se pose au démarrage, avant toute bannière : c'est lui
+        // qui les fait apparaître même quand QuiX est déjà devant.
+        Notifier.shared.start()
+
         // Un agent installé par une version précédente garde le comportement qu'il avait alors.
         CameraAutoLaunch.refreshIfOutdated()
     }
@@ -125,6 +129,10 @@ private struct MenuBarLabel: View {
             case .scanning, .ready, .importing, .needsLibrary, .needsLocalNetwork:
                 router.tab = .transfer
                 openWindow(id: WindowID.main)
+                // L'activation au démarrage ne suffit pas : la fenêtre n'existe pas encore à ce
+                // moment-là. Il faut la réclamer une fois qu'elle est ouverte, sinon elle apparaît
+                // derrière ce qu'on avait sous les yeux.
+                NSApp.activate(ignoringOtherApps: true)
             case .waiting, .finished, .failed:
                 break
             }

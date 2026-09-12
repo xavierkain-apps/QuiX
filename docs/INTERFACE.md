@@ -108,6 +108,25 @@ La piste de l'inspecteur place chaque tag au prorata de la durée du clip, plafo
 fichier dont la durée n'est pas encore chargée répartit ses moments régulièrement plutôt que de
 les empiler tous à gauche.
 
+## Les notifications disparaissaient une fois sur deux
+
+macOS supprime la bannière quand l'app qui la poste est au premier plan : il considère qu'on est
+déjà devant. Or QuiX s'y met justement pour montrer l'import. La notification n'apparaissait donc
+que lorsqu'on avait cliqué ailleurs entre-temps — d'où l'impression d'aléatoire.
+
+Un `UNUserNotificationCenterDelegate` qui répond `[.banner, .list, .sound]` à `willPresent` lève
+la suppression. Le délégué se pose au démarrage, avant toute bannière, et c'est aussi là que
+l'autorisation se demande : demandée au moment de poster, la première notification se perdait
+pendant que l'invite système attendait une réponse.
+
+## Passer devant, vraiment
+
+`NSApp.activate(ignoringOtherApps:)` au démarrage ne suffit pas quand la fenêtre n'existe pas
+encore à ce moment-là — cas normal ici, puisqu'elle s'ouvre en réaction à un changement d'état.
+L'activation est donc réclamée une seconde fois à l'ouverture de la fenêtre, et une troisième dans
+son `onAppear`. Trois filets pour une chose simple, mais l'ordre d'apparition ne se contrôle pas
+d'un seul endroit.
+
 ## L'icône dans les notifications
 
 Une notification affichait un glyphe générique à la place de l'icône. Ni le bundle ni le catalogue
