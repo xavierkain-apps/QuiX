@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// La fenêtre unique, et ses deux onglets.
@@ -27,6 +28,9 @@ struct MainWindow: View {
         .frame(minWidth: 1180, minHeight: 620)
         .background(Ink.window)
         .foregroundStyle(Ink.primary)
+        // Dernier filet : une fenêtre qui vient d'apparaître réclame le premier plan. Ouverte par
+        // `launchd` au branchement de la caméra, elle se rangeait sinon derrière l'app courante.
+        .onAppear { NSApp.activate(ignoringOtherApps: true) }
     }
 
     /// La barre d'onglets, au même gabarit que l'en-tête de la Bibliothèque : 46 pt, fond de
