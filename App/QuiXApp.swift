@@ -118,9 +118,16 @@ private struct MenuBarLabel: View {
             }
         }
         .onChange(of: model.stageKind) { _, kind in
-            guard kind == .importing || kind == .ready else { return }
-            router.tab = .transfer
-            openWindow(id: WindowID.main)
+            // Tout état qui attend quelque chose ouvre la fenêtre, pas seulement ceux qui
+            // montrent une table : une app qui attend un dossier d'import doit le demander là où
+            // l'on regarde, et pas dans un popover qu'il faut penser à ouvrir.
+            switch kind {
+            case .scanning, .ready, .importing, .needsLibrary, .needsLocalNetwork:
+                router.tab = .transfer
+                openWindow(id: WindowID.main)
+            case .waiting, .finished, .failed:
+                break
+            }
         }
     }
 }

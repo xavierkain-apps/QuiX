@@ -52,6 +52,22 @@ SwiftUI en ajoute par défaut qui ne correspondent à rien ici : l'app ne crée 
 n'imprime pas, n'a pas de barre d'outils. Ils sont retirés plutôt que laissés grisés, ce qui donne
 l'air d'une app inachevée. Restent les onglets, en ⌘1, ⌘2 et ⌘3.
 
+## Chaque état a sa place dans la fenêtre
+
+L'onglet Transfert ne montrait que les trois états qui affichent une table — prêt, en cours,
+terminé — et retombait sinon sur « Aucun transfert en cours ». Le premier import avec une vraie
+carte a buté là-dessus : l'app attendait qu'on lui désigne un dossier, ne le disait que dans le
+popover, et la fenêtre affichait qu'il ne se passait rien. On cherche la panne alors que l'app
+attend une réponse.
+
+Tous les états y sont désormais, chacun avec sa raison et de quoi agir : la lecture de la carte
+avec sa barre de progression, le dossier manquant avec le bouton qui le choisit, l'autorisation
+réseau, l'échec. Et la fenêtre s'ouvre pour **tout** état qui attend quelque chose, pas seulement
+pour ceux qui ont une table à montrer.
+
+La règle qui s'en dégage : un état que le popover sait dire et que la fenêtre tait est un état
+invisible. Le popover se consulte, la fenêtre se regarde.
+
 ## Ce que le popover ne peut pas faire
 
 Une `MenuBarExtra` ne s'ouvre **pas** par programme. C'est sans conséquence tant que l'utilisateur

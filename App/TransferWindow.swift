@@ -14,15 +14,72 @@ struct TransferWindow: View {
         route.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
+    /// Chaque état a sa place ici, et pas seulement les trois qui montrent une table.
+    ///
+    /// Le premier import a échoué sur ce point : l'app attendait qu'on lui donne un dossier, ne le
+    /// disait que dans le popover, et cet onglet affichait « Aucun transfert en cours ». On
+    /// cherchait la panne alors que l'app attendait une réponse.
     @ViewBuilder
     private var route: some View {
         switch model.stage {
         case .importing, .ready, .finished:
             content
-        default:
-            Placeholder(text: "Aucun transfert en cours.",
-                        detail: "Branchez la GoPro ou la carte : l'import s'affichera ici.")
+
+        case .scanning(let done, let total):
+            Waiting(title: model.camera != nil ? "Lecture de la caméra" : "Lecture de la carte",
+                    detail: "Seuls les en-têtes sont lus : aucune vidéo n'est copiée à ce stade.",
+                    pulsing: true) {
+                VStack(alignment: .leading, spacing: 8) {
+                    ProgressTrack(fraction: total > 0 ? Double(done) / Double(total) : 0, height: 6)
+                        .frame(width: 320)
+                    Text(total > 0 ? "\(done) clip(s) sur \(total)" : "en cours…")
+                        .font(Type.small).foregroundStyle(Ink.secondary)
+                }
+            }
+
+        case .needsLibrary(let result):
+            Waiting(title: "Carte détectée",
+                    detail: "\(summary(of: result))\n\nIl reste à choisir où ranger les clips.") {
+                Button("Choisir le dossier d'import…") { model.chooseLibrary() }
+                    .buttonStyle(FilledBlue())
+            }
+
+        case .needsLocalNetwork:
+            Waiting(title: "Autorisation requise",
+                    detail: "Votre GoPro est branchée, mais macOS empêche QuiX de lui parler. "
+                          + "Branchée en USB-C, la caméra est un périphérique réseau : il faut "
+                          + "autoriser QuiX dans « Réseau local ».",
+                    warning: true) {
+                HStack(spacing: 10) {
+                    Button("Ouvrir les Réglages…") { model.openLocalNetworkSettings() }
+                        .buttonStyle(FilledBlue())
+                    Button("Revérifier") { model.recheckCamera() }
+                        .buttonStyle(OutlinedDark())
+                }
+            }
+
+        case .failed(let reason):
+            Waiting(title: "Échec", detail: reason, warning: true) {
+                Button("Terminer") { model.dismissReport() }.buttonStyle(OutlinedDark())
+            }
+
+        case .waiting:
+            Waiting(title: "Aucune carte",
+                    detail: "Branchez la GoPro en USB-C, ou la carte dans un lecteur : "
+                          + "l'import s'affichera ici.") {
+                if model.preferences.library == nil {
+                    Button("Choisir le dossier d'import…") { model.chooseLibrary() }
+                        .buttonStyle(FilledBlue())
+                }
+            }
         }
+    }
+
+    private func summary(of result: CardScanner.Result) -> String {
+        let taken = result.highlightedTakes.count
+        let plural = result.takes.count == 1 ? "prise" : "prises"
+        return "\(result.takes.count) \(plural) — \(Bytes.short(result.totalSize))"
+            + (taken > 0 ? " — \(taken) taguée\(taken == 1 ? "" : "s")" : "")
     }
 
     private var content: some View {
@@ -298,6 +355,33 @@ private struct FileRow: View {
         case .failed: Circle().fill(Color.orange).frame(width: 7, height: 7)
         case .pending: Circle().fill(Color.white.opacity(0.22)).frame(width: 7, height: 7)
         }
+    }
+}
+
+/// Un état qui attend quelque chose : une lecture en cours, une réponse de l'utilisateur, une
+/// autorisation. Toujours un titre, une raison, et de quoi agir quand il y a à agir.
+struct Waiting<Action: View>: View {
+    let title: String
+    let detail: String
+    var pulsing = false
+    var warning = false
+    @ViewBuilder let action: Action
+
+    var body: some View {
+        VStack(spacing: 14) {
+            HStack(spacing: 9) {
+                if pulsing { PulsingDot() }
+                Text(title).font(Type.section)
+                    .foregroundStyle(warning ? Color.orange : Ink.primary)
+            }
+            Text(detail)
+                .font(Type.small).foregroundStyle(Ink.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 460)
+            action
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
