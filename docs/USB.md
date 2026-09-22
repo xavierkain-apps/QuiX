@@ -1,48 +1,50 @@
-# La caméra par le câble
+# The camera over the cable
 
-Relevé sur la HERO12 Black de Xavier (série `C350132581xxxx`, firmware `H23.01.02.32.00`),
-macOS 26.6, septembre 2026. Tout ce qui suit est mesuré, pas déduit d'une documentation.
+Measured on Xavier's HERO12 Black (serial `C350132581xxxx`, firmware `H23.01.02.32.00`),
+macOS 26.6, September 2026. Everything below is measured, not inferred from documentation.
 
-## Ce que la caméra n'est pas
+## What the camera is not
 
-**Elle n'expose aucun stockage de masse.** C'est le point de départ, et il n'y a pas de réglage
-pour le changer : la HERO12 n'a pas d'option « USB mass storage ». Branchée et allumée, elle
-publie trois interfaces USB :
+**It exposes no mass storage.** That is the starting point, and there is no setting to change it:
+the HERO12 has no "USB mass storage" option. Plugged in and switched on, it publishes three USB
+interfaces:
 
-| Interface | Classe | |
+| Interface | Class | |
 |---|---|---|
-| CDC Network Control Model | 2 / 13 | réseau, la voie utile |
+| CDC Network Control Model | 2 / 13 | networking, the useful road |
 | CDC Network Data | 10 | |
-| MTP | 6 / 1 | protocole appareil photo |
-| *(aucune)* | **8** | **stockage de masse — absent** |
+| MTP | 6 / 1 | camera protocol |
+| *(none)* | **8** | **mass storage — absent** |
 
-Conséquence directe : `/Volumes/` ne montrera jamais la caméra, et `NSWorkspace.didMountNotification`
-ne se déclenchera jamais pour elle. Chercher un dossier `DCIM/###GOPRO` sur un volume monté, qui est
-le chemin correct pour une carte dans un lecteur, ne peut structurellement rien donner ici.
+The direct consequence: `/Volumes/` will never show the camera, and
+`NSWorkspace.didMountNotification` will never fire for it. Looking for a `DCIM/###GOPRO` folder on
+a mounted volume — the correct path for a card in a reader — cannot structurally yield anything
+here.
 
-**Le MTP est un leurre.** Il est bien là, Transfert d'images voit la caméra — mais il ne publie que
-deux fichiers de service, `leinfo.sav` et `Get_started_with_GoPro.url`. Aucun clip. Passer par
-ImageCaptureCore mènerait à une impasse après beaucoup de travail.
+**MTP is a decoy.** It is there, and Image Capture does see the camera — but it publishes only two
+service files, `leinfo.sav` and `Get_started_with_GoPro.url`. No clips. Going through
+ImageCaptureCore would lead to a dead end after a great deal of work.
 
-## Ce qu'elle est
+## What it is
 
-Un **serveur HTTP**, joignable par le réseau que monte le CDC NCM. C'est la voie qu'empruntait Quik,
-et la seule qui donne accès aux clips.
+An **HTTP server**, reachable over the network the CDC NCM interface brings up. That is the road
+Quik took, and the only one that gives access to the clips.
 
-L'adresse est dérivée du numéro de série, sous la forme `172.2X.1YZ.51`. On ne reproduit pas ce
-calcul — il demanderait de connaître le série *avant* de parler à la caméra. On part des interfaces
-de la machine : elle reçoit une adresse dans le même `/24`, et la caméra y occupe toujours `.51`.
+The address derives from the serial number, in the shape `172.2X.1YZ.51`. We do not reproduce that
+calculation — it would require knowing the serial *before* talking to the camera. We start from
+the machine's own interfaces instead: it receives an address in the same `/24`, and the camera
+always sits at `.51`.
 
 ```
-GET /gopro/camera/info                    modèle, série, firmware
-GET /gopro/camera/control/wired_usb?p=1   passe en contrôle filaire
-GET /gopro/media/list                     le catalogue : dossier, nom, taille, date
-GET /videos/DCIM/<dossier>/<nom>          le fichier
+GET /gopro/camera/info                    model, serial, firmware
+GET /gopro/camera/control/wired_usb?p=1   switch to wired control
+GET /gopro/media/list                     the catalogue: folder, name, size, date
+GET /videos/DCIM/<folder>/<name>          the file
 ```
 
-## Le point qui décide de tout
+## The point everything hinges on
 
-**Le serveur honore `Range`.** Mesuré sur un clip de 48,7 Mo :
+**The server honours `Range`.** Measured on a 48.7 MB clip:
 
 ```
 Range: bytes=48664916-48699731/48699732
@@ -51,117 +53,116 @@ Range: bytes=48664916-48699731/48699732
   Content-Length: 34816
 ```
 
-C'est ce qui sauve le principe de l'app. Les trois `seek` de `FileByteReader` deviennent trois
-requêtes `Range`, et le `moov` de fin de fichier s'atteint sans rapatrier le clip. Le tri reste
-gratuit par le câble comme sur une carte — voir `HTTPRangeByteReader`.
+This is what saves the app's whole principle. `FileByteReader`'s three seeks become three `Range`
+requests, and the `moov` at the end of the file is reached without pulling the clip down. Sorting
+stays free over the cable exactly as it is on a card — see `HTTPRangeByteReader`.
 
-Si un firmware futur cessait de l'honorer, il faudrait télécharger chaque clip **avant** de savoir
-où il va, ce que la règle n°1 du projet interdit. `CameraScanner` vérifie donc `Range` une fois par
-session et remonte l'échec au lieu de le contourner en silence.
+If a future firmware stopped honouring it, every clip would have to be downloaded **before**
+knowing where it goes, which rule 1 of the project forbids. `CameraScanner` therefore checks
+`Range` once per session and reports the failure instead of quietly working around it.
 
-Les 34 Ko de fin ramenés par `Range` contiennent bien la chaîne attendue :
+The 34 KB of tail brought back by `Range` do contain the expected chain:
 
 ```
-moov  à +3512      udta  à +3628      HMMT  à +3797, 332 octets
+moov at +3512      udta at +3628      HMMT at +3797, 332 bytes
 ```
 
-Et les deux clips de contrôle confirment le piège documenté dans [HILIGHT.md](HILIGHT.md) :
-atome **identique** de 332 octets sur les deux, seul le compteur distingue le clip tagué (1) du
-clip sans tag (0).
+And the two control clips confirm the trap documented in [HILIGHT.md](HILIGHT.md): an **identical**
+332-byte atom on both, with only the counter separating the tagged clip (1) from the untagged one
+(0).
 
-## L'autorisation qui ne se devine pas
+## The permission nobody guesses
 
-macOS classe la caméra comme un périphérique réseau. Toute requête tombe donc sous la permission
-**« Réseau local »** — pas « Fichiers et dossiers », qui ne concerne que la carte montée.
+macOS classifies the camera as a network device. Every request therefore falls under the **"Local
+Network"** permission — not "Files and Folders", which only concerns the mounted card.
 
-Le refus est particulièrement mauvais à diagnostiquer : `URLSession` rend `-1009`, *« la connexion
-Internet semble hors service »*, alors qu'il n'est question ni d'Internet ni d'une panne. La seule
-marque du refus est dans le `userInfo` :
+A refusal is particularly bad to diagnose: `URLSession` returns `-1009`, *"The Internet connection
+appears to be offline"*, when neither the Internet nor an outage is involved. The only mark of the
+refusal is in the `userInfo`:
 
 ```
 _NSURLErrorNWPathKey = unsatisfied (Local network prohibited), interface: en10
 ```
 
-Sans traitement particulier, une caméra branchée et une permission refusée sont indiscernables
-d'une caméra absente : l'app paraît ne rien voir. `CameraWatcher` distingue donc explicitement les
-deux, et l'app propose d'ouvrir le bon panneau des Réglages.
+Without special handling, a plugged-in camera with a refused permission is indistinguishable from
+no camera at all: the app appears to see nothing. `CameraWatcher` therefore tells the two apart
+explicitly, and the app offers to open the right Settings panel.
 
-`curl` fonctionne pendant que l'app échoue — le Terminal a déjà la permission. Ce détail fait
-perdre du temps : ne pas conclure d'un `curl` qui passe que le code passera.
+`curl` works while the app fails — Terminal already has the permission. That detail costs time:
+never conclude from a `curl` that succeeds that the code will succeed.
 
-## Une seule connexion à la fois
+## One connection at a time
 
-Le serveur de la caméra n'en tient qu'une, et ça ne se voit pas tout de suite. Avec
-`URLSession.shared`, l'analyse laissait derrière elle une connexion inactive mais ouverte ; le
-premier téléchargement qui suivait en réclamait une seconde, que la caméra refusait.
+The camera's server holds only one, and it does not show immediately. With `URLSession.shared`,
+scanning left an idle but open connection behind it; the first download that followed asked for a
+second, which the camera refused.
 
-Le symptôme était déroutant, parce qu'il ne désignait pas le coupable : **le premier clip échouait,
-les suivants passaient**, et relancer l'import réussissait toujours — la connexion inactive ayant
-expiré entre-temps. On accusait le fichier, alors que seul son rang comptait.
+The symptom was disorienting because it did not point at the culprit: **the first clip failed and
+the following ones went through**, and re-running the import always succeeded — the idle connection
+having timed out in the meantime. The file was blamed, when only its rank mattered.
 
-Toutes les requêtes passent donc par des sessions à `httpMaximumConnectionsPerHost = 1`. Et comme
-un lien USB peut lâcher pour d'autres raisons, `ImportRunner` retente trois fois avec un court
-délai — ce qui ne coûte presque rien puisque la reprise repart des octets déjà reçus.
+Every request therefore goes through sessions with `httpMaximumConnectionsPerHost = 1`. And since a
+USB link can drop for other reasons, `ImportRunner` retries three times with a short delay — which
+costs almost nothing, because resuming starts from the bytes already received.
 
-## Se faire réveiller au branchement
+## Being woken when the camera is plugged in
 
-Il n'y a rien à surveiller quand l'app ne tourne pas : c'est `launchd` qui réveille QuiX, par un
-agent déposé dans `~/Library/LaunchAgents` et apparié à l'apparition du périphérique USB. Tant que
-la caméra n'est pas branchée, aucun processus n'existe.
+There is nothing to watch while the app is not running: `launchd` wakes QuiX, through an agent
+dropped in `~/Library/LaunchAgents` and matched to the appearance of the USB device. Until the
+camera is plugged in, no process exists.
 
-L'agent lance **l'exécutable de l'app**, et non `open`. C'est contre-intuitif, parce qu'`open`
-gérait gratuitement le cas de l'app déjà lancée — mais il ne sait pas *consommer* l'évènement.
+The agent launches **the app's executable**, not `open`. That is counter-intuitive, because `open`
+handled the already-running case for free — but it cannot *consume* the event.
 
-C'est le piège le plus coûteux de tout ce chemin. Tant qu'un évènement `launchd` reste en attente,
-le travail est considéré comme inachevé et **relancé toutes les dizaines de secondes** : fermer QuiX
-caméra branchée le rouvrait dix secondes plus tard, indéfiniment. Mesuré à quatre lancements en
-35 secondes, avec ou sans `IOMatchLaunchStream` — retirer la clé ne change rien.
+This is the most expensive trap on the whole path. As long as a `launchd` event stays pending, the
+job is considered unfinished and **relaunched every few tens of seconds**: quitting QuiX with the
+camera plugged in reopened it ten seconds later, indefinitely. Measured at four launches in 35
+seconds, with or without `IOMatchLaunchStream` — removing the key changes nothing.
 
-Seul un programme qui appelle `xpc_set_event_stream_handler("com.apple.iokit.matching", …)` met fin
-au cycle. Mesuré : `runs = 1` au lieu de 4, et plus aucune relance. Ce programme doit donc être
-l'app elle-même.
+Only a program that calls `xpc_set_event_stream_handler("com.apple.iokit.matching", …)` ends the
+cycle. Measured: `runs = 1` instead of 4, and no relaunching at all. That program therefore has to
+be the app itself.
 
-Le prix à payer est le second exemplaire, qu'`open` évitait sans rien demander : `launchd` lance le
-binaire sans passer par LaunchServices, donc sans sa règle d'instance unique. Le nouveau venu
-consomme l'évènement, ramène la fenêtre existante, puis se retire — dans cet ordre, car partir avant
-la livraison relancerait la boucle.
+The price is the second copy, which `open` avoided without being asked: `launchd` starts the binary
+without going through LaunchServices, and therefore without its single-instance rule. The newcomer
+consumes the event, brings the existing window forward, then withdraws — in that order, because
+leaving before delivery would restart the loop.
 
-Enfin, l'app doit s'activer **impérativement**. Depuis macOS 14 l'activation est « coopérative » :
-`NSApp.activate()` peut être refusé par l'app au premier plan, et un processus sorti de `launchd`
-n'a rien pour la lui faire céder. `activate(ignoringOtherApps:)` est déprécié et reste le seul à
-fonctionner ici — brancher sa caméra est une intention explicite, qui prime sur la politesse entre
-apps.
+Finally, the app has to activate itself **imperatively**. Since macOS 14 activation is
+"cooperative": `NSApp.activate()` can be refused by the frontmost app, and a process born from
+`launchd` has nothing to make it yield. `activate(ignoringOtherApps:)` is deprecated and remains
+the only one that works here — plugging in a camera is an explicit intent, and it outranks
+politeness between apps.
 
-Trois détails de l'appariement ont été trouvés à l'essai, et aucun n'est devinable — **un agent qui
-n'apparie rien ne se plaint pas**, il ne se déclenche simplement jamais, et `launchctl print`
-l'affiche exactement comme s'il fonctionnait :
+Three details of the matching were found by trial, and none of them is guessable — **an agent that
+matches nothing does not complain**, it simply never fires, and `launchctl print` displays it
+exactly as though it worked:
 
-| | Ce qui marche | Ce qui ne marche pas |
+| | What works | What does not |
 |---|---|---|
-| Nom de l'évènement | `com.apple.device-attach` | un nom libre — accepté, affiché, inerte |
-| `IOProviderClass` | `IOUSBDevice` | `IOUSBHostDevice`, pourtant la vraie classe du nœud |
-| Identifiants | `idVendor` **et** `idProduct` | `idVendor` seul |
+| Event name | `com.apple.device-attach` | any free-form name — accepted, displayed, inert |
+| `IOProviderClass` | `IOUSBDevice` | `IOUSBHostDevice`, which is the node's real class |
+| Identifiers | `idVendor` **and** `idProduct` | `idVendor` alone |
 
-Mesuré en rechargeant l'agent caméra branchée : l'appariement IOKit se déclenche aussi pour un
-périphérique déjà présent, ce qui permet de vérifier sans débrancher (`runs = 1` dans
-`launchctl print`, et l'app s'ouvre).
+Measured by reloading the agent with the camera plugged in: IOKit matching also fires for a device
+that is already present, which makes it possible to test without unplugging (`runs = 1` in
+`launchctl print`, and the app opens).
 
-Le troisième point coûte quelque chose : l'agent ne reconnaît que le modèle mesuré, la HERO12 Black
-(`idProduct` 89). Une autre GoPro demanderait son propre identifiant :
+The third point costs something: the agent only recognises the model that was measured, the HERO12
+Black (`idProduct` 89). Another GoPro would need its own identifier:
 
 ```sh
 ioreg -p IOUSB -l | grep -A20 GoPro
 ```
 
-## Deux pièges de mise en œuvre
+## Two implementation traps
 
-**La détection ne peut pas être événementielle.** Il n'existe pas de notification pour l'apparition
-d'un périphérique réseau comme il en existe pour un volume monté. `CameraWatcher` sonde toutes les
-3 secondes ; quand rien n'est branché, aucune requête n'est émise du tout, la liste des candidats
-étant vide.
+**Detection cannot be event-driven.** There is no notification for the appearance of a network
+device as there is for a mounted volume. `CameraWatcher` polls every 3 seconds; when nothing is
+plugged in, no request is sent at all, the candidate list being empty.
 
-**`URLSession` retient son délégué au-delà de l'appel.** `finishTasksAndInvalidate()` rend la main
-avant d'avoir relâché quoi que ce soit. Un délégué qui garde des fermetures non-échappantes les
-fait survivre à leur portée, et Swift arrête le programme — l'app plantait après le premier clip
-importé, les 85 tests d'alors passant tous. `RemoteVerifiedCopy` relâche donc ses fermetures dès la
-fin du transfert, et `RemoteCopyTests` monte un vrai serveur HTTP pour l'éprouver.
+**`URLSession` holds on to its delegate beyond the call.** `finishTasksAndInvalidate()` returns
+before it has released anything. A delegate holding non-escaping closures keeps them alive past
+their scope, and Swift traps — the app crashed after the first imported clip, while all 85 tests
+of the time passed. `RemoteVerifiedCopy` therefore releases its closures as soon as the transfer
+ends, and `RemoteCopyTests` stands up a real HTTP server to prove it.
