@@ -1,36 +1,36 @@
 import Foundation
 
 public enum CopyFailure: Error, Equatable {
-    /// Un fichier existe déjà à la destination. On ne l'écrase jamais.
+    /// A file already exists at the destination. We never overwrite it.
     case destinationExists(URL)
-    /// Le nombre d'octets écrits ne correspond pas à la taille annoncée par la source.
+    /// The number of bytes written does not match the size announced by the source.
     case sizeMismatch(expected: UInt64, written: UInt64)
-    /// La relecture du fichier écrit ne donne pas la même empreinte que la source.
+    /// Reading the written file back does not give the same checksum as the source.
     case checksumMismatch(source: UInt32, destination: UInt32)
     case cancelled
 }
 
-/// Copie vérifiée d'un fichier.
+/// A verified copy of one file.
 ///
-/// **Cette fonction ne touche jamais à la source.** Elle ouvre en lecture, écrit ailleurs, et
-/// n'appelle `removeItem` que sur son propre fichier temporaire. C'est la règle qui compte : une
-/// erreur d'import se rattrape, une carte effacée non.
+/// **This function never touches the source.** It opens for reading, writes elsewhere, and calls
+/// `removeItem` only on its own temporary file. That is the rule that matters: a failed import can
+/// be recovered from, an erased card cannot.
 ///
-/// Le déroulé :
+/// How it goes:
 ///
-/// 1. On écrit dans un fichier temporaire, pas directement à la destination. Une copie interrompue
-///    laisse un `.quix-partiel` évident, pas un `.MP4` de bonne taille apparente et de contenu
-///    tronqué que le Finder afficherait comme un clip valide.
-/// 2. L'empreinte de la source se calcule **pendant** la copie, sans la relire.
-/// 3. Le fichier écrit est relu pour recalculer la sienne. C'est là que la vérification a lieu :
-///    comparer la source à elle-même ne prouverait rien.
-/// 4. Seulement si tout concorde, le temporaire prend son nom définitif.
+/// 1. Writing goes to a temporary file, not straight to the destination. An interrupted copy
+///    leaves an obvious `.quix-partiel`, not an `.MP4` of plausible size and truncated content
+///    that the Finder would show as a valid clip.
+/// 2. The source's checksum is computed **while** copying, without reading it again.
+/// 3. The written file is read back to recompute its own. That is where verification happens:
+///    comparing the source with itself would prove nothing.
+/// 4. Only if everything agrees does the temporary file take its final name.
 public enum VerifiedCopy {
 
     public static let partialSuffix = ".quix-partiel"
 
-    /// Taille de bloc. Assez grande pour que le coût par appel disparaisse, assez petite pour que
-    /// la progression reste fluide et que la mémoire ne monte pas sur un serveur chargé.
+    /// Block size. Large enough for the per-call cost to disappear, small enough for progress to
+    /// stay smooth and memory not to climb on a loaded server.
     public static let chunkSize = 4 * 1024 * 1024
 
     @discardableResult
@@ -51,7 +51,7 @@ public enum VerifiedCopy {
 
         try fileManager.createDirectory(at: destination.deletingLastPathComponent(),
                                         withIntermediateDirectories: true)
-        // Un temporaire laissé par une tentative précédente est à nous, et à nous seuls.
+        // A temporary file left by an earlier attempt is ours, and ours alone.
         if fileManager.fileExists(atPath: temporary.path) {
             try fileManager.removeItem(at: temporary)
         }
@@ -106,8 +106,8 @@ public enum VerifiedCopy {
             throw CopyFailure.checksumMismatch(source: sourceCRC.value, destination: destinationCRC)
         }
 
-        // La date de tournage suit la copie : sans ça, tous les clips importés porteraient la date
-        // de l'import et le tri par date dans le Finder ne dirait plus rien.
+        // The shooting date follows the copy: without it, every imported clip would bear the date
+        // of the import and sorting by date in the Finder would say nothing any more.
         if let modified = try? source.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate {
             try? fileManager.setAttributes([.modificationDate: modified], ofItemAtPath: temporary.path)
         }
@@ -116,7 +116,7 @@ public enum VerifiedCopy {
         return sourceCRC.value
     }
 
-    /// Empreinte d'un fichier déjà écrit.
+    /// The checksum of a file already written.
     public static func checksum(of url: URL) throws -> UInt32 {
         let handle = try FileHandle(forReadingFrom: url)
         defer { try? handle.close() }

@@ -1,15 +1,15 @@
 import Foundation
 
-/// Un atome MP4 repéré dans le fichier : son type et l'endroit où vit sa charge utile.
+/// An MP4 atom located in the file: its type, and where its payload lives.
 ///
-/// On ne garde jamais le contenu, seulement des positions. Un `moov` de 34 Ko n'est lu que si
-/// quelqu'un le demande, et `mdat` ne l'est jamais.
+/// The contents are never kept, only positions. A 34 KB `moov` is read only if somebody asks for
+/// it, and `mdat` never is.
 public struct MP4Box: Equatable, Sendable {
-    /// Le code à quatre caractères, tel qu'écrit dans le fichier (`moov`, `udta`, `HMMT`…).
+    /// The four-character code, as written in the file (`moov`, `udta`, `HMMT`…).
     public let type: String
-    /// Position du premier octet de la charge utile, en-tête exclu.
+    /// Position of the payload's first byte, header excluded.
     public let payloadOffset: UInt64
-    /// Longueur de la charge utile, en-tête exclu.
+    /// Length of the payload, header excluded.
     public let payloadLength: UInt64
 
     var payloadEnd: UInt64 { payloadOffset + payloadLength }
@@ -17,20 +17,20 @@ public struct MP4Box: Equatable, Sendable {
 
 public enum MP4 {
 
-    /// Parcourt les atomes d'une plage `start..<end` sans descendre dans leurs enfants.
+    /// Walks the atoms of a `start..<end` range without descending into their children.
     ///
-    /// Trois formes d'en-tête existent et les trois arrivent sur de vrais fichiers :
+    /// Three header shapes exist, and all three turn up in real files:
     ///
-    /// - taille sur 32 bits, en-tête de 8 octets — le cas courant ;
-    /// - taille `1`, la vraie taille suit sur 64 bits, en-tête de 16 octets — un `mdat` de plus de
-    ///   4 Go, qu'une longue prise en 5,3K finit par produire ;
-    /// - taille `0`, l'atome va jusqu'à la fin de la plage. Écrit par un enregistreur interrompu.
-    ///   **Un `mdat` de taille nulle avale le `moov` qui le suit** : le fichier n'a alors pas de
-    ///   tags lisibles, ce qui se lit « aucun highlight », jamais « erreur ».
+    /// - a 32-bit size, 8-byte header — the common case;
+    /// - size `1`, with the real size following in 64 bits, 16-byte header — an `mdat` over 4 GB,
+    ///   which a long take in 5.3K eventually produces;
+    /// - size `0`, the atom runs to the end of the range. Written by an interrupted recorder.
+    ///   **An `mdat` of zero size swallows the `moov` that follows it**: the file then has no
+    ///   readable tags, which reads as "no highlights", never as "error".
     ///
-    /// Le parcours s'arrête dès qu'un en-tête est incohérent plutôt que d'essayer de se rattraper :
-    /// sur un fichier abîmé, mieux vaut rendre les atomes déjà lus que d'aller chercher des octets
-    /// au hasard.
+    /// The walk stops as soon as a header is inconsistent rather than trying to recover: on a
+    /// damaged file, better to return the atoms already read than to go hunting for bytes at
+    /// random.
     public static func boxes(in reader: ByteReader, from start: UInt64, to end: UInt64) throws -> [MP4Box] {
         var result: [MP4Box] = []
         var position = start
@@ -51,8 +51,8 @@ public enum MP4 {
                 size = end - position
             }
 
-            // Un atome plus petit que son propre en-tête, ou qui déborde de la plage, est le signe
-            // d'un fichier tronqué ou d'octets qui ne sont pas du MP4. On rend ce qu'on a.
+            // An atom smaller than its own header, or one that runs past the range, is the sign of
+            // a truncated file or of bytes that are not MP4. We return what we have.
             guard size >= headerSize, position + size <= end else { break }
 
             result.append(MP4Box(type: type,
@@ -65,17 +65,17 @@ public enum MP4 {
         return result
     }
 
-    /// Parcourt les atomes de premier niveau du fichier entier.
+    /// Walks the top-level atoms of the whole file.
     public static func topLevelBoxes(in reader: ByteReader) throws -> [MP4Box] {
         try boxes(in: reader, from: 0, to: reader.length)
     }
 
-    /// Parcourt les enfants d'un atome conteneur.
+    /// Walks the children of a container atom.
     public static func children(of box: MP4Box, in reader: ByteReader) throws -> [MP4Box] {
         try boxes(in: reader, from: box.payloadOffset, to: box.payloadEnd)
     }
 
-    // MARK: - Lecture d'entiers gros-boutistes
+    // MARK: - Reading big-endian integers
 
     static func be32(_ bytes: [UInt8], _ offset: Int) -> UInt32 {
         UInt32(bytes[offset]) << 24

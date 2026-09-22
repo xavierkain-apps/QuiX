@@ -1,30 +1,30 @@
 import Foundation
 
-/// Accès en lecture aléatoire à une suite d'octets.
+/// Random-access reading over a sequence of bytes.
 ///
-/// L'abstraction existe pour une raison précise : elle permet de tester le parcours des atomes MP4
-/// sur des octets fabriqués en mémoire, sans écrire un seul fichier. Les cas qui comptent — taille
-/// 64 bits, taille nulle, atome tronqué — sont pénibles à produire sur disque et triviaux à écrire
-/// dans un tableau.
+/// The abstraction exists for one precise reason: it lets the MP4 atom walk be tested against
+/// bytes built in memory, without writing a single file. The cases that matter — 64-bit size,
+/// zero size, truncated atom — are painful to produce on disk and trivial to write into an
+/// array.
 public protocol ByteReader {
-    /// Taille totale en octets.
+    /// Total size in bytes.
     var length: UInt64 { get }
 
-    /// Lit au plus `count` octets à partir de `offset`. Peut en renvoyer moins en fin de source,
-    /// et un tableau vide au-delà de la fin. Ne lève pas d'erreur pour une lecture hors bornes :
-    /// c'est au parcours d'atomes de décider ce qu'un fichier tronqué signifie.
+    /// Reads at most `count` bytes from `offset`. May return fewer near the end of the source,
+    /// and an empty array past it. Does not throw for an out-of-bounds read: it is up to the atom
+    /// walk to decide what a truncated file means.
     func read(at offset: UInt64, count: Int) throws -> [UInt8]
 }
 
 extension ByteReader {
-    /// Lit exactement `count` octets, ou renvoie `nil` s'il n'y en a pas autant.
+    /// Reads exactly `count` bytes, or returns `nil` if there are not that many.
     func readExact(at offset: UInt64, count: Int) throws -> [UInt8]? {
         let bytes = try read(at: offset, count: count)
         return bytes.count == count ? bytes : nil
     }
 }
 
-/// Lecteur sur un tableau d'octets en mémoire.
+/// A reader over an array of bytes in memory.
 public struct DataByteReader: ByteReader, Sendable {
     private let bytes: [UInt8]
 
@@ -41,18 +41,18 @@ public struct DataByteReader: ByteReader, Sendable {
     }
 }
 
-/// Lecteur sur un fichier, par `seek` et lectures courtes.
+/// A reader over a file, by seeking and short reads.
 ///
-/// Chez GoPro l'atome `moov` ferme le fichier : on saute les ~90 Mo de `mdat` par sa taille au lieu
-/// de les lire. Une analyse complète coûte une poignée de `seek` et environ 34 Ko lus, quelle que
-/// soit la taille du clip. C'est ce qui rend le tri gratuit — voir `docs/HILIGHT.md`.
+/// In GoPro files the `moov` atom closes the file: the ~90 MB of `mdat` are skipped by their size
+/// instead of being read. A full scan costs a handful of seeks and about 34 KB read, whatever the
+/// size of the clip. That is what makes sorting free — see `docs/HILIGHT.md`.
 public final class FileByteReader: ByteReader {
     private let handle: FileHandle
     public let length: UInt64
 
     public init(url: URL) throws {
-        // La taille se lit avant d'ouvrir : si elle échoue, aucun descripteur n'a été ouvert et
-        // il n'y a donc rien à refermer — un `init` qui échoue n'appelle pas `deinit`.
+        // The size is read before opening: if that fails, no descriptor has been opened and there
+        // is nothing to close — an `init` that throws never calls `deinit`.
         let values = try url.resourceValues(forKeys: [.fileSizeKey])
         self.length = UInt64(values.fileSize ?? 0)
         self.handle = try FileHandle(forReadingFrom: url)

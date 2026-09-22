@@ -1,16 +1,16 @@
 import Foundation
 
-/// Ce qu'une lecture de tags HiLight a trouvé dans un fichier.
+/// What a HiLight read found in a file.
 ///
-/// Le seul critère de tri, c'est `isHighlighted`. Tout le reste est de l'information pour
-/// l'interface : rien ici ne doit empêcher un import d'aboutir.
+/// The only sorting criterion is `isHighlighted`. Everything else is information for the
+/// interface: nothing here may stop an import from completing.
 public struct HiLightScan: Equatable, Sendable {
 
-    /// Instants tagués, en millisecondes depuis le début **de ce chapitre** — pas de la prise.
-    /// Une longue prise découpée en chapitres redémarre le compteur à chaque fichier.
+    /// Tagged moments, in milliseconds from the start **of this chapter** — not of the take.
+    /// A long take cut into chapters restarts the counter in every file.
     public let moments: [UInt32]
 
-    /// Ce qui a gêné la lecture, le cas échéant. Jamais une raison d'écarter un fichier de l'import.
+    /// What got in the way of the read, if anything. Never a reason to skip a file at import.
     public let anomaly: Anomaly?
 
     public init(moments: [UInt32], anomaly: Anomaly? = nil) {
@@ -18,49 +18,49 @@ public struct HiLightScan: Equatable, Sendable {
         self.anomaly = anomaly
     }
 
-    /// Un fichier est highlighté quand il porte **au moins un moment**.
+    /// A file is highlighted when it carries **at least one moment**.
     ///
-    /// Surtout pas « quand l'atome HMMT existe » : la caméra écrit le même atome de 332 octets
-    /// sur tous les clips, tagués ou non. Voir `HMMT.parse`.
+    /// Emphatically not "when the HMMT atom exists": the camera writes the same 332-byte atom
+    /// on every clip, tagged or not. See `HMMT.parse`.
     public var isHighlighted: Bool { !moments.isEmpty }
 
-    /// Aucun tag, et rien à signaler.
+    /// No tags, and nothing to report.
     public static let none = HiLightScan(moments: [])
 
     public enum Anomaly: Equatable, Sendable {
-        /// Aucun atome `moov` de premier niveau. Fichier tronqué, ou pas un MP4.
+        /// No top-level `moov` atom. A truncated file, or not an MP4 at all.
         case noMoov
-        /// `moov` sans `udta/HMMT`. Normal pour un fichier remuxé ou venu d'une autre caméra.
+        /// `moov` without `udta/HMMT`. Normal for a remuxed file or one from another camera.
         case noHMMT
-        /// `HMMT` trop court pour porter ne serait-ce que son compteur.
+        /// `HMMT` too short to carry even its own counter.
         case truncatedHMMT
-        /// Le compteur annonce plus de moments que l'atome n'a d'emplacements. On lit ce qui tient.
+        /// The counter announces more moments than the atom has slots. We read what fits.
         case countExceedsSlots(declared: UInt32, slots: Int)
     }
 }
 
-/// Décodage de l'atome `moov/udta/HMMT`, où la GoPro écrit les tags HiLight posés pendant le
-/// tournage.
+/// Decoding of the `moov/udta/HMMT` atom, where the GoPro writes the HiLight tags pressed while
+/// filming.
 ///
 /// ```
-/// charge utile, 324 octets sur HERO12, invariante :
-///   [0..3]     uint32 gros-boutiste   nombre de moments
-///   [4..323]   uint32 gros-boutiste × 80   emplacements, remplis de zéros
+/// payload, 324 bytes on a HERO12, invariant:
+///   [0..3]     uint32 big-endian   number of moments
+///   [4..323]   uint32 big-endian × 80   slots, filled with zeros
 /// ```
 ///
-/// **Le piège est là.** GoPro préalloue 80 emplacements : le clip sans le moindre highlight porte
-/// exactement le même atome de 332 octets que le clip tagué, seul le compteur change. Déduire le
-/// nombre de moments de la taille de l'atome donnerait 80 sur *tous* les clips, enverrait tout dans
-/// `Highlights/` et ferait perdre à l'app sa seule raison d'être — sans lever la moindre erreur.
-/// L'échantillon `hero12-sans-highlight.mp4` est là pour que ça ne passe jamais.
+/// **The trap lives here.** GoPro preallocates 80 slots: the clip without a single highlight
+/// carries exactly the same 332-byte atom as the tagged one, and only the counter differs.
+/// Inferring the number of moments from the size of the atom would give 80 on *every* clip, send
+/// everything to `Highlights/` and cost the app its only reason to exist — without raising a
+/// single error. The `hero12-sans-highlight.mp4` fixture exists so that it never happens.
 public enum HMMT {
 
     static let atomType = "HMMT"
 
-    /// Plafond de lecture de la charge utile. Voir `HiLightReader.scan`.
+    /// Read ceiling for the payload. See `HiLightReader.scan`.
     static let maximumPayloadLength: UInt64 = 65_536
 
-    /// Décode une charge utile HMMT déjà lue.
+    /// Decodes an HMMT payload that has already been read.
     public static func parse(payload: [UInt8]) -> HiLightScan {
         guard payload.count >= 4 else {
             return HiLightScan(moments: [], anomaly: .truncatedHMMT)
@@ -76,8 +76,8 @@ public enum HMMT {
             moments.append(MP4.be32(payload, 4 + index * 4))
         }
 
-        // Le compteur fait autorité : on ne filtre pas les valeurs nulles. Un highlight posé dans
-        // la première milliseconde de la prise vaut 0, et il compte comme les autres.
+        // The counter is authoritative: zero values are not filtered out. A highlight pressed in
+        // the take's first millisecond reads as 0, and it counts like any other.
         let anomaly: HiLightScan.Anomaly? = Int(declared) > slots
             ? .countExceedsSlots(declared: declared, slots: slots)
             : nil
@@ -88,21 +88,21 @@ public enum HMMT {
 
 public enum HiLightReader {
 
-    /// Lit les tags d'un fichier MP4.
+    /// Reads the tags of an MP4 file.
     ///
-    /// Ne lève que sur une erreur d'entrée-sortie réelle. Un fichier illisible *structurellement*
-    /// — pas de `moov`, pas de `HMMT` — rend un résultat sans moment et avec une anomalie : il
-    /// partira dans `Clips/`, ce qui est le bon comportement par défaut.
+    /// Only throws on a real I/O error. A file that is *structurally* unreadable — no `moov`, no
+    /// `HMMT` — yields a result with no moments and an anomaly: it goes to `Clips/`, which is the
+    /// right default.
     public static func scan(fileURL: URL) throws -> HiLightScan {
         let reader = try FileByteReader(url: fileURL)
         return try scan(reader: reader)
     }
 
     public static func scan(reader: ByteReader) throws -> HiLightScan {
-        // Chez GoPro `moov` ferme le fichier, derrière un `mdat` de dizaines de méga-octets. On
-        // parcourt donc les atomes de premier niveau en ne lisant que leurs en-têtes, et on saute
-        // `mdat` par sa taille. `last` plutôt que `first` : si un fichier portait deux `moov`, le
-        // dernier est celui qui fait foi.
+        // In GoPro files `moov` closes the file, behind an `mdat` of tens of megabytes. So we walk
+        // the top-level atoms reading only their headers, and skip `mdat` by its size. `last`
+        // rather than `first`: if a file carried two `moov` atoms, the last one is the one that
+        // counts.
         let topLevel = try MP4.topLevelBoxes(in: reader)
         guard let moov = topLevel.last(where: { $0.type == "moov" }) else {
             return HiLightScan(moments: [], anomaly: .noMoov)
@@ -114,11 +114,11 @@ public enum HiLightReader {
             return HiLightScan(moments: [], anomaly: .noHMMT)
         }
 
-        // Une seule lecture, de la taille exacte de l'atome. 332 octets sur HERO12.
-        // La borne n'est pas de la paranoïa gratuite : un fichier abîmé peut annoncer un HMMT de
-        // plusieurs méga-octets, et on ne veut pas allouer ça pour trouver un compteur qui tient
-        // dans les quatre premiers octets. 80 emplacements en font 324 ; 65 536 laisse une marge
-        // très large à un futur modèle plus bavard.
+        // A single read, of the atom's exact size. 332 bytes on a HERO12.
+        // The bound is not idle paranoia: a damaged file can announce an HMMT of several
+        // megabytes, and we do not want to allocate that to find a counter that fits in the first
+        // four bytes. 80 slots make 324; 65,536 leaves a very wide margin for a future, chattier
+        // model.
         let capped = Int(min(hmmt.payloadLength, HMMT.maximumPayloadLength))
         let payload = try reader.read(at: hmmt.payloadOffset, count: capped)
         return HMMT.parse(payload: payload)

@@ -1,18 +1,18 @@
 import Foundation
 
-/// Mémoire de ce qui a déjà été importé, pour que rebrancher la carte ne recopie que le neuf.
+/// A memory of what has already been imported, so that plugging the card in again only copies what is new.
 ///
-/// La clé est **nom + taille + date de modification**, comme le demande le brief. Trois fichiers
-/// devraient se ressembler jusque-là pour être confondus, ce qui n'arrive pas entre deux clips
-/// réels. Le nom seul ne suffirait pas : deux cartes peuvent porter le même `GX010001.MP4`.
+/// The key is **name + size + modification date**, as the brief asks. Three files would have to
+/// match on all three to be confused, which does not happen between two real clips. The name alone
+/// would not do: two cards can each carry a `GX010001.MP4`.
 public struct ImportIndex: Codable, Equatable, Sendable {
 
     public struct Entry: Codable, Equatable, Sendable {
         public let filename: String
         public let size: UInt64
         public let modified: Date
-        /// Chemin du fichier importé, **relatif à la racine de la bibliothèque**. Relatif et non
-        /// absolu : déplacer ou renommer la bibliothèque ne doit pas invalider tout l'index.
+        /// Path of the imported file, **relative to the root of the library**. Relative and not
+        /// absolute: moving or renaming the library must not invalidate the whole index.
         public let destination: String
         public let importedAt: Date
     }
@@ -24,9 +24,9 @@ public struct ImportIndex: Codable, Equatable, Sendable {
     public var count: Int { entries.count }
     public var allEntries: [Entry] { Array(entries.values) }
 
-    /// La date est arrondie à la seconde : les cartes en FAT32 ne stockent la minute de
-    /// modification qu'à deux secondes près, et une bibliothèque relue depuis un autre système de
-    /// fichiers ne doit pas se retrouver avec un index entièrement périmé.
+    /// The date is rounded to the second: FAT32 cards only store the modification time to within
+    /// two seconds, and a library read back from another file system must not end up with an
+    /// entirely stale index.
     static func key(filename: String, size: UInt64, modified: Date) -> String {
         "\(filename.uppercased())|\(size)|\(Int64(modified.timeIntervalSince1970.rounded()))"
     }
@@ -50,11 +50,11 @@ public struct ImportIndex: Codable, Equatable, Sendable {
     }
 }
 
-/// Lecture et écriture de l'index sur disque.
+/// Reading and writing the index on disk.
 ///
-/// Le fichier vit **à la racine de la bibliothèque** (`.quix-index.json`) et non dans les données
-/// de l'application : supprimer le dossier importé doit suffire à pouvoir tout réimporter. Un index
-/// caché ailleurs ferait croire à l'app que les clips sont déjà là alors qu'ils ont disparu.
+/// The file lives **at the root of the library** (`.quix-index.json`) and not in the application's
+/// data: deleting the imported folder must be enough to be able to import everything again. An
+/// index hidden elsewhere would make the app believe the clips are still there after they have gone.
 public enum ImportIndexStore {
 
     public static let filename = ".quix-index.json"
@@ -63,10 +63,10 @@ public enum ImportIndexStore {
         library.appendingPathComponent(filename, isDirectory: false)
     }
 
-    /// Charge l'index. **Ne lève jamais.** Un index absent ou illisible rend un index vide : au
-    /// pire on recopie des fichiers déjà présents — et le plan les écarte de toute façon en
-    /// constatant leur présence à destination. Refuser d'importer parce qu'un fichier JSON est
-    /// abîmé serait la mauvaise moitié du compromis.
+    /// Loads the index. **Never throws.** An absent or unreadable index yields an empty one: at
+    /// worst some files already present are copied again — and the plan skips them anyway when it
+    /// sees them at the destination. Refusing to import because a JSON file is damaged would be
+    /// the wrong half of the trade.
     public static func load(fromLibrary library: URL) -> ImportIndex {
         guard let data = try? Data(contentsOf: url(inLibrary: library)),
               let index = try? JSONDecoder().decode(ImportIndex.self, from: data)
@@ -74,8 +74,8 @@ public enum ImportIndexStore {
         return index
     }
 
-    /// Écrit l'index de façon atomique : un arrachage de carte en pleine écriture laisse l'ancien
-    /// index intact plutôt qu'un JSON tronqué.
+    /// Writes the index atomically: a card yanked out mid-write leaves the old index intact rather
+    /// than a truncated JSON file.
     public static func save(_ index: ImportIndex, toLibrary library: URL) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]

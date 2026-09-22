@@ -1,16 +1,16 @@
 import Foundation
 
-/// Repérage et lecture d'une carte GoPro montée comme un volume ordinaire.
+/// Finding and reading a GoPro card mounted as an ordinary volume.
 ///
-/// C'est le chemin le plus rapide : la carte apparaît sous `/Volumes/` et la copie va nettement
-/// plus vite que par le câble. L'autre source — la caméra branchée en USB-C, qui n'expose aucun
-/// volume — est traitée par `CameraScanner`, avec le même contrat et les mêmes `Take`.
+/// This is the faster road: the card shows up under `/Volumes/` and copying is markedly quicker
+/// than over the cable. The other source — the camera over USB-C, which exposes no volume at all —
+/// is handled by `CameraScanner`, with the same contract and the same `Take` values.
 public enum CardScanner {
 
-    /// Ce que le scan a trouvé.
+    /// What the scan found.
     public struct Result: Sendable {
         public let takes: [Take]
-        /// Fichiers écartés avant même la lecture des tags, et pourquoi.
+        /// Files skipped before the tags were even read, and why.
         public let ignored: [IgnoredFile]
 
         public var highlightedTakes: [Take] { takes.filter(\.isHighlighted) }
@@ -22,22 +22,22 @@ public enum CardScanner {
         public let reason: Reason
 
         public enum Reason: Equatable, Sendable {
-            /// `.LRV`, `.THM`, photo… la caméra en écrit à côté de chaque clip.
+            /// `.LRV`, `.THM`, a photo… the camera writes some beside every clip.
             case notAVideo(MediaKind)
-            /// Un nom qui ne suit pas la convention GoPro. Non importé plutôt que rangé au hasard.
+            /// A name that does not follow GoPro's convention. Not imported rather than filed at random.
             case unrecognisedName
         }
     }
 
-    /// Une carte est reconnue GoPro par la **présence d'un dossier `DCIM/###GOPRO`**, jamais par le
-    /// nom du volume : l'utilisateur peut l'avoir renommé, et une carte d'un autre appareil peut
-    /// très bien s'appeler « GOPRO ». Le critère structurel est le seul qui ne mente pas, et c'est
-    /// lui qui garantit qu'on ne touche jamais à la carte d'un autre appareil.
+    /// A card is recognised as a GoPro card by the **presence of a `DCIM/###GOPRO` folder**, never
+    /// by the volume name: the user may have renamed it, and another device's card may perfectly
+    /// well be called "GOPRO". The structural criterion is the only one that does not lie, and it
+    /// is what guarantees another device's card is never touched.
     public static func isGoProCard(_ volume: URL, fileManager: FileManager = .default) -> Bool {
         !mediaFolders(on: volume, fileManager: fileManager).isEmpty
     }
 
-    /// Les dossiers `DCIM/###GOPRO` d'un volume, triés par nom.
+    /// A volume's `DCIM/###GOPRO` folders, sorted by name.
     public static func mediaFolders(on volume: URL, fileManager: FileManager = .default) -> [URL] {
         let dcim = volume.appendingPathComponent("DCIM", isDirectory: true)
         guard let entries = try? fileManager.contentsOfDirectory(
@@ -50,18 +50,18 @@ public enum CardScanner {
             .sorted { $0.lastPathComponent < $1.lastPathComponent }
     }
 
-    /// `100GOPRO` à `999GOPRO`. Le brief parle de `1xxGOPRO` ; on accepte les trois chiffres, ce
-    /// qui est un sur-ensemble sûr — la caméra ouvre un dossier de plus tous les 999 fichiers.
+    /// `100GOPRO` through `999GOPRO`. The brief says `1xxGOPRO`; we accept all three digits, which
+    /// is a safe superset — the camera opens one more folder every 999 files.
     static func isGoProFolderName(_ name: String) -> Bool {
         let upper = name.uppercased()
         guard upper.count == 8, upper.hasSuffix("GOPRO") else { return false }
         return upper.prefix(3).allSatisfy(\.isNumber)
     }
 
-    /// Analyse une carte entière : liste les fichiers, lit les tags, regroupe en prises.
+    /// Scans a whole card: lists the files, reads the tags, groups them into takes.
     ///
-    /// `progress` est appelé après chaque fichier lu, avec le nombre déjà traité et le total.
-    /// Il tourne sur le fil de l'appelant, qui n'est pas censé être le principal.
+    /// `progress` is called after each file read, with the number already handled and the total.
+    /// It runs on the caller's thread, which is not meant to be the main one.
     public static func scan(
         volume: URL,
         fileManager: FileManager = .default,
@@ -103,9 +103,9 @@ public enum CardScanner {
         var scanned: [ScannedFile] = []
         scanned.reserveCapacity(videos.count)
         for (position, video) in videos.enumerated() {
-            // Une erreur de lecture sur un fichier ne fait pas échouer le scan de la carte : le
-            // clip part dans `Clips/`, ce qui est le défaut sûr. Perdre l'import entier parce
-            // qu'un fichier sur cinquante est abîmé serait le pire des deux comportements.
+            // A read error on one file does not fail the card scan: the clip goes to `Clips/`,
+            // which is the safe default. Losing the whole import because one file in fifty is
+            // damaged would be the worse of the two behaviours.
             let tags = (try? HiLightReader.scan(fileURL: video.url)) ?? HiLightScan(moments: [], anomaly: .noMoov)
             scanned.append(ScannedFile(file: video, hiLight: tags))
             progress(position + 1, videos.count)

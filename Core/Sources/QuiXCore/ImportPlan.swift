@@ -1,10 +1,10 @@
 import Foundation
 
-/// Nom du dossier d'import.
+/// The name of the import folder.
 public enum ImportFolderName {
 
-    /// Date ISO, `2026-09-07`. Triable chronologiquement dans le Finder, sans ambiguïté de format
-    /// entre les régions.
+    /// An ISO date, `2026-09-07`. Sorts chronologically in the Finder, with no format ambiguity
+    /// between regions.
     public static func iso(for date: Date, timeZone: TimeZone = .current) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -14,27 +14,27 @@ public enum ImportFolderName {
     }
 }
 
-/// Une copie à faire.
+/// One copy to make.
 public struct PlannedCopy: Equatable, Sendable {
     public let source: MediaFile
     public let destination: URL
-    /// Chemin de `destination` relatif à la racine de la bibliothèque, pour l'index.
+    /// `destination` relative to the root of the library, for the index.
     public let relativeDestination: String
     public let takeNumber: Int
     public let isHighlighted: Bool
 }
 
-/// Ce qui va se passer, décidé avant d'écrire le moindre octet.
+/// What is going to happen, decided before a single byte is written.
 public struct ImportPlan: Equatable, Sendable {
 
-    /// Les deux sous-dossiers, et rien d'autre.
+    /// The two subfolders, and nothing else.
     public static let highlightsFolder = "Highlights"
     public static let clipsFolder = "Clips"
 
-    /// `<bibliothèque>/2026-09-07`.
+    /// `<library>/2026-09-07`.
     public let importFolder: URL
     public let copies: [PlannedCopy]
-    /// Écartés parce que déjà présents à destination.
+    /// Skipped because already present at the destination.
     public let alreadyImported: [MediaFile]
 
     public var isEmpty: Bool { copies.isEmpty }
@@ -46,15 +46,15 @@ public struct ImportPlan: Equatable, Sendable {
 
 public enum ImportPlanner {
 
-    /// Construit le plan d'import.
+    /// Builds the import plan.
     ///
-    /// Deux choses s'y jouent, et les deux comptent :
+    /// Two things happen here, and both matter:
     ///
-    /// - **La prise entière suit son highlight.** La destination est choisie une fois par prise, à
-    ///   partir de `Take.isHighlighted`, puis appliquée à tous ses chapitres.
-    /// - **L'idempotence se vérifie sur le disque, pas seulement dans l'index.** Un fichier n'est
-    ///   écarté que si l'index le connaît *et* que la copie est réellement là, à la bonne taille.
-    ///   Se fier à l'index seul ferait qu'un dossier supprimé à la main ne se réimporterait jamais.
+    /// - **The whole take follows its highlight.** The destination is chosen once per take, from
+    ///   `Take.isHighlighted`, then applied to all of its chapters.
+    /// - **Idempotence is checked against disk, not only against the index.** A file is skipped
+    ///   only if the index knows it *and* the copy is really there, at the right size. Trusting
+    ///   the index alone would mean a folder deleted by hand never gets imported again.
     public static func plan(
         takes: [Take],
         into library: URL,
@@ -82,9 +82,9 @@ public enum ImportPlanner {
                     }
                 }
 
-                // Collision de noms : deux dossiers DCIM peuvent porter le même nom de fichier
-                // après un tour de compteur de la caméra. On désambiguïse plutôt que d'écraser —
-                // une prise perdue en silence est exactement ce que ce produit doit éviter.
+                // Name collision: two DCIM folders can hold the same file name after the camera's
+                // counter wraps. We disambiguate rather than overwrite — a take lost in silence is
+                // exactly what this product exists to avoid.
                 var filename = file.filename
                 var relative = "\(folderName)/\(subfolder)/\(filename)"
                 if claimed.contains(relative.uppercased()) {
@@ -110,7 +110,7 @@ public enum ImportPlanner {
         return ImportPlan(importFolder: importFolder, copies: copies, alreadyImported: alreadyImported)
     }
 
-    /// Taille du fichier s'il existe, `nil` sinon.
+    /// The file's size if it exists, `nil` otherwise.
     public static func sizeOnDisk(_ url: URL) -> UInt64? {
         guard let values = try? url.resourceValues(forKeys: [.fileSizeKey]),
               let size = values.fileSize

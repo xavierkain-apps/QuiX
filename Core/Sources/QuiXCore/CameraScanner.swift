@@ -1,24 +1,24 @@
 import Foundation
 
-/// Repérage et lecture des prises directement sur la caméra branchée en USB.
+/// Finding and reading takes directly on the camera over USB.
 ///
-/// Jumeau de `CardScanner`, pour la source que la HERO12 impose par le câble. Le contrat est
-/// volontairement le même — mêmes `Take`, même `Result` — pour que l'import, l'index et l'interface
-/// ne sachent pas de quelle source ils viennent.
+/// The twin of `CardScanner`, for the source the HERO12 imposes over the cable. The contract is
+/// deliberately identical — same `Take`, same `Result` — so that the import, the index and the
+/// interface never know which source they came from.
 public enum CameraScanner {
 
     public enum ScanFailure: Error, Equatable {
-        /// Aucune caméra n'a répondu sur les réseaux USB de la machine.
+        /// No camera answered on any of the machine's USB networks.
         case noCamera
-        /// La caméra est là mais refuse les lectures partielles : le tri gratuit est impossible.
-        /// Remonté plutôt que contourné en silence, parce que le contournement coûterait le
-        /// téléchargement intégral de chaque clip avant de savoir où il va.
+        /// The camera is there but refuses partial reads: free sorting is impossible.
+        /// Reported rather than quietly worked around, because the workaround would cost the full
+        /// download of every clip before knowing where it goes.
         case rangeUnsupported
     }
 
-    /// Analyse la carte à travers la caméra, sans copier un octet.
+    /// Scans the card through the camera, without copying a byte.
     ///
-    /// `progress` est appelé après chaque clip lu, avec le nombre déjà traité et le total.
+    /// `progress` is called after each clip read, with the number already handled and the total.
     public static func scan(
         camera: GoProCamera,
         progress: (Int, Int) -> Void = { _, _ in }
@@ -48,8 +48,8 @@ public enum CameraScanner {
             ))
         }
 
-        // Une seule vérification pour toute la session : découvrir au soixantième clip que le
-        // serveur ignore `Range` serait découvrir qu'on a téléchargé soixante clips pour rien.
+        // One check for the whole session: discovering at the sixtieth clip that the server
+        // ignores `Range` would be discovering that sixty clips were downloaded for nothing.
         if let first = videos.first,
            !HTTPRangeByteReader.supportsRange(url: first.url) {
             throw ScanFailure.rangeUnsupported
@@ -58,8 +58,8 @@ public enum CameraScanner {
         var scanned: [ScannedFile] = []
         scanned.reserveCapacity(videos.count)
         for (position, video) in videos.enumerated() {
-            // Même règle que sur une carte : un clip illisible part dans `Clips/` plutôt que de
-            // faire échouer tout l'import.
+            // Same rule as on a card: an unreadable clip goes to `Clips/` rather than failing the
+            // whole import.
             let reader = HTTPRangeByteReader(url: video.url, length: video.size)
             let tags = (try? HiLightReader.scan(reader: reader))
                 ?? HiLightScan(moments: [], anomaly: .noMoov)

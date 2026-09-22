@@ -1,12 +1,12 @@
 import Foundation
 import QuiXCore
 
-// Pilotage du moteur en ligne de commande. C'est l'outil qui permet de valider tout l'import sur
-// une copie de carte, sur Linux comme sur le Mac, avant qu'il existe la moindre fenêtre.
+// Driving the engine from the command line. This is the tool that makes it possible to validate
+// the whole import against a copy of a card, on Linux as on the Mac, before any window exists.
 //
-// Tout vit dans des fonctions plutôt qu'au niveau supérieur : en Swift 6, le code de `main.swift`
-// est isolé sur l'acteur principal, et un état mutable capturé dans une closure de progression y
-// deviendrait un problème de concurrence pour rien.
+// Everything lives in functions rather than at top level: in Swift 6, the code of `main.swift` is
+// isolated on the main actor, and mutable state captured in a progress closure would become a
+// concurrency problem for nothing.
 
 func fail(_ message: String) -> Never {
     FileHandle.standardError.write(Data(("quix: " + message + "\n").utf8))
@@ -47,7 +47,7 @@ func requireGoProCard(_ volume: URL) {
     }
 }
 
-// MARK: - Commandes
+// MARK: - Commands
 
 func commandHiLight(_ paths: [String]) -> Int32 {
     guard !paths.isEmpty else { printUsage(); return 1 }
@@ -140,11 +140,11 @@ func commandImport(_ arguments: [String]) -> Int32 {
     }
 }
 
-/// Interroge la caméra branchée en USB.
+/// Queries the camera plugged in over USB.
 ///
-/// La HERO12 n'expose pas de stockage de masse par le câble : elle monte un réseau et répond en
-/// HTTP. Cette commande sert d'abord à prouver, sur une vraie caméra, que les lectures `Range`
-/// passent — c'est-à-dire que le tri reste gratuit en USB comme sur une carte.
+/// The HERO12 exposes no mass storage over the cable: it brings up a network interface and answers
+/// HTTP. This command exists first of all to prove, on a real camera, that `Range` reads go
+/// through — that is, that sorting stays free over USB as it is on a card.
 func commandCamera(_ arguments: [String]) -> Int32 {
     guard let camera = GoProCamera.discover() else {
         fail("aucune GoPro trouvée sur les réseaux USB — caméra allumée et branchée ?")
@@ -190,7 +190,7 @@ func commandCamera(_ arguments: [String]) -> Int32 {
     return 0
 }
 
-// MARK: - Aiguillage
+// MARK: - Dispatch
 
 let commandLine = Array(CommandLine.arguments.dropFirst())
 let rest = Array(commandLine.dropFirst())

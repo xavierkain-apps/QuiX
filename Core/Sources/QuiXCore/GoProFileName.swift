@@ -1,33 +1,33 @@
 import Foundation
 
-/// Ce qu'un nom de fichier GoPro dit de lui-même.
+/// What a GoPro file name says about itself.
 ///
-/// `GX010123.MP4` : `GX` l'encodage, `01` le chapitre, `0123` le **numéro de prise**.
+/// `GX010123.MP4`: `GX` the encoding, `01` the chapter, `0123` the **take number**.
 ///
-/// Le numéro de prise est ce qui compte. Une longue prise est découpée en chapitres de 4 Go qui
-/// partagent ce numéro et n'ont, à part lui, rien qui les relie. C'est le seul lien entre
-/// `GX010123.MP4` et `GX020123.MP4`.
+/// The take number is what matters. A long take is cut into 4 GB chapters that share that number
+/// and have, apart from it, nothing tying them together. It is the only link between
+/// `GX010123.MP4` and `GX020123.MP4`.
 public struct GoProFileName: Equatable, Hashable, Sendable {
 
-    /// Les deux premières lettres : `GX` (HEVC), `GH` (AVC), `GL` (proxy LRV), `GP`/`GOPR` (anciens
-    /// modèles). On la garde pour l'affichage, jamais pour décider d'un regroupement — une prise
-    /// n'a qu'un encodage, mais s'y fier ne ferait qu'ajouter une façon de la couper en deux.
+    /// The first two letters: `GX` (HEVC), `GH` (AVC), `GL` (LRV proxy), `GP`/`GOPR` (older
+    /// models). Kept for display, never to decide a grouping — a take has one encoding, but
+    /// relying on it would only add one more way to cut it in two.
     public let encoding: String
 
-    /// Numéro de chapitre. `0` pour la forme ancienne `GOPR0123.MP4`, qui est le premier chapitre
-    /// d'une prise dont la suite s'appelle `GP010123.MP4`.
+    /// Chapter number. `0` for the old `GOPR0123.MP4` form, which is the first chapter of a take
+    /// whose continuation is called `GP010123.MP4`.
     public let chapter: Int
 
-    /// Numéro de prise, commun à tous les chapitres.
+    /// Take number, shared by every chapter.
     public let take: Int
 
-    /// L'extension en majuscules, sans le point.
+    /// The extension in upper case, without the dot.
     public let fileExtension: String
 
     public var kind: MediaKind { MediaKind(fileExtension: fileExtension) }
 
-    /// Analyse un nom de fichier. Rend `nil` si ce n'est pas un nom GoPro — auquel cas le fichier
-    /// n'est pas importé, plutôt que d'être rangé au hasard.
+    /// Parses a file name. Returns `nil` if it is not a GoPro name — in which case the file is not
+    /// imported, rather than filed at random.
     public init?(_ filename: String) {
         let name = (filename as NSString).lastPathComponent
         guard let dot = name.lastIndex(of: ".") else { return nil }
@@ -39,7 +39,7 @@ public struct GoProFileName: Equatable, Hashable, Sendable {
         let characters = Array(stem)
         let digits = characters.map { $0.isNumber }
 
-        // Forme ancienne : GOPR0123 — premier chapitre d'une prise.
+        // Old form: GOPR0123 — the first chapter of a take.
         if stem.hasPrefix("GOPR"), digits[4...].allSatisfy({ $0 }) {
             self.encoding = "GOPR"
             self.chapter = 0
@@ -48,7 +48,7 @@ public struct GoProFileName: Equatable, Hashable, Sendable {
             return
         }
 
-        // Forme courante : deux caractères d'encodage, deux chiffres de chapitre, quatre de prise.
+        // Current form: two encoding characters, two chapter digits, four take digits.
         guard characters[0].isLetter,
               characters[1].isLetter || characters[1].isNumber,
               digits[2], digits[3],
@@ -62,15 +62,15 @@ public struct GoProFileName: Equatable, Hashable, Sendable {
     }
 }
 
-/// Ce qu'on fait d'un fichier trouvé sur la carte.
+/// What we do with a file found on the card.
 public enum MediaKind: Equatable, Sendable {
-    /// `.MP4` — le seul type importé.
+    /// `.MP4` — the only type imported.
     case video
-    /// `.LRV` — la copie basse résolution que la caméra écrit à côté de chaque clip. Ignorée.
+    /// `.LRV` — the low-resolution copy the camera writes beside every clip. Ignored.
     case proxy
-    /// `.THM` — la vignette. Ignorée.
+    /// `.THM` — the thumbnail. Ignored.
     case thumbnail
-    /// Tout le reste : photos, fichiers système. Ignoré.
+    /// Everything else: photos, system files. Ignored.
     case other(String)
 
     init(fileExtension: String) {

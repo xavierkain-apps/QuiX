@@ -8,16 +8,16 @@ import Darwin
 import Glibc
 #endif
 
-/// La caméra branchée en USB-C, vue comme un serveur HTTP.
+/// The camera plugged in over USB-C, seen as an HTTP server.
 ///
-/// C'est le chemin que prenait Quik, et le seul que la HERO12 offre par le câble : elle n'expose
-/// **aucune** interface de stockage de masse. Elle monte un réseau (CDC NCM) et répond sur
-/// `http://172.2X.1YZ.51:8080` — l'API « Open GoPro ». Le MTP visible à côté ne publie, lui, que
-/// deux fichiers de service ; il ne donne pas accès aux clips.
+/// This is the road Quik took, and the only one the HERO12 offers over the cable: it exposes
+/// **no** mass-storage interface at all. It brings up a network (CDC NCM) and answers on
+/// `http://172.2X.1YZ.51:8080` — the "Open GoPro" API. The MTP interface visible beside it
+/// publishes only two service files; it gives no access to the clips.
 ///
-/// L'intérêt décisif est que ce serveur parle HTTP : s'il honore l'en-tête `Range`, on lit les
-/// ~34 Ko du `moov` sans rapatrier le clip, et le tri reste gratuit exactement comme sur une carte.
-/// Voir `HTTPRangeByteReader`.
+/// The decisive point is that this server speaks HTTP: if it honours the `Range` header, the
+/// ~34 KB of `moov` can be read without pulling the clip down, and sorting stays free exactly as
+/// on a card. See `HTTPRangeByteReader`.
 public struct GoProCamera: Sendable, Equatable {
 
     public let host: String
@@ -46,19 +46,19 @@ public struct GoProCamera: Sendable, Equatable {
         case notFound
         case badStatus(Int)
         case malformedResponse
-        /// La caméra répond mais refuse les lectures partielles. Le tri sans copie est alors
-        /// impossible : c'est une décision d'architecture, pas un détail. Voir `HTTPRangeByteReader`.
+        /// The camera answers but refuses partial reads. Sorting without copying is then
+        /// impossible: an architectural decision, not a detail. See `HTTPRangeByteReader`.
         case rangeUnsupported
     }
 
-    // MARK: - Découverte
+    // MARK: - Discovery
 
-    /// Cherche une caméra sur les réseaux USB montés par la machine.
+    /// Looks for a camera on the USB networks the machine has brought up.
     ///
-    /// L'adresse n'est pas devinable dans l'absolu : GoPro la dérive du numéro de série, ce qui
-    /// donne `172.2X.1YZ.51`. Plutôt que de reproduire ce calcul — qui demanderait de connaître le
-    /// série *avant* de parler à la caméra — on part des interfaces locales : la machine reçoit une
-    /// adresse dans le même `/24`, et la caméra y occupe toujours `.51`.
+    /// The address is not guessable in the absolute: GoPro derives it from the serial number,
+    /// which gives `172.2X.1YZ.51`. Rather than reproduce that calculation — which would require
+    /// knowing the serial *before* talking to the camera — we start from the local interfaces: the
+    /// machine gets an address in the same `/24`, and the camera always sits at `.51`.
     public static func discover(timeout: TimeInterval = 2) -> GoProCamera? {
         for candidate in candidateHosts() {
             let camera = GoProCamera(host: candidate)
@@ -67,7 +67,7 @@ public struct GoProCamera: Sendable, Equatable {
         return nil
     }
 
-    /// Les `.51` des sous-réseaux `172.x.y.0/24` où la machine a une adresse.
+    /// The `.51` addresses of the `172.x.y.0/24` subnets where the machine has an address.
     public static func candidateHosts() -> [String] {
         var hosts: [String] = []
         var pointer: UnsafeMutablePointer<ifaddrs>?
@@ -78,8 +78,8 @@ public struct GoProCamera: Sendable, Equatable {
             guard let address = interface.pointee.ifa_addr,
                   address.pointee.sa_family == UInt8(AF_INET) else { continue }
 
-            // `sa_len` est un champ BSD : Linux ne l'a pas, et la taille s'y déduit de la
-            // famille d'adresse. On a déjà filtré sur `AF_INET` juste au-dessus.
+            // `sa_len` is a BSD field: Linux does not have it, and the size is derived there from
+            // the address family. We have already filtered on `AF_INET` just above.
             #if canImport(Darwin)
             let addressLength = socklen_t(address.pointee.sa_len)
             #else
@@ -93,7 +93,7 @@ public struct GoProCamera: Sendable, Equatable {
 
             let ip = String(cString: buffer)
             let parts = ip.split(separator: ".")
-            // Le réseau USB de la caméra est en 172.2x.1yz.0/24 ; on ne balaie rien d'autre.
+            // The camera's USB network is in 172.2x.1yz.0/24; nothing else is swept.
             guard parts.count == 4, parts[0] == "172", let second = Int(parts[1]),
                   (20...29).contains(second) else { continue }
 
@@ -113,16 +113,16 @@ public struct GoProCamera: Sendable, Equatable {
         return info
     }
 
-    /// Bascule la caméra en contrôle filaire.
+    /// Switches the camera to wired control.
     ///
-    /// Sans cet appel, la caméra peut couper la session HTTP au bout de quelques secondes pour
-    /// revenir à son mode par défaut. On l'émet avant tout scan, et on ignore son échec : sur les
-    /// firmwares où l'appel n'existe pas, le reste fonctionne quand même.
+    /// Without this call, the camera may cut the HTTP session after a few seconds to return to its
+    /// default mode. It is sent before any scan, and its failure is ignored: on firmwares where
+    /// the call does not exist, everything else works anyway.
     public func enableWiredControl() {
         _ = try? get(path: "/gopro/camera/control/wired_usb?p=1", timeout: 5)
     }
 
-    /// Les fichiers présents sur la carte, tels que la caméra les déclare.
+    /// The files present on the card, as the camera declares them.
     public func mediaList(timeout: TimeInterval = 30) throws -> [CameraMediaFile] {
         let data = try get(path: "/gopro/media/list", timeout: timeout)
         guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -148,21 +148,21 @@ public struct GoProCamera: Sendable, Equatable {
         return files.sorted { ($0.folder, $0.filename) < ($1.folder, $1.filename) }
     }
 
-    /// Efface un fichier de la carte, à travers la caméra.
+    /// Erases one file from the card, through the camera.
     ///
-    /// Le seul appel de tout QuiX qui détruit quelque chose. Il n'est jamais émis par une
-    /// détection ni par une fin d'import : uniquement depuis `CameraCleanup.erase`, qui exige que
-    /// la copie de chaque fichier soit prouvée sur le Mac au préalable.
+    /// The only call in all of QuiX that destroys anything. It is never sent by a detection or by
+    /// the end of an import: only from `CameraCleanup.erase`, which requires every file's copy to
+    /// have been proven present on the Mac beforehand.
     public func delete(folder: String, filename: String, timeout: TimeInterval = 20) throws {
         _ = try get(path: "/gopro/media/delete/file?path=\(folder)/\(filename)", timeout: timeout)
     }
 
-    /// L'URL de téléchargement d'un fichier de la carte.
+    /// The download URL of a file on the card.
     public func mediaURL(folder: String, filename: String) -> URL {
         baseURL.appendingPathComponent("videos/DCIM/\(folder)/\(filename)")
     }
 
-    /// L'API renvoie les nombres tantôt en chaîne, tantôt en nombre selon le firmware.
+    /// The API returns numbers sometimes as strings, sometimes as numbers, depending on firmware.
     private func anyString(_ value: Any?) -> String? {
         if let s = value as? String { return s }
         if let n = value as? NSNumber { return n.stringValue }
@@ -184,7 +184,7 @@ public struct GoProCamera: Sendable, Equatable {
     }
 }
 
-/// Un fichier tel que la caméra le déclare dans `/gopro/media/list`.
+/// A file as the camera declares it in `/gopro/media/list`.
 public struct CameraMediaFile: Equatable, Sendable {
     public let folder: String
     public let filename: String
@@ -193,31 +193,31 @@ public struct CameraMediaFile: Equatable, Sendable {
     public let url: URL
 }
 
-/// Requête HTTP synchrone.
+/// A synchronous HTTP request.
 ///
-/// Le moteur scanne déjà sur un fil de fond, et tout `ByteReader` est synchrone par contrat :
-/// rendre la chaîne asynchrone jusqu'ici obligerait à réécrire le parseur d'atomes, qui n'a aucune
-/// raison de savoir d'où viennent ses octets.
+/// The engine already scans on a background thread, and every `ByteReader` is synchronous by
+/// contract: making the chain asynchronous all the way here would mean rewriting the atom parser,
+/// which has no reason to know where its bytes come from.
 enum HTTP {
 
-    /// Une seule connexion à la fois vers la caméra.
+    /// One connection at a time towards the camera.
     ///
-    /// Son serveur n'en tient qu'une. Avec `URLSession.shared`, l'analyse laissait derrière elle
-    /// une connexion inactive mais ouverte, et le premier téléchargement qui suivait en réclamait
-    /// une seconde — que la caméra refusait. Le symptôme était déroutant : le premier clip échouait,
-    /// les suivants passaient, et un second import réussissait toujours.
+    /// Its server holds only one. With `URLSession.shared`, scanning left an idle but open
+    /// connection behind it, and the first download that followed asked for a second — which the
+    /// camera refused. The symptom was disorienting: the first clip failed, the following ones went
+    /// through, and a second import always succeeded.
     static let session: URLSession = {
         let configuration = URLSessionConfiguration.default
         configuration.httpMaximumConnectionsPerHost = 1
-        // Absent de la Foundation de Linux, où la propriété est en lecture seule. La caméra est au
-        // bout d'un câble : attendre une connectivité qui ne viendra pas n'aurait aucun sens.
+        // Absent from Linux's Foundation, where the property is read-only. The camera is at the end
+        // of a cable: waiting for connectivity that will not come makes no sense.
         #if canImport(Darwin)
         configuration.waitsForConnectivity = false
         #endif
         return URLSession(configuration: configuration)
     }()
 
-    /// La même contrainte, pour les sessions à délégué des téléchargements.
+    /// The same constraint, for the delegate-based download sessions.
     static func downloadConfiguration() -> URLSessionConfiguration {
         let configuration = URLSessionConfiguration.default
         configuration.httpMaximumConnectionsPerHost = 1
@@ -227,11 +227,11 @@ enum HTTP {
         return configuration
     }
 
-    /// Le résultat voyage par une référence, jamais par une variable capturée.
+    /// The result travels through a reference, never through a captured variable.
     ///
-    /// La fermeture d'`URLSession` s'exécute sur un autre fil : muter une variable locale depuis
-    /// là est refusé par le compilateur en concurrence stricte. L'écriture et la lecture sont
-    /// séparées par la sémaphore, qui établit l'ordre entre les deux.
+    /// `URLSession`'s closure runs on another thread: mutating a local variable from there is
+    /// refused by the compiler under strict concurrency. The write and the read are separated by
+    /// the semaphore, which establishes the order between them.
     private final class Outcome: @unchecked Sendable {
         var result: Result<(Data, URLResponse?), Error> = .failure(GoProCamera.CameraError.notFound)
     }

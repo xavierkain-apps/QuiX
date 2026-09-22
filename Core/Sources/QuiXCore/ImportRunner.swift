@@ -1,11 +1,11 @@
 import Foundation
 
-/// Où en est l'import.
+/// Where the import stands.
 public struct ImportProgress: Equatable, Sendable {
     public let fileIndex: Int
     public let fileCount: Int
     public let currentFile: String
-    /// Octets copiés depuis le début du plan, fichier en cours compris.
+    /// Bytes copied since the start of the plan, current file included.
     public let bytesCopied: UInt64
     public let byteCount: UInt64
 
@@ -28,7 +28,7 @@ public struct ImportFailure: Equatable, Sendable {
     public let reason: String
 }
 
-/// Ce qu'un import a réellement fait.
+/// What an import actually did.
 public struct ImportReport: Equatable, Sendable {
     public let importFolder: URL
     public let copied: [PlannedCopy]
@@ -45,22 +45,22 @@ public struct ImportReport: Equatable, Sendable {
 
 public enum ImportRunner {
 
-    /// Combien de fois retenter un clip que le réseau a fait échouer.
+    /// How many times to retry a clip the network made fail.
     ///
-    /// La caméra en USB n'est pas un disque : une requête peut échouer sans que le clip soit en
-    /// cause. Abandonner à la première erreur laissait un fichier manquant qu'il fallait aller
-    /// rechercher par un second import — pour un incident qui se règle en attendant une seconde.
+    /// The camera over USB is not a disk: a request can fail without the clip being at fault.
+    /// Giving up on the first error left a missing file to be fetched by a second import — for an
+    /// incident that settles itself by waiting a second.
     static let attempts = 3
 
-    /// Ce qu'on attend avant de réessayer. Court, puis moins court : si la caméra a besoin de
-    /// souffler, insister immédiatement ne sert à rien.
+    /// How long to wait before trying again. Short, then less short: if the camera needs a moment,
+    /// insisting immediately achieves nothing.
     static let backoff: [TimeInterval] = [1, 3]
 
-    /// Copie un clip depuis la caméra, en réessayant ce qui mérite de l'être.
+    /// Copies a clip from the camera, retrying what is worth retrying.
     ///
-    /// La reprise rend ces tentatives presque gratuites : la seconde repart des octets déjà reçus
-    /// au lieu de tout retélécharger. Deux échecs ne se retentent jamais — une annulation demandée
-    /// par l'utilisateur, et une destination déjà occupée, qui ne s'arrangeront pas d'eux-mêmes.
+    /// Resuming makes those attempts nearly free: the second starts from the bytes already
+    /// received instead of downloading everything again. Two failures are never retried — a
+    /// cancellation asked for by the user, and an occupied destination, neither of which improves on its own.
     private static func copyFromCamera(
         _ planned: PlannedCopy,
         fileManager: FileManager,
@@ -100,16 +100,16 @@ public enum ImportRunner {
         throw lastFailure ?? CopyFailure.cancelled
     }
 
-    /// Exécute un plan.
+    /// Runs a plan.
     ///
-    /// Deux partis pris :
+    /// Two deliberate choices:
     ///
-    /// - **Un échec sur un fichier n'arrête pas l'import.** Un clip illisible est signalé et les
-    ///   quarante-neuf autres arrivent quand même. Tout abandonner à cause d'un secteur abîmé
-    ///   ferait perdre l'import entier pour rien.
-    /// - **L'index est écrit après chaque fichier.** Un débranchement en cours de route laisse
-    ///   l'index d'accord avec le disque, et le rebranchement reprend là où on s'était arrêté au
-    ///   lieu de tout recopier.
+    /// - **One file failing does not stop the import.** An unreadable clip is reported and the
+    ///   other forty-nine arrive all the same. Abandoning everything over one damaged sector
+    ///   would lose the whole import for nothing.
+    /// - **The index is written after every file.** A cable pulled mid-way leaves the index in
+    ///   agreement with the disk, and plugging back in resumes where it stopped instead of copying
+    ///   everything again.
     @discardableResult
     public static func run(
         _ plan: ImportPlan,
@@ -144,9 +144,9 @@ public enum ImportRunner {
             }
 
             do {
-                // La source décide de la manière, pas de la garantie : carte montée ou caméra en
-                // USB, les deux chemins écrivent dans un temporaire, vérifient l'empreinte relue,
-                // et ne renomment qu'ensuite.
+                // The source decides the means, not the guarantee: mounted card or camera over
+                // USB, both paths write to a temporary file, verify the checksum read back, and
+                // only then rename.
                 if planned.source.url.isFileURL {
                     try VerifiedCopy.copy(
                         from: planned.source.url,

@@ -1,11 +1,11 @@
 import Foundation
 
-/// Somme de contrôle CRC-32 (polynôme IEEE), calculée en flux.
+/// A CRC-32 checksum (IEEE polynomial), computed as a stream.
 ///
-/// Le but est de détecter une copie abîmée — carte débranchée en cours de route, secteur illisible,
-/// disque plein — pas de résister à quelqu'un qui chercherait à tromper la vérification. Un CRC-32
-/// suffit largement pour ça, et il coûte assez peu pour qu'on puisse le calculer sur chaque octet
-/// de chaque fichier sans que ça se voie à côté du temps de copie.
+/// The goal is to catch a damaged copy — a card pulled out mid-way, an unreadable sector, a full
+/// disk — not to resist someone trying to fool the verification. A CRC-32 is ample for that, and
+/// it costs little enough to be computed over every byte of every file without showing beside the
+/// copy time.
 public struct CRC32: Sendable, Equatable {
 
     private static let table: [UInt32] = (0..<256).map { index in
@@ -20,10 +20,10 @@ public struct CRC32: Sendable, Equatable {
 
     public init() {}
 
-    /// Reprend un calcul interrompu à partir de son empreinte partielle.
+    /// Resumes an interrupted computation from its partial checksum.
     ///
-    /// Sert à la reprise d'un téléchargement : les octets déjà reçus ne sont pas relus depuis le
-    /// réseau, mais leur empreinte est reprise là où elle s'était arrêtée.
+    /// Used when resuming a download: the bytes already received are not read again from the
+    /// network, but their checksum picks up where it left off.
     public init(resuming value: UInt32) {
         state = value ^ 0xFFFF_FFFF
     }

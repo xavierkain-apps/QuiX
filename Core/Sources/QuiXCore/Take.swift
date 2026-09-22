@@ -1,9 +1,9 @@
 import Foundation
 
-/// Un fichier repéré sur la carte, avec ce qu'il faut pour l'identifier sans le relire.
+/// A file found on the card, with what it takes to identify it without reading it again.
 public struct MediaFile: Equatable, Sendable {
     public let url: URL
-    /// Le dossier DCIM qui le contient (`100GOPRO`), tel quel.
+    /// The DCIM folder holding it (`100GOPRO`), as is.
     public let folder: String
     public let name: GoProFileName
     public let size: UInt64
@@ -20,7 +20,7 @@ public struct MediaFile: Equatable, Sendable {
     public var filename: String { url.lastPathComponent }
 }
 
-/// Un fichier et ses tags.
+/// A file and its tags.
 public struct ScannedFile: Equatable, Sendable {
     public let file: MediaFile
     public let hiLight: HiLightScan
@@ -31,19 +31,19 @@ public struct ScannedFile: Equatable, Sendable {
     }
 }
 
-/// Une prise : tous les chapitres qui partagent un numéro de fichier GoPro.
+/// A take: every chapter that shares a GoPro file number.
 ///
-/// **L'unité d'import, c'est la prise, jamais le chapitre.** Si un seul chapitre porte un
-/// highlight, la prise entière va dans `Highlights/`. Répartir les chapitres d'une même prise
-/// entre les deux dossiers donnerait deux moitiés de vidéo dont aucune n'est regardable.
+/// **The unit of import is the take, never the chapter.** If a single chapter carries a
+/// highlight, the whole take goes to `Highlights/`. Splitting one take's chapters between the two
+/// folders would give two halves of a video, neither of them watchable.
 public struct Take: Equatable, Sendable {
 
-    /// Numéro de prise, commun aux chapitres.
+    /// Take number, shared by the chapters.
     public let number: Int
-    /// Dossier DCIM d'origine. Fait partie de l'identité : deux cartes différentes peuvent porter
-    /// le même numéro de prise, et le compteur de la caméra finit par repasser par zéro.
+    /// The DCIM folder it came from. Part of the identity: two different cards can carry the same
+    /// take number, and the camera's counter eventually wraps back through zero.
     public let folder: String
-    /// Les chapitres, triés par numéro de chapitre.
+    /// The chapters, sorted by chapter number.
     public let chapters: [ScannedFile]
 
     public init(number: Int, folder: String, chapters: [ScannedFile]) {
@@ -52,19 +52,19 @@ public struct Take: Equatable, Sendable {
         self.chapters = chapters.sorted { $0.file.name.chapter < $1.file.name.chapter }
     }
 
-    /// Vrai dès qu'**un** chapitre porte au moins un moment.
+    /// True as soon as **one** chapter carries at least one moment.
     public var isHighlighted: Bool { chapters.contains { $0.hiLight.isHighlighted } }
 
-    /// Nombre total de moments tagués sur toute la prise.
+    /// Total number of tagged moments across the whole take.
     public var momentCount: Int { chapters.reduce(0) { $0 + $1.hiLight.moments.count } }
 
-    /// Poids total de la prise, chapitres compris.
+    /// Total weight of the take, chapters included.
     public var totalSize: UInt64 { chapters.reduce(0) { $0 + $1.file.size } }
 }
 
 public enum TakeBuilder {
 
-    /// Regroupe des fichiers analysés en prises, triées par dossier puis par numéro.
+    /// Groups scanned files into takes, sorted by folder then by number.
     public static func group(_ files: [ScannedFile]) -> [Take] {
         struct Key: Hashable { let folder: String; let number: Int }
 

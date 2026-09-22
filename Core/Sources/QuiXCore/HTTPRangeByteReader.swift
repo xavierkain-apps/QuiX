@@ -3,15 +3,15 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Lecture aléatoire d'un fichier distant, par requêtes HTTP `Range`.
+/// Random-access reading of a remote file, through HTTP `Range` requests.
 ///
-/// C'est la pièce qui sauve le principe de l'app par le câble USB. Sur une carte, `FileByteReader`
-/// atteint le `moov` de fin de fichier par trois `seek` ; ici, trois requêtes `Range` font le même
-/// travail sur la caméra. Le clip n'est pas rapatrié pour être trié — on lit ~34 Ko et on sait où
-/// il va, exactement comme sur une carte.
+/// This is the piece that saves the app's principle over the USB cable. On a card, `FileByteReader`
+/// reaches the `moov` at the end of the file with three seeks; here, three `Range` requests do the
+/// same work on the camera. The clip is not pulled down to be sorted — about 34 KB are read and we
+/// know where it goes, exactly as on a card.
 ///
-/// Si la caméra ignorait `Range` et renvoyait le fichier entier, ce lecteur le détecterait au lieu
-/// de télécharger 90 Mo en silence : voir `RangeFailure.ignored`.
+/// If the camera ignored `Range` and returned the whole file, this reader would detect it instead
+/// of quietly downloading 90 MB: see `RangeFailure.ignored`.
 public final class HTTPRangeByteReader: ByteReader {
 
     public let url: URL
@@ -19,15 +19,15 @@ public final class HTTPRangeByteReader: ByteReader {
     private let timeout: TimeInterval
 
     public enum RangeFailure: Error, Equatable {
-        /// Le serveur a répondu 200 au lieu de 206 : il ignore `Range` et renverrait tout le
-        /// fichier. Lire ainsi coûterait le clip entier par atome consulté.
+        /// The server answered 200 instead of 206: it ignores `Range` and would return the whole
+        /// file. Reading that way would cost the entire clip per atom consulted.
         case ignored(status: Int)
         case badStatus(Int)
         case noLength
     }
 
-    /// - Parameter length: taille du fichier, déjà connue par le catalogue de la caméra. On évite
-    ///   ainsi une requête `HEAD` par clip.
+    /// - Parameter length: the file's size, already known from the camera's catalogue. That avoids
+    ///   one `HEAD` request per clip.
     public init(url: URL, length: UInt64, timeout: TimeInterval = 30) {
         self.url = url
         self.length = length
@@ -49,18 +49,18 @@ public final class HTTPRangeByteReader: ByteReader {
         case 206:
             return [UInt8](data)
         case 200:
-            // Le serveur a tout envoyé. On ne s'en sert pas : accepter ici reviendrait à
-            // télécharger le clip entier à chaque atome consulté, sans que rien ne le signale.
+            // The server sent everything. We do not use it: accepting here would amount to
+            // downloading the whole clip for every atom consulted, with nothing to signal it.
             throw RangeFailure.ignored(status: 200)
         default:
             throw RangeFailure.badStatus(http.statusCode)
         }
     }
 
-    /// Vérifie en une requête que le serveur honore bien `Range`.
+    /// Checks in one request that the server really honours `Range`.
     ///
-    /// À appeler une fois par session, avant de scanner : mieux vaut savoir tout de suite que
-    /// découvrir le problème au soixantième clip.
+    /// To be called once per session, before scanning: better to know straight away than to
+    /// discover the problem at the sixtieth clip.
     public static func supportsRange(url: URL, timeout: TimeInterval = 15) -> Bool {
         var request = URLRequest(url: url)
         request.timeoutInterval = timeout

@@ -3,26 +3,26 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Copie vérifiée d'un fichier servi par la caméra en HTTP, **reprenable**.
+/// A verified, **resumable** copy of a file served by the camera over HTTP.
 ///
-/// Mêmes garanties que `VerifiedCopy` : écriture dans un temporaire, empreinte calculée pendant la
-/// réception, relecture du fichier écrit, renommage seulement si tout concorde. La source n'est
-/// jamais touchée — ici c'est structurel, on ne fait que des `GET`.
+/// The same guarantees as `VerifiedCopy`: writing to a temporary file, a checksum computed while
+/// receiving, the written file read back, and a rename only if everything agrees. The source is
+/// never touched — here that is structural, we only ever issue `GET`s.
 ///
-/// **La reprise.** Un clip GoPro pèse des gigaoctets et l'USB se débranche ; recommencer de zéro
-/// coûtait cher alors que la caméra honore `Range`. Un transfert interrompu laisse donc son
-/// `.quix-partiel`, et le suivant repart de l'octet où il s'était arrêté.
+/// **Resuming.** A GoPro clip weighs gigabytes and USB cables come loose; starting from zero was
+/// expensive when the camera honours `Range`. An interrupted transfer therefore leaves its
+/// `.quix-partiel` behind, and the next one restarts from the byte where it stopped.
 ///
-/// Ce qui rendait la reprise délicate, c'est la chaîne de vérification. L'empreinte d'origine se
-/// calcule sur les octets **reçus du réseau** ; la relecture finale la compare à ce qui est
-/// réellement sur le disque. Reprendre naïvement casserait ce lien : les octets du premier
-/// transfert seraient relus du disque et comparés à eux-mêmes, ce qui ne prouve plus rien. D'où le
-/// petit fichier d'état posé à côté du temporaire, qui retient l'empreinte des octets reçus. À la
-/// reprise on vérifie que le temporaire porte toujours exactement cette empreinte — le lien est
-/// rétabli — et sinon on repart de zéro.
+/// What made resuming delicate is the verification chain. The original checksum is computed over
+/// the bytes **received from the network**; the final read-back compares it with what is really on
+/// disk. Resuming naively would break that link: the first transfer's bytes would be read back
+/// from disk and compared with themselves, which proves nothing any more. Hence the small state
+/// file laid beside the temporary one, holding the checksum of the bytes received. On resuming we
+/// check that the temporary file still carries exactly that checksum — the link is re-established
+/// — and otherwise we start over.
 public enum RemoteVerifiedCopy {
 
-    /// Suffixe du fichier d'état, à côté du `.quix-partiel`.
+    /// Suffix of the state file, beside the `.quix-partiel`.
     static let stateSuffix = ".etat"
 
     @discardableResult
@@ -35,9 +35,9 @@ public enum RemoteVerifiedCopy {
         isCancelled: () -> Bool = { false },
         progress: (UInt64) -> Void = { _ in }
     ) throws -> UInt32 {
-        // La réception est synchrone : les fermetures ne survivent pas à cet appel, mais
-        // `URLSession` exige des `@escaping`. `withoutActuallyEscaping` dit exactement cela,
-        // plutôt que d'imposer des `@escaping` à tout l'appelant.
+        // Receiving is synchronous: the closures do not outlive this call, but `URLSession`
+        // requires `@escaping` ones. `withoutActuallyEscaping` says exactly that, rather than
+        // forcing `@escaping` on every caller.
         try withoutActuallyEscaping(isCancelled) { isCancelled in
         try withoutActuallyEscaping(progress) { progress in
 
@@ -69,15 +69,15 @@ public enum RemoteVerifiedCopy {
         do {
             try sink.download(source)
         } catch {
-            // Un transfert coupé garde ses octets : c'est tout l'intérêt. On note où on en est
-            // pour que la prochaine tentative reparte de là.
+            // An interrupted transfer keeps its bytes: that is the whole point. We record where we
+            // are so the next attempt starts from there.
             writeState(sink, to: stateFile)
             throw error
         }
 
         guard sink.written == expectedSize else {
-            // Une taille qui ne tombe pas juste n'est pas une interruption : les octets reçus ne
-            // valent rien, on ne propose pas de reprendre dessus.
+            // A size that does not come out right is not an interruption: the bytes received are
+            // worth nothing, and we do not offer to resume on top of them.
             try? fileManager.removeItem(at: temporary)
             try? fileManager.removeItem(at: stateFile)
             throw CopyFailure.sizeMismatch(expected: expectedSize, written: sink.written)
@@ -98,8 +98,8 @@ public enum RemoteVerifiedCopy {
             throw CopyFailure.checksumMismatch(source: sink.crc.value, destination: destinationCRC)
         }
 
-        // Même règle que pour une carte : le clip garde sa date de tournage, sans quoi le tri par
-        // date dans le Finder ne dirait plus rien.
+        // Same rule as for a card: the clip keeps its shooting date, without which sorting by date
+        // in the Finder would say nothing any more.
         if let modified {
             try? fileManager.setAttributes([.modificationDate: modified], ofItemAtPath: temporary.path)
         }
@@ -111,11 +111,11 @@ public enum RemoteVerifiedCopy {
         }
     }
 
-    /// Y a-t-il un transfert à reprendre, et si oui à partir d'où ?
+    /// Is there a transfer to resume, and if so from where?
     ///
-    /// Rend `nil` — donc « repartir de zéro » — à la moindre incohérence. Un octet douteux repris
-    /// coûterait un clip corrompu qui passerait la vérification finale sans rien signaler, ce qui
-    /// est bien pire que de retélécharger.
+    /// Returns `nil` — meaning "start from zero" — at the slightest inconsistency. One doubtful
+    /// byte resumed would cost a corrupted clip that passed the final verification without a word,
+    /// which is far worse than downloading again.
     static func resumePoint(
         temporary: URL, state: URL, expectedSize: UInt64, fileManager: FileManager
     ) -> (bytes: UInt64, crc: UInt32)? {
@@ -128,9 +128,9 @@ public enum RemoteVerifiedCopy {
               let onDisk = ImportPlanner.sizeOnDisk(temporary), onDisk == bytes
         else { return nil }
 
-        // Le contrôle qui donne son sens à la reprise : les octets encore sur le disque sont-ils
-        // bien ceux qu'on avait reçus ? Sans lui, la vérification finale comparerait le disque à
-        // lui-même pour toute la partie déjà téléchargée.
+        // The check that gives resuming its meaning: are the bytes still on disk the ones we
+        // received? Without it, the final verification would compare the disk with itself for the
+        // whole part already downloaded.
         guard let actual = try? VerifiedCopy.checksum(of: temporary), actual == crc else {
             return nil
         }
@@ -143,23 +143,23 @@ public enum RemoteVerifiedCopy {
                                                                   encoding: .utf8)
     }
 
-    /// Réception en flux : les octets sont écrits et empreintés au fil de l'eau, jamais accumulés
-    /// en mémoire. Un clip GoPro pèse couramment plusieurs gigaoctets.
-    /// `@unchecked Sendable` parce que la Foundation de Linux exige un délégué `Sendable`, et que
-    /// l'état mutable ci-dessous n'est de toute façon touché que par un seul fil à la fois : les
-    /// rappels du délégué arrivent sur une file sérielle, et `download()` n'y revient qu'après la
-    /// sémaphore, levée par le dernier d'entre eux.
+    /// Streamed receiving: bytes are written and checksummed as they arrive, never accumulated in
+    /// memory. A GoPro clip commonly weighs several gigabytes.
+    /// `@unchecked Sendable` because Linux's Foundation requires a `Sendable` delegate, and the
+    /// mutable state below is in any case only touched by one thread at a time: the delegate's
+    /// callbacks arrive on a serial queue, and `download()` only comes back to it after the
+    /// semaphore, raised by the last of them.
     private final class Sink: NSObject, URLSessionDataDelegate, @unchecked Sendable {
         private let handle: FileHandle
         private let semaphore = DispatchSemaphore(value: 0)
         private let resumeFrom: UInt64
 
-        // Optionnelles, et relâchées dès la fin du transfert.
+        // Optional, and released as soon as the transfer ends.
         //
-        // `URLSession` retient son délégué au-delà de `download()` — `finishTasksAndInvalidate()`
-        // rend la main avant d'avoir relâché quoi que ce soit. Garder ici des fermetures que
-        // l'appelant a déclarées non-échappantes les ferait survivre à leur portée, et Swift arrête
-        // le programme quand il le détecte. On les lâche donc avant de rendre la main.
+        // `URLSession` holds on to its delegate beyond `download()` — `finishTasksAndInvalidate()`
+        // returns before it has released anything. Keeping closures here that the caller declared
+        // non-escaping would make them outlive their scope, and Swift stops the program when it
+        // detects that. So we let them go before returning.
         private var isCancelled: (() -> Bool)?
         private var progress: ((UInt64) -> Void)?
 
@@ -184,8 +184,8 @@ public enum RemoteVerifiedCopy {
             let session = URLSession(configuration: HTTP.downloadConfiguration(),
                                      delegate: self, delegateQueue: nil)
             var request = URLRequest(url: url)
-            // Un clip de plusieurs gigaoctets prend son temps ; c'est l'absence de données qui doit
-            // faire échouer, pas la durée totale.
+            // A clip of several gigabytes takes its time; it is the absence of data that must fail,
+            // not the total duration.
             request.timeoutInterval = 3600
             if resumeFrom > 0 {
                 request.setValue("bytes=\(resumeFrom)-", forHTTPHeaderField: "Range")
@@ -193,8 +193,8 @@ public enum RemoteVerifiedCopy {
             let task = session.dataTask(with: request)
             task.resume()
             waitForCompletion(of: task)
-            // Passé ce point, plus aucun rappel de délégué ne touche aux fermetures : la
-            // sémaphore n'est levée que par `didCompleteWithError`, qui clôt le transfert.
+            // Past this point no delegate callback touches the closures any more: the semaphore is
+            // only raised by `didCompleteWithError`, which closes the transfer.
             isCancelled = nil
             progress = nil
             session.finishTasksAndInvalidate()
@@ -207,12 +207,12 @@ public enum RemoteVerifiedCopy {
             }
         }
 
-        /// Combien de temps un transfert peut se taire avant qu'on le déclare perdu.
+        /// How long a transfer may stay silent before we declare it lost.
         ///
-        /// On ne borne pas la durée totale — un clip de plusieurs gigaoctets prend légitimement
-        /// son temps — mais l'absence de progression. Sans cette borne, une attente sans fin :
-        /// un câble arraché au mauvais moment gelait l'import, sans erreur et sans reprise
-        /// possible, puisque plus rien n'avançait ni n'échouait.
+        /// The total duration is not bounded — a clip of several gigabytes legitimately takes its
+        /// time — but the absence of progress is. Without that bound, an endless wait: a cable
+        /// pulled at the wrong moment froze the import, with no error and no way to resume, since
+        /// nothing was advancing and nothing was failing.
         static let stallTimeout: TimeInterval = 120
 
         private func waitForCompletion(of task: URLSessionDataTask) {
@@ -226,8 +226,8 @@ public enum RemoteVerifiedCopy {
                     lastProgress = Date()
                 } else if Date().timeIntervalSince(lastProgress) > Sink.stallTimeout {
                     task.cancel()
-                    // `cancel()` provoque `didCompleteWithError` : on l'attend, sans s'éterniser
-                    // si ce rappel ne venait pas non plus.
+                    // `cancel()` triggers `didCompleteWithError`: we wait for it, without hanging
+                    // about if that callback never came either.
                     _ = semaphore.wait(timeout: .now() + 10)
                     return
                 }
@@ -239,9 +239,9 @@ public enum RemoteVerifiedCopy {
                         completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
             status = (response as? HTTPURLResponse)?.statusCode ?? 0
 
-            // On a demandé une reprise et le serveur renvoie tout depuis le début : il ignore
-            // `Range`. Plutôt que d'ajouter le fichier entier à la suite de ce qu'on avait, on
-            // repart de zéro — c'est plus lent, mais c'est le seul résultat correct.
+            // We asked to resume and the server is sending everything from the start: it ignores
+            // `Range`. Rather than append the whole file to what we had, we start from zero — it is
+            // slower, but it is the only correct outcome.
             if resumeFrom > 0, status == 200 {
                 try? handle.truncate(atOffset: 0)
                 try? handle.seek(toOffset: 0)
@@ -265,8 +265,8 @@ public enum RemoteVerifiedCopy {
 
         func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
             if failure == nil, let error {
-                // Une annulation demandée par nous a déjà posé `CopyFailure.cancelled` ; on ne la
-                // remplace pas par le « cancelled » générique d'URLSession, moins parlant.
+                // A cancellation we asked for has already set `CopyFailure.cancelled`; we do not
+                // replace it with URLSession's generic "cancelled", which says less.
                 failure = error
             }
             semaphore.signal()
