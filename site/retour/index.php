@@ -7,6 +7,8 @@
 
 declare(strict_types=1);
 
+require __DIR__ . '/../_mail.php';
+
 const DESTINATAIRE = 'xavierkain.consulting@gmail.com';
 const REGISTRE     = __DIR__ . '/../../quix-retours.jsonl';
 
@@ -20,8 +22,12 @@ function propre(string $clef, int $max = 120): string
 }
 
 $langue = str_starts_with(strtolower($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? 'en'), 'fr') ? 'fr' : 'en';
-if (isset($_REQUEST['lang']) && in_array($_REQUEST['lang'], ['fr', 'en'], true)) {
-    $langue = $_REQUEST['lang'];
+// The app says which language its interface is in. Only the prefix counts: `fr`, `fr_FR` and
+// `fr-CA` are all French. An exact match on `fr`/`en` used to drop anything else silently and fall
+// back to the browser's language — which is how an app shown in English opened a French form.
+$demandee = strtolower(substr((string) ($_REQUEST['lang'] ?? ''), 0, 2));
+if (in_array($demandee, ['fr', 'en'], true)) {
+    $langue = $demandee;
 }
 
 $type = ($_GET['type'] ?? $_POST['type'] ?? 'bug') === 'idea' ? 'idea' : 'bug';
@@ -107,9 +113,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'contexte' => $contexte,
     ];
     @file_put_contents(REGISTRE, json_encode($retour, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
-    @mail(DESTINATAIRE, 'QuiX — ' . $type . ' — ' . ($contexte['camera'] ?: 'camera inconnue'),
-          json_encode($retour, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
-          "From: QuiX <no-reply@quix.xavier-kain.fr>\r\nContent-Type: text/plain; charset=utf-8");
+    $etiquette = $type === 'idea' ? 'Idée' : 'Bug';
+    envoyer(
+        DESTINATAIRE,
+        '[QuiX · ' . $etiquette . '] ' . mb_strimwidth(preg_replace('/\s+/', ' ', $message), 0, 60, '…'),
+        ($type === 'idea' ? 'Nouvelle idée' : 'Nouveau rapport de bug') . ' — QuiX ' . ($contexte['version'] ?: '?'),
+        $retour['message'],
+        [
+            'De'       => $email ?: 'anonyme',
+            'Version'  => $contexte['version'],
+            'macOS'    => $contexte['os'],
+            'Mac'      => $contexte['mac'],
+            'Caméra'   => $contexte['camera'],
+            'Langue'   => $langue,
+            'Reçu le'  => gmdate('d/m/Y H:i') . ' UTC',
+        ],
+        $email ?: null
+    );
 
     page($mots['title'],
         '<h2 style="text-transform:none">' . $mots['thanks'] . '</h2>'
