@@ -42,13 +42,25 @@ enum Feedback {
             URLQueryItem(name: "version", value: version),
             URLQueryItem(name: "os", value: systemVersion),
             URLQueryItem(name: "mac", value: model),
-            URLQueryItem(name: "lang", value: Locale.current.identifier),
+            URLQueryItem(name: "lang", value: interfaceLanguage),
         ]
         if let cameraName { items.append(URLQueryItem(name: "camera", value: cameraName)) }
         var components = URLComponents(string: destination)
         components?.queryItems = items
         guard let url = components?.url else { return }
         NSWorkspace.shared.open(url)
+    }
+
+    /// The language the interface is actually shown in — `en` or `fr` — so the form opens in the
+    /// same one.
+    ///
+    /// Not `Locale.current`: that is the Mac's *region*, which says nothing about the language on
+    /// screen. A Mac set to France showing QuiX in English sent `fr_FR`, and the form answered in
+    /// French. `preferredLocalizations` is the localisation the bundle really resolved, including
+    /// the choice made in QuiX's own settings.
+    static var interfaceLanguage: String {
+        let resolved = Bundle.main.preferredLocalizations.first ?? "en"
+        return resolved.hasPrefix("fr") ? "fr" : "en"
     }
 
     /// Ce que l'écran des réglages affiche, pour qu'on voie ce qui sera joint.
