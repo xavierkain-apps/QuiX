@@ -38,6 +38,24 @@ rm cle-privee.txt
 Perdre cette clé n'est pas rattrapable à distance : les apps installées refuseraient toute
 mise à jour signée d'une nouvelle clé, et il faudrait que chacun réinstalle à la main.
 
+## Le piège de la signature imbriquée
+
+Xcode signe le framework Sparkle qu'il embarque, **mais pas ce qu'il y a dedans**. Sparkle
+porte une app d'interface, un outil d'installation et deux services XPC, tous signés par le
+projet Sparkle et sans horodatage sécurisé. Apple refuse le bundle entier, avec un message qui
+ne dit pas d'où vient le problème :
+
+
+
+[Support/signer-sparkle.sh](../Support/signer-sparkle.sh) les resigne du plus profond vers le
+plus extérieur, en conservant leurs droits — les services XPC en ont, et les perdre les
+empêcherait de démarrer.  ne fait pas l'affaire : il ne rejoue pas les droits
+de chaque composant.
+
+La CI le lance après la compilation, puis **vérifie** que plus aucun exécutable imbriqué ne
+porte une autre signature. L'apprendre là coûte une seconde ; l'apprendre du service de
+notarisation coûte deux minutes.
+
 ## Publier une version
 
 ```sh

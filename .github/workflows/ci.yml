@@ -233,6 +233,12 @@ jobs:
 
           echo "APP=build/Build/Products/Release/QuiX.app" >> "$GITHUB_ENV"
 
+      # Xcode signe le framework Sparkle, mais pas les exécutables qu'il contient : Apple les
+      # refuse. Voir Support/signer-sparkle.sh.
+      - name: Resigner les exécutables de Sparkle
+        if: env.CODESIGN_IDENTITY != ''
+        run: Support/signer-sparkle.sh "$APP" "$CODESIGN_IDENTITY"
+
       - name: Vérifier le bundle
         run: |
           test -x "$APP/Contents/MacOS/QuiX"
@@ -270,6 +276,17 @@ jobs:
             fi
             echo "Aucun entitlement de débogage : notarisable."
 
+            # Apple refuse le bundle entier si un seul exécutable imbriqué porte une autre
+            # signature. L'apprendre ici coûte une seconde ; l'apprendre du service de
+            # notarisation coûte deux minutes et un message qui ne nomme pas la cause.
+            while IFS= read -r NESTED; do
+              AUTHORITY=$(codesign --display --verbose=2 "$NESTED" 2>&1 | grep "^Authority=" | head -1)
+              case "$AUTHORITY" in
+                *"Developer ID Application"*) ;;
+                *) echo "::error::${NESTED#"$APP/"} n'est pas signé par notre Developer ID ($AUTHORITY). Apple refusera le bundle."; exit 1 ;;
+              esac
+            done < <(find "$APP/Contents/Frameworks" \( -name "*.xpc" -o -name "*.app" -o -name Autoupdate \) -maxdepth 4 2>/dev/null)
+            echo "Tous les exécutables imbriqués portent notre signature."
           fi
 
       - name: Notariser
