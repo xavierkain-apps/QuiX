@@ -48,9 +48,7 @@
     //
     // The transfer window is not zoomable: it already spans the page, so enlarging it would not
     // show it any bigger. The small ones — the popover and the three first-launch screens — are.
-    var transfer = document.getElementById("mock-transfer");
-    transfer.innerHTML = "";
-    transfer.appendChild(MK.transferWindow(t));
+    window.QUIX_DEMO.mount(document.getElementById("mock-transfer"), t);
 
     var popover = document.getElementById("mock-popover");
     popover.innerHTML = "";
