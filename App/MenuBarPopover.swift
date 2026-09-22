@@ -36,19 +36,19 @@ struct MenuBarPopover: View {
     private var idle: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(model.cameraName ?? "Aucune carte").font(Type.section)
-                Text("Branchez la carte, l'import démarre tout seul.")
+                (model.cameraName.map { Text(verbatim: $0) } ?? Text("No card")).font(Type.section)
+                Text("Plug the card in and the import starts on its own.")
                     .font(Type.small).foregroundStyle(Ink.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Rule()
             VStack(alignment: .leading, spacing: 8) {
-                KeyValue("Dernier import", value: model.lastImportDate ?? "aucun")
+                KeyValue("Last import", value: model.lastImportDate ?? String(localized: "none"))
                 if model.preferences.library == nil {
-                    Button("Choisir le dossier d'import…") { model.chooseLibrary() }
+                    Button("Choose import folder…") { model.chooseLibrary() }
                         .buttonStyle(FilledBlue(fullWidth: true))
                 } else {
-                    KeyValue("Dossier", value: model.libraryDisplayPath)
+                    KeyValue("Folder", value: model.libraryDisplayPath)
                 }
             }
             settings
@@ -60,14 +60,13 @@ struct MenuBarPopover: View {
 
     private var permission: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Autorisation requise").font(Type.section).foregroundStyle(.orange)
-            Text("Votre GoPro est branchée, mais macOS empêche QuiX de lui parler. "
-                 + "Il faut l'autoriser dans « Réseau local ».")
+            Text("Permission needed").font(Type.section).foregroundStyle(.orange)
+            Text("Your GoPro is plugged in, but macOS is stopping QuiX from talking to it. It has to be allowed under “Local Network”.")
                 .font(Type.small).foregroundStyle(Ink.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Button("Ouvrir les Réglages…") { model.openLocalNetworkSettings() }
+            Button("Open Settings…") { model.openLocalNetworkSettings() }
                 .buttonStyle(FilledBlue(fullWidth: true))
-            Button("Revérifier") { model.recheckCamera() }
+            Button("Check again") { model.recheckCamera() }
                 .buttonStyle(OutlinedDark(fullWidth: true))
         }
         .padding(.init(top: 22, leading: 18, bottom: 16, trailing: 18))
@@ -79,17 +78,17 @@ struct MenuBarPopover: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 9) {
                 PulsingDot()
-                Text(model.camera != nil ? "Lecture de la caméra" : "Lecture de la carte")
+                Text(model.camera != nil ? "Reading the camera" : "Reading the card")
                     .font(Type.section)
             }
             ScanBars(done: done, total: total)
             HStack {
-                Text(total > 0 ? "\(done) clips sur \(total)" : "en cours")
+                Text(total > 0 ? "\(done) of \(total) clips" : "in progress")
                 Spacer()
-                Text("en-têtes seuls")
+                Text("headers only")
             }
             .font(Type.small).foregroundStyle(Ink.secondary)
-            Text("Aucune vidéo n'est copiée à ce stade.")
+            Text("No video is copied at this stage.")
                 .font(Type.caption).foregroundStyle(Ink.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -100,10 +99,10 @@ struct MenuBarPopover: View {
 
     private var needsLibrary: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Carte détectée").font(Type.section)
-            Text("Il reste à choisir où ranger les clips.")
+            Text("Card detected").font(Type.section)
+            Text("All that is left is to choose where the clips go.")
                 .font(Type.small).foregroundStyle(Ink.secondary)
-            Button("Choisir le dossier d'import…") { model.chooseLibrary() }
+            Button("Choose import folder…") { model.chooseLibrary() }
                 .buttonStyle(FilledBlue(fullWidth: true))
         }
         .padding(.init(top: 22, leading: 18, bottom: 16, trailing: 18))
@@ -114,21 +113,21 @@ struct MenuBarPopover: View {
     private func ready(_ result: CardScanner.Result, _ plan: ImportPlan) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(model.cameraName ?? "Carte GoPro").font(Type.section)
-                Text(summary(of: result)).font(Type.small).foregroundStyle(Ink.secondary)
+                (model.cameraName.map { Text(verbatim: $0) } ?? Text("GoPro card")).font(Type.section)
+                Text(verbatim: summary(of: result)).font(Type.small).foregroundStyle(Ink.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if plan.isEmpty {
-                Text("Tout est déjà importé. Rien à copier.")
+                Text("Everything is already imported. Nothing to copy.")
                     .font(Type.small).foregroundStyle(Ink.secondary)
                 if let cleanup = model.cleanup, cleanup.isSafeToErase {
-                    Button("Effacer les clips de la GoPro…") { model.eraseCamera() }
+                    Button("Erase the clips on the GoPro…") { model.eraseCamera() }
                         .buttonStyle(OutlinedDark(fullWidth: true))
                 }
             } else {
-                Text("\(plan.copies.count) fichier(s) — \(Bytes.short(plan.byteCount))")
+                Text("\(plan.copies.count) files — \(Bytes.short(plan.byteCount))")
                     .font(Type.small).foregroundStyle(Ink.secondary)
-                Button("Importer") {
+                Button("Import") {
                     model.startPlannedImport()
                     show(.transfer)
                 }
@@ -146,7 +145,7 @@ struct MenuBarPopover: View {
                 HStack(alignment: .firstTextBaseline) {
                     Text("Import").font(Type.section)
                     Spacer()
-                    Text("\(Bytes.short(progress.bytesCopied)) / \(Bytes.short(progress.byteCount))")
+                    Text(verbatim: "\(Bytes.short(progress.bytesCopied)) / \(Bytes.short(progress.byteCount))")
                         .font(Type.mono(11.5)).foregroundStyle(Ink.secondary)
                 }
                 ProgressTrack(fraction: progress.fraction, height: 3)
@@ -162,7 +161,7 @@ struct MenuBarPopover: View {
             .padding(.bottom, 8)
 
             Rule()
-            Button("Arrêter") { model.cancel() }
+            Button("Stop") { model.cancel() }
                 .buttonStyle(OutlinedDark(fullWidth: true))
                 .padding(.init(top: 12, leading: 16, bottom: 14, trailing: 16))
         }
@@ -173,9 +172,9 @@ struct MenuBarPopover: View {
     private func finished(_ report: ImportReport) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(report.wasCancelled ? "Import interrompu" : "Import terminé")
+                Text(report.wasCancelled ? "Import interrupted" : "Import finished")
                     .font(Type.section)
-                Text("\(report.copied.count) fichiers — \(Bytes.short(report.copiedBytes)) — vérifiés")
+                Text("\(report.copied.count) files — \(Bytes.short(report.copiedBytes)) — verified")
                     .font(Type.small).foregroundStyle(Ink.secondary)
             }
 
@@ -184,15 +183,15 @@ struct MenuBarPopover: View {
                 Tally(number: takeCount(report) - report.highlightedTakeCount, label: "Clips")
             }
 
-            Button("Ouvrir les highlights") { show(.library) }
+            Button("Open highlights") { show(.library) }
                 .buttonStyle(FilledBlue(fullWidth: true))
 
             if let cleanup = model.cleanup, cleanup.isSafeToErase {
-                Button("Effacer les clips de la GoPro…") { model.eraseCamera() }
+                Button("Erase the clips on the GoPro…") { model.eraseCamera() }
                     .buttonStyle(OutlinedDark(fullWidth: true))
             }
 
-            Text("La carte n'a pas été modifiée.")
+            Text("The card was not modified.")
                 .font(Type.caption).foregroundStyle(Ink.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -203,10 +202,10 @@ struct MenuBarPopover: View {
 
     private func failed(_ reason: String) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Échec").font(Type.section)
-            Text(reason).font(Type.small).foregroundStyle(Ink.secondary)
+            Text("Failed").font(Type.section)
+            Text(verbatim: reason).font(Type.small).foregroundStyle(Ink.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Button("Terminer") { model.dismissReport() }
+            Button("Done") { model.dismissReport() }
                 .buttonStyle(OutlinedDark(fullWidth: true))
         }
         .padding(.init(top: 22, leading: 18, bottom: 16, trailing: 18))
@@ -222,10 +221,10 @@ struct MenuBarPopover: View {
         VStack(alignment: .leading, spacing: 8) {
             Rule()
             HStack(spacing: 12) {
-                Button("Ouvrir QuiX") { show(router.tab) }
-                Button("Réglages…") { show(.settings) }
+                Button("Open QuiX") { show(router.tab) }
+                Button("Settings…") { show(.settings) }
                 Spacer()
-                Button("Quitter") { NSApp.terminate(nil) }
+                Button("Quit") { NSApp.terminate(nil) }
             }
             .buttonStyle(.link)
             .font(Type.caption)
@@ -247,9 +246,9 @@ struct MenuBarPopover: View {
 
     private func summary(of result: CardScanner.Result) -> String {
         let taken = result.highlightedTakes.count
-        let plural = result.takes.count == 1 ? "prise" : "prises"
-        return "\(result.takes.count) \(plural) — \(Bytes.short(result.totalSize))"
-            + (taken > 0 ? " — \(taken) taguée\(taken == 1 ? "" : "s")" : "")
+        let takes = String(localized: "\(result.takes.count) takes")
+        return "\(takes) — \(Bytes.short(result.totalSize))"
+            + (taken > 0 ? " — " + String(localized: "\(taken) tagged") : "")
     }
 }
 
@@ -261,15 +260,15 @@ struct Rule: View {
 }
 
 private struct KeyValue: View {
-    let key: String
+    let key: LocalizedStringKey
     let value: String
-    init(_ key: String, value: String) { self.key = key; self.value = value }
+    init(_ key: LocalizedStringKey, value: String) { self.key = key; self.value = value }
 
     var body: some View {
         HStack {
             Text(key)
             Spacer()
-            Text(value).font(Type.mono(12.5)).foregroundStyle(Ink.primary.opacity(0.8))
+            Text(verbatim: value).font(Type.mono(12.5)).foregroundStyle(Ink.primary.opacity(0.8))
                 .lineLimit(1).truncationMode(.head)
         }
         .font(Type.small).foregroundStyle(Ink.secondary)
@@ -335,12 +334,12 @@ private struct QueueRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Text(file.name).font(Type.mono(12.5)).foregroundStyle(Ink.primary.opacity(0.85))
+            Text(verbatim: file.name).font(Type.mono(12.5)).foregroundStyle(Ink.primary.opacity(0.85))
             Spacer(minLength: 4)
             // La cellule est toujours réservée, même vide : sans ça les tailles danseraient d'une
             // ligne à l'autre selon qu'un clip est tagué ou non.
             TagBadge(count: file.tagCount, style: .solid)
-            Text(Bytes.short(file.size))
+            Text(verbatim: Bytes.short(file.size))
                 .font(Type.caption).foregroundStyle(Ink.tertiary)
                 .frame(width: 52, alignment: .trailing)
         }
@@ -361,7 +360,7 @@ struct TagBadge: View {
     var body: some View {
         Group {
             if count > 0 {
-                Text("\(count)")
+                Text(verbatim: "\(count)")
                     .font(.system(size: style == .solid ? 10.5 : 11, weight: .medium))
                     .foregroundStyle(style == .solid ? Color.white : Ink.onLight)
                     .padding(.horizontal, style == .solid ? 6 : 7)
@@ -385,12 +384,12 @@ struct TagBadge: View {
 /// Une tuile de bilan : un grand nombre, un libellé.
 private struct Tally: View {
     let number: Int
-    let label: String
+    let label: LocalizedStringKey
     var accent = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("\(number)").font(Type.figure)
+            Text(verbatim: "\(number)").font(Type.figure)
                 .foregroundStyle(accent ? Ink.blueBadge : Ink.primary)
             Text(label).font(Type.caption).foregroundStyle(Ink.secondary)
         }

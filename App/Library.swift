@@ -36,7 +36,17 @@ final class LibraryModel {
         var highlighted: [Clip] { clips.filter(\.isHighlighted) }
     }
 
-    enum Filter: String, CaseIterable { case highlights = "Highlights", clips = "Clips", all = "Tout" }
+    enum Filter: String, CaseIterable {
+        case highlights, clips, all
+
+        var title: LocalizedStringKey {
+            switch self {
+            case .highlights: "Highlights"
+            case .clips: "Clips"
+            case .all: "All"
+            }
+        }
+    }
 
     private(set) var sessions: [Session] = []
     private(set) var isLoading = false

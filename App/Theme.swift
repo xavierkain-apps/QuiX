@@ -84,7 +84,10 @@ enum Type {
 /// En-tête de colonne : mono, majuscules, très interlettré.
 struct ColumnHeader: View {
     let text: String
-    init(_ text: String) { self.text = text }
+    // `.uppercased()` interdit `LocalizedStringKey`, qui ne se met pas en majuscules : on résout
+    // la traduction ici, puis on met le résultat en capitales.
+    init(_ key: String.LocalizationValue) { self.text = String(localized: key) }
+    init(verbatim text: String) { self.text = text }
 
     var body: some View {
         Text(text.uppercased())
@@ -168,16 +171,13 @@ enum Metrics {
     static let headerHeight: CGFloat = 46
 }
 
-/// Formatage des tailles, en français : « 11,9 Go ».
+/// Formatage des tailles : « 11,9 Go » en français, « 11.9 GB » en anglais.
+///
+/// Les unités et le séparateur décimal viennent de la locale du système, pas d'une liste écrite
+/// ici : c'était la dernière chose de l'interface qui restait française quoi qu'il arrive.
 enum Bytes {
     static func short(_ value: UInt64) -> String {
-        let units = ["o", "Ko", "Mo", "Go", "To"]
-        var size = Double(value)
-        var unit = 0
-        while size >= 1024, unit < units.count - 1 { size /= 1024; unit += 1 }
-        if unit == 0 { return "\(value) o" }
-        return String(format: "%.1f %@", size, units[unit])
-            .replacingOccurrences(of: ".", with: ",")
+        value.formatted(.byteCount(style: .binary, allowedUnits: .all, spellsOutZero: false))
     }
 }
 
@@ -205,9 +205,10 @@ struct Segmented<Option: Hashable>: View {
 
     @Binding var selection: Option
     let options: [Option]
-    let label: (Option) -> String
+    let label: (Option) -> LocalizedStringKey
 
-    init(selection: Binding<Option>, options: [Option], label: @escaping (Option) -> String) {
+    init(selection: Binding<Option>, options: [Option],
+         label: @escaping (Option) -> LocalizedStringKey) {
         self._selection = selection
         self.options = options
         self.label = label

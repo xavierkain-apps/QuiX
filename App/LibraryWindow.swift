@@ -46,12 +46,12 @@ private struct Sidebar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 2) {
-                Global(dot: Ink.blue, title: "Tous les highlights", count: library.allHighlights,
+                Global(dot: Ink.blue, title: "All highlights", count: library.allHighlights,
                        selected: library.selectedSession == nil && library.filter == .highlights) {
                     library.selectedSession = nil
                     library.filter = .highlights
                 }
-                Global(dot: Color.white.opacity(0.2), title: "Tous les clips", count: library.allClips,
+                Global(dot: Color.white.opacity(0.2), title: "All clips", count: library.allClips,
                        selected: library.selectedSession == nil && library.filter == .all) {
                     library.selectedSession = nil
                     library.filter = .all
@@ -75,12 +75,12 @@ private struct Sidebar: View {
             Spacer(minLength: 0)
             Rule()
             VStack(alignment: .leading, spacing: 5) {
-                Text("Dossier d'import").font(Type.caption).foregroundStyle(Ink.tertiary)
+                Text("Import folder").font(Type.caption).foregroundStyle(Ink.tertiary)
                 Button {
                     model.chooseLibrary()
                     library.load(from: model.preferences.library)
                 } label: {
-                    Text(model.libraryDisplayPath)
+                    Text(verbatim: model.libraryDisplayPath)
                         .font(Type.mono(12)).foregroundStyle(Ink.primary.opacity(0.85))
                         .lineLimit(1).truncationMode(.head)
                 }
@@ -101,7 +101,7 @@ private struct Sidebar: View {
 
 private struct Global: View {
     let dot: Color
-    let title: String
+    let title: LocalizedStringKey
     let count: Int
     let selected: Bool
     let action: () -> Void
@@ -113,7 +113,7 @@ private struct Global: View {
                 Circle().fill(dot).frame(width: 6, height: 6)
                 Text(title).font(.system(size: 13.5, weight: selected ? .medium : .regular))
                 Spacer()
-                Text("\(count)").font(.system(size: 12)).foregroundStyle(Ink.tertiary)
+                Text(verbatim: "\(count)").font(.system(size: 12)).foregroundStyle(Ink.tertiary)
             }
             .foregroundStyle(selected ? Ink.primary : Ink.primary.opacity(0.85))
             .padding(.vertical, 7).padding(.horizontal, 10)
@@ -141,11 +141,11 @@ private struct SessionRow: View {
                 if let progress {
                     HStack(spacing: 6) {
                         PulsingDot(size: 5)
-                        Text("\(Int(progress * 100)) %").font(Type.caption)
+                        Text(verbatim: "\(Int(progress * 100)) %").font(Type.caption)
                     }
                     .foregroundStyle(Ink.blueText)
                 } else {
-                    Text("\(session.clips.count)").font(.system(size: 12))
+                    Text(verbatim: "\(session.clips.count)").font(.system(size: 12))
                         .foregroundStyle(Ink.tertiary)
                 }
             }
@@ -184,10 +184,10 @@ private struct Shelf: View {
         VStack(spacing: 0) {
             header
             if library.visibleClips.isEmpty {
-                Placeholder(text: library.isLoading ? "Lecture…" : "Rien ici",
+                Placeholder(text: library.isLoading ? "Reading…" : "Nothing here",
                             detail: library.isLoading
-                                ? "La bibliothèque est en cours de lecture."
-                                : "Aucune prise ne correspond à ce filtre.")
+                                ? "The library is being read."
+                                : "No take matches this filter.")
                 Spacer()
             } else {
                 ScrollView {
@@ -208,13 +208,13 @@ private struct Shelf: View {
     private var header: some View {
         HStack {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Text(library.selectedSession ?? "Toute la bibliothèque")
+                (library.selectedSession.map { Text(verbatim: $0) } ?? Text("Whole library"))
                     .font(.system(size: 13.5, weight: .semibold))
-                Text(summary).font(Type.small).foregroundStyle(Ink.tertiary)
+                Text(verbatim: summary).font(Type.small).foregroundStyle(Ink.tertiary)
             }
             Spacer()
             Segmented(selection: Binding(get: { library.filter }, set: { library.filter = $0 }),
-                      options: LibraryModel.Filter.allCases, label: \.rawValue)
+                      options: LibraryModel.Filter.allCases, label: \.title)
         }
         .padding(.horizontal, 20)
         .frame(height: Metrics.headerHeight)
@@ -225,8 +225,8 @@ private struct Shelf: View {
     private var summary: String {
         let clips = library.visibleSessions.flatMap(\.clips)
         let tagged = clips.filter(\.isHighlighted).count
-        let plural = clips.count == 1 ? "prise" : "prises"
-        return "\(clips.count) \(plural) — \(tagged) taguée\(tagged == 1 ? "" : "s")"
+        return String(localized: "\(clips.count) takes") + " — "
+            + String(localized: "\(tagged) tagged")
     }
 }
 
@@ -248,9 +248,9 @@ private struct Thumb: View {
                         TagBadge(count: clip.tagCount, style: .badge).padding(7)
                     }
                 HStack {
-                    Text(clip.name).font(Type.mono(12))
+                    Text(verbatim: clip.name).font(Type.mono(12))
                     Spacer()
-                    Text(clip.duration.map(Clock.short) ?? "—")
+                    Text(verbatim: clip.duration.map(Clock.short) ?? "—")
                         .font(.system(size: 12)).foregroundStyle(Ink.tertiary)
                 }
             }
@@ -321,7 +321,7 @@ private struct Inspector: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Inspecteur")
+            Text("Inspector")
                 .font(.system(size: 13, weight: .semibold)).foregroundStyle(Ink.secondary)
                 .padding(.horizontal, 18)
                 .frame(height: Metrics.headerHeight, alignment: .leading)
@@ -331,7 +331,7 @@ private struct Inspector: View {
                 ScrollView { detail(clip) }
             } else {
                 Spacer()
-                Text("Sélectionnez une prise.")
+                Text("Select a take.")
                     .font(Type.small).foregroundStyle(Ink.tertiary)
                     .frame(maxWidth: .infinity)
                 Spacer()
@@ -348,20 +348,20 @@ private struct Inspector: View {
                     .strokeBorder(Color.white.opacity(0.1), lineWidth: 0.5))
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(clip.name).font(Type.mono(14))
-                Text(subtitle(clip)).font(Type.small).foregroundStyle(Ink.tertiary)
+                Text(verbatim: clip.name).font(Type.mono(14))
+                Text(verbatim: subtitle(clip)).font(Type.small).foregroundStyle(Ink.tertiary)
             }
 
             if !clip.moments.isEmpty {
                 Moments(clip: clip)
             }
 
-            Button("Révéler dans le Finder") {
+            Button("Reveal in Finder") {
                 NSWorkspace.shared.activateFileViewerSelecting([clip.url])
             }
             .buttonStyle(FilledBlue(fullWidth: true))
 
-            Text("Les highlights ajoutés après coup dans l'app Quik restent dans l'app.")
+            Text("Highlights added afterwards in the Quik app stay inside that app.")
                 .font(Type.caption).foregroundStyle(Ink.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -380,7 +380,7 @@ private struct Moments: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            ColumnHeader("\(clip.tagCount) moment\(clip.tagCount == 1 ? "" : "s")")
+            ColumnHeader("\(clip.tagCount) moments")
 
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
@@ -429,9 +429,9 @@ private struct MomentRow: View {
         } label: {
             HStack(spacing: 10) {
                 RoundedRectangle(cornerRadius: 2).fill(Ink.blue).frame(width: 3, height: 14)
-                Text(Clock.moment(milliseconds: moment)).font(Type.mono(12.5))
+                Text(verbatim: Clock.moment(milliseconds: moment)).font(Type.mono(12.5))
                 Spacer()
-                Text("tournage").font(Type.caption).foregroundStyle(Ink.tertiary)
+                Text("recording").font(Type.caption).foregroundStyle(Ink.tertiary)
             }
             .padding(.vertical, 6).padding(.horizontal, 8)
             .background(hovered ? Ink.hover : .clear, in: RoundedRectangle(cornerRadius: 6))

@@ -127,10 +127,9 @@ final class ImportModel {
                 })
                 await cameraScanned(result, from: camera)
             } catch CameraScanner.ScanFailure.rangeUnsupported {
-                await report(failure: "Cette caméra ne permet pas de lire les clips par morceaux. "
-                    + "Utilisez la carte dans un lecteur.")
+                await report(failure: String(localized: "This camera does not allow clips to be read in chunks. Use the card in a reader."))
             } catch {
-                await report(failure: "Lecture de la caméra impossible — \(error.localizedDescription)")
+                await report(failure: String(localized: "Cannot read the camera — \(error.localizedDescription)"))
             }
         }
     }
@@ -181,7 +180,7 @@ final class ImportModel {
                 })
                 await cardScanned(result, on: volume)
             } catch {
-                await report(failure: "Lecture de la carte impossible — \(error.localizedDescription)")
+                await report(failure: String(localized: "Cannot read the card — \(error.localizedDescription)"))
             }
         }
     }
@@ -302,15 +301,17 @@ final class ImportModel {
 
     private func announce(_ report: ImportReport) {
         guard !report.copied.isEmpty || !report.failures.isEmpty else { return }
-        let clips = report.copied.count == 1 ? "1 clip importé" : "\(report.copied.count) clips importés"
-        var body = clips
+        var body = String(localized: "\(report.copied.count) clips imported")
         if report.highlightedTakeCount > 0 {
-            body += report.highlightedTakeCount == 1
-                ? ", 1 prise taguée" : ", \(report.highlightedTakeCount) prises taguées"
+            body += ", " + String(localized: "\(report.highlightedTakeCount) tagged takes")
         }
-        if !report.failures.isEmpty { body += " — \(report.failures.count) en échec" }
-        Notifier.shared.notify(title: report.wasCancelled ? "Import interrompu" : "Import terminé",
-                               body: body)
+        if !report.failures.isEmpty {
+            body += " — " + String(localized: "\(report.failures.count) failed")
+        }
+        Notifier.shared.notify(
+            title: report.wasCancelled
+                ? String(localized: "Import interrupted") : String(localized: "Import finished"),
+            body: body)
     }
 
     // MARK: - Effacer la caméra
@@ -326,12 +327,12 @@ final class ImportModel {
 
         let alert = NSAlert()
         alert.alertStyle = .critical
-        alert.messageText = "Effacer \(plan.cameraCount) clip(s) de la GoPro ?"
-        alert.informativeText = """
-            Les \(plan.cameraCount) clips de la caméra sont tous présents sur ce Mac, vérifiés un             par un. Ils seront effacés de la carte et ne pourront pas être récupérés.
-            """
-        alert.addButton(withTitle: "Effacer de la GoPro")
-        alert.addButton(withTitle: "Annuler")
+        alert.messageText = String(localized: "Erase \(plan.cameraCount) clips from the GoPro?")
+        alert.informativeText = String(localized: """
+            All \(plan.cameraCount) clips on the camera are present on this Mac, verified one by one. They will be erased from the card and cannot be recovered.
+            """)
+        alert.addButton(withTitle: String(localized: "Erase from the GoPro"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
         alert.buttons.first?.hasDestructiveAction = true
         guard alert.runModal() == .alertFirstButtonReturn else { return }
 
@@ -361,8 +362,8 @@ final class ImportModel {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
-        panel.prompt = "Choisir"
-        panel.message = "Où ranger les clips importés ?"
+        panel.prompt = String(localized: "Choose")
+        panel.message = String(localized: "Where should imported clips go?")
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
         preferences.library = url
@@ -411,9 +412,9 @@ struct QueuedFile: Identifiable, Equatable {
         /// Le mot affiché dans la colonne « Vérification ».
         var label: String {
             switch self {
-            case .pending: "en attente"
-            case .copying: "en cours"
-            case .verified: "vérifié"
+            case .pending: String(localized: "pending")
+            case .copying: String(localized: "copying")
+            case .verified: String(localized: "verified")
             case .failed(let reason): reason
             }
         }
@@ -479,7 +480,7 @@ extension ImportModel {
 
     /// Le chemin du dossier d'import, raccourci avec `~`.
     var libraryDisplayPath: String {
-        guard let library = preferences.library else { return "aucun" }
+        guard let library = preferences.library else { return String(localized: "none") }
         return (library.path as NSString).abbreviatingWithTildeInPath
     }
 

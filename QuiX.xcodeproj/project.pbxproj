@@ -88,9 +88,10 @@
 				};
 			};
 			buildConfigurationList = AA000000000000000000000B /* Build configuration list for PBXProject "QuiX" */;
-			developmentRegion = fr;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				en,
 				fr,
 				Base,
 			);
@@ -178,8 +179,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "QuiX parle à votre GoPro branchée en USB-C pour y lire les clips. La caméra se présente comme un périphérique réseau : sans cette autorisation, QuiX la voit branchée sans pouvoir en lire le contenu.";
-				INFOPLIST_KEY_NSRemovableVolumesUsageDescription = "QuiX lit la carte de votre GoPro pour y repérer les clips à importer. Rien n'y est jamais modifié ni effacé.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "QuiX talks to your GoPro over USB-C to read the clips on it. The camera presents itself as a network device: without this permission, QuiX sees it plugged in but cannot read anything from it.";
+				INFOPLIST_KEY_NSRemovableVolumesUsageDescription = "QuiX reads your GoPro card to find the clips to import. Nothing on it is ever modified or erased.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -203,8 +204,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "QuiX parle à votre GoPro branchée en USB-C pour y lire les clips. La caméra se présente comme un périphérique réseau : sans cette autorisation, QuiX la voit branchée sans pouvoir en lire le contenu.";
-				INFOPLIST_KEY_NSRemovableVolumesUsageDescription = "QuiX lit la carte de votre GoPro pour y repérer les clips à importer. Rien n'y est jamais modifié ni effacé.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "QuiX talks to your GoPro over USB-C to read the clips on it. The camera presents itself as a network device: without this permission, QuiX sees it plugged in but cannot read anything from it.";
+				INFOPLIST_KEY_NSRemovableVolumesUsageDescription = "QuiX reads your GoPro card to find the clips to import. Nothing on it is ever modified or erased.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

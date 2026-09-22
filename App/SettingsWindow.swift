@@ -15,42 +15,40 @@ struct SettingsWindow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Section("Import") {
-                Row("Dossier d'import", detail: model.libraryDisplayPath) {
-                    Button(model.preferences.library == nil ? "Choisir…" : "Modifier…") {
+            // Clé distincte : « Import » le titre de section et « Import » le bouton se
+            // traduisent différemment en français — « Import » et « Importer ».
+            Section("settings.section.import") {
+                Row("Import folder", detail: model.libraryDisplayPath) {
+                    Button(model.preferences.library == nil ? "Choose…" : "Change…") {
                         model.chooseLibrary()
                     }
                     .buttonStyle(OutlinedDark())
                 }
-                Toggle("Demander confirmation avant d'importer", isOn: Binding(
+                Toggle("Ask before importing", isOn: Binding(
                     get: { model.preferences.askBeforeImporting },
                     set: { model.preferences.askBeforeImporting = $0 }))
-                Note("Sans confirmation, brancher la carte lance la copie tout de suite. "
-                     + "La garde qui compte est ailleurs : une carte sans dossier DCIM/###GOPRO "
-                     + "n'est jamais touchée, réglage ou pas.")
+                Note("Without confirmation, plugging the card in starts the copy right away. The guard that matters is elsewhere: a card with no DCIM/###GOPRO folder is never touched, setting or no setting.")
             }
 
             Divider().overlay(Ink.hairline)
 
-            Section("Branchement") {
-                Toggle("Ouvrir QuiX quand la GoPro est branchée", isOn: Binding(
+            Section("Connection") {
+                Toggle("Open QuiX when the GoPro is plugged in", isOn: Binding(
                     get: { model.preferences.launchOnCameraConnection },
                     set: { model.preferences.launchOnCameraConnection = $0 }))
-                Note("QuiX ne tourne pas en attendant : c'est macOS qui le réveille au "
-                     + "branchement. L'appariement ne reconnaît que la HERO12 Black.")
+                Note("QuiX is not running in the meantime — macOS wakes it when the camera arrives. The match only recognises the HERO12 Black.")
             }
 
             Divider().overlay(Ink.hairline)
 
-            Section("Autorisations") {
-                Permission(name: "Réseau local",
+            Section("Permissions") {
+                Permission(name: "Local Network",
                            granted: networkGranted,
-                           why: "Branchée en USB-C, la caméra est un périphérique réseau pour macOS.",
+                           why: "Over USB-C the camera is a network device as far as macOS is concerned.",
                            open: model.openLocalNetworkSettings)
-                Permission(name: "Volumes amovibles",
+                Permission(name: "Removable Volumes",
                            granted: nil,
-                           why: "Pour lire une carte insérée dans un lecteur. macOS la demande au "
-                                + "premier branchement ; sans elle, la carte paraît vide.",
+                           why: "To read a card in a reader. macOS asks the first time one is inserted; without it, the card looks empty.",
                            open: nil)
             }
         }
@@ -74,9 +72,9 @@ struct SettingsWindow: View {
     // MARK: Petites pièces
 
     private struct Section<Content: View>: View {
-        let title: String
+        let title: String.LocalizationValue
         @ViewBuilder let content: Content
-        init(_ title: String, @ViewBuilder content: () -> Content) {
+        init(_ title: String.LocalizationValue, @ViewBuilder content: () -> Content) {
             self.title = title
             self.content = content()
         }
@@ -92,10 +90,10 @@ struct SettingsWindow: View {
     }
 
     private struct Row<Trailing: View>: View {
-        let title: String
+        let title: LocalizedStringKey
         let detail: String
         @ViewBuilder let trailing: Trailing
-        init(_ title: String, detail: String, @ViewBuilder trailing: () -> Trailing) {
+        init(_ title: LocalizedStringKey, detail: String, @ViewBuilder trailing: () -> Trailing) {
             self.title = title
             self.detail = detail
             self.trailing = trailing()
@@ -105,7 +103,7 @@ struct SettingsWindow: View {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title).font(Type.body)
-                    Text(detail).font(Type.mono(12)).foregroundStyle(Ink.tertiary)
+                    Text(verbatim: detail).font(Type.mono(12)).foregroundStyle(Ink.tertiary)
                         .lineLimit(1).truncationMode(.head)
                 }
                 Spacer()
@@ -115,8 +113,8 @@ struct SettingsWindow: View {
     }
 
     private struct Note: View {
-        let text: String
-        init(_ text: String) { self.text = text }
+        let text: LocalizedStringKey
+        init(_ text: LocalizedStringKey) { self.text = text }
         var body: some View {
             Text(text).font(Type.caption).foregroundStyle(Ink.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -124,10 +122,10 @@ struct SettingsWindow: View {
     }
 
     private struct Permission: View {
-        let name: String
+        let name: LocalizedStringKey
         /// `nil` quand rien ne permet de trancher — ce qui est le cas le plus fréquent.
         let granted: Bool?
-        let why: String
+        let why: LocalizedStringKey
         let open: (() -> Void)?
 
         var body: some View {
@@ -143,7 +141,7 @@ struct SettingsWindow: View {
                 }
                 Spacer()
                 if let open {
-                    Button("Réglages…", action: open).buttonStyle(OutlinedDark())
+                    Button("Settings…", action: open).buttonStyle(OutlinedDark())
                 }
             }
         }
@@ -156,11 +154,11 @@ struct SettingsWindow: View {
             }
         }
 
-        private var status: String {
+        private var status: LocalizedStringKey {
             switch granted {
-            case true: "accordée"
-            case false: "manquante"
-            case nil: "demandée au besoin"
+            case true: "granted"
+            case false: "missing"
+            case nil: "asked when needed"
             }
         }
     }

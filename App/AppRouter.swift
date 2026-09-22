@@ -11,11 +11,17 @@ import SwiftUI
 final class AppRouter {
 
     enum Tab: String, CaseIterable, Identifiable {
-        case transfer = "Transfert"
-        case library = "Bibliothèque"
-        case settings = "Réglages"
+        case transfer, library, settings
 
         var id: String { rawValue }
+
+        var title: LocalizedStringKey {
+            switch self {
+            case .transfer: "Transfer"
+            case .library: "Library"
+            case .settings: "Settings"
+            }
+        }
     }
 
     /// Le Transfert par défaut : c'est ce qu'on vient voir quand on branche une carte.

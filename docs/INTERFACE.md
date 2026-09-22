@@ -161,3 +161,29 @@ restaient transparents, ce qui ne se voit qu'à l'œil.
 Le glyphe de la barre de menus est dessiné en code plutôt qu'importé : c'est une forme de dix
 lignes, et une image de plus serait une image de plus à régénérer au premier changement de
 proportion.
+
+## Deux langues, et deux noms de dossiers qui n'en changent pas
+
+L'interface est un catalogue de chaînes (`App/Localizable.xcstrings`), langue source
+**anglaise**, traduction française. macOS choisit selon la langue du système ; un Mac réglé
+sur une troisième langue tombe sur l'anglais. `App/InfoPlist.xcstrings` fait la même chose
+pour les deux textes d'autorisation que macOS affiche dans ses propres alertes.
+
+Deux chaînes n'y sont pas, et ne doivent jamais y être : **`Highlights`** et **`Clips`**.
+Ce sont des noms de dossiers écrits sur le disque, définis dans `ImportPlan`. Les traduire
+scinderait en deux la bibliothèque de quiconque change la langue de son Mac : la moitié des
+prises dans `Highlights/`, l'autre dans `Temps forts/`, et un second scan qui ne retrouve
+plus rien. Le libellé du filtre, lui, se traduit — il ne nomme aucun dossier.
+
+Deux pièges rencontrés en chemin :
+
+- **Une concaténation n'est pas une clé.** `Text("un " + "deux")` compile sans broncher,
+  mais l'argument n'est plus un littéral : Swift choisit l'initialiseur `String`, et la
+  chaîne échappe à la traduction en silence. Les textes longs tiennent donc sur une seule
+  ligne, si longue soit-elle.
+- **Deux sens, deux clés.** « Import » titre une section et « Import » étiquette un bouton :
+  même mot en anglais, « Import » et « Importer » en français. La section porte une clé
+  explicite, `settings.section.import`, faute de quoi le titre devenait « IMPORTER ».
+
+Ce qui ne se traduit pas s'écrit `Text(verbatim:)` : noms de fichiers, chemins, tailles,
+durées. Sans ce marquage, chaque nom de clip finissait comme clé dans le catalogue.

@@ -26,49 +26,46 @@ struct TransferWindow: View {
             content
 
         case .scanning(let done, let total):
-            Waiting(title: model.camera != nil ? "Lecture de la caméra" : "Lecture de la carte",
-                    detail: "Seuls les en-têtes sont lus : aucune vidéo n'est copiée à ce stade.",
+            Waiting(title: model.camera != nil ? "Reading the camera" : "Reading the card",
+                    detail: "Only the headers are read — no video is copied at this stage.",
                     pulsing: true) {
                 VStack(alignment: .leading, spacing: 8) {
                     ProgressTrack(fraction: total > 0 ? Double(done) / Double(total) : 0, height: 6)
                         .frame(width: 320)
-                    Text(total > 0 ? "\(done) clip(s) sur \(total)" : "en cours…")
+                    Text(total > 0 ? "\(done) of \(total) clips" : "in progress…")
                         .font(Type.small).foregroundStyle(Ink.secondary)
                 }
             }
 
         case .needsLibrary(let result):
-            Waiting(title: "Carte détectée",
-                    detail: "\(summary(of: result))\n\nIl reste à choisir où ranger les clips.") {
-                Button("Choisir le dossier d'import…") { model.chooseLibrary() }
+            Waiting(title: "Card detected",
+                    detail: "\(summary(of: result))\n\nAll that is left is to choose where the clips go.") {
+                Button("Choose import folder…") { model.chooseLibrary() }
                     .buttonStyle(FilledBlue())
             }
 
         case .needsLocalNetwork:
-            Waiting(title: "Autorisation requise",
-                    detail: "Votre GoPro est branchée, mais macOS empêche QuiX de lui parler. "
-                          + "Branchée en USB-C, la caméra est un périphérique réseau : il faut "
-                          + "autoriser QuiX dans « Réseau local ».",
+            Waiting(title: "Permission needed",
+                    detail: "Your GoPro is plugged in, but macOS is stopping QuiX from talking to it. Over USB-C the camera is a network device: QuiX has to be allowed under “Local Network”.",
                     warning: true) {
                 HStack(spacing: 10) {
-                    Button("Ouvrir les Réglages…") { model.openLocalNetworkSettings() }
+                    Button("Open Settings…") { model.openLocalNetworkSettings() }
                         .buttonStyle(FilledBlue())
-                    Button("Revérifier") { model.recheckCamera() }
+                    Button("Check again") { model.recheckCamera() }
                         .buttonStyle(OutlinedDark())
                 }
             }
 
         case .failed(let reason):
-            Waiting(title: "Échec", detail: reason, warning: true) {
-                Button("Terminer") { model.dismissReport() }.buttonStyle(OutlinedDark())
+            Waiting(title: "Failed", detail: "\(reason)", warning: true) {
+                Button("Done") { model.dismissReport() }.buttonStyle(OutlinedDark())
             }
 
         case .waiting:
-            Waiting(title: "Aucune carte",
-                    detail: "Branchez la GoPro en USB-C, ou la carte dans un lecteur : "
-                          + "l'import s'affichera ici.") {
+            Waiting(title: "No card",
+                    detail: "Plug the GoPro in over USB-C, or the card into a reader — the import will show up here.") {
                 if model.preferences.library == nil {
-                    Button("Choisir le dossier d'import…") { model.chooseLibrary() }
+                    Button("Choose import folder…") { model.chooseLibrary() }
                         .buttonStyle(FilledBlue())
                 }
             }
@@ -77,9 +74,9 @@ struct TransferWindow: View {
 
     private func summary(of result: CardScanner.Result) -> String {
         let taken = result.highlightedTakes.count
-        let plural = result.takes.count == 1 ? "prise" : "prises"
-        return "\(result.takes.count) \(plural) — \(Bytes.short(result.totalSize))"
-            + (taken > 0 ? " — \(taken) taguée\(taken == 1 ? "" : "s")" : "")
+        let takes = String(localized: "\(result.takes.count) takes")
+        return "\(takes) — \(Bytes.short(result.totalSize))"
+            + (taken > 0 ? " — " + String(localized: "\(taken) tagged") : "")
     }
 
     private var content: some View {
@@ -102,11 +99,11 @@ struct TransferWindow: View {
     private var progress: some View {
         HStack(spacing: 16) {
             ProgressTrack(fraction: fraction, verifying: verifying, height: 6)
-            Text("\(Bytes.short(copiedBytes)) sur \(Bytes.short(totalBytes))")
+            Text(verbatim: "\(Bytes.short(copiedBytes)) of \(Bytes.short(totalBytes))")
                 .font(Type.body).foregroundStyle(Ink.primary.opacity(0.6))
                 .fixedSize()
             if let estimate {
-                Text(estimate).font(Type.mono(12)).foregroundStyle(Ink.tertiary).fixedSize()
+                Text(verbatim: estimate).font(Type.mono(12)).foregroundStyle(Ink.tertiary).fixedSize()
             }
         }
         .padding(.horizontal, 28)
@@ -154,8 +151,7 @@ struct TransferWindow: View {
 
     private var footer: some View {
         HStack(alignment: .center, spacing: 14) {
-            Text("Empreinte calculée pendant l'écriture puis relue sur le fichier écrit. "
-                 + "La carte n'est jamais modifiée.")
+            Text("The checksum is computed while writing, then read back from the written file. The card is never modified.")
                 .font(.system(size: 12)).foregroundStyle(Ink.primary.opacity(0.45))
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: 420, alignment: .leading)
@@ -169,13 +165,13 @@ struct TransferWindow: View {
     @ViewBuilder
     private var actions: some View {
         if case .importing = model.stage {
-            Button("Arrêter") { model.cancel() }.buttonStyle(OutlinedDark())
+            Button("Stop") { model.cancel() }.buttonStyle(OutlinedDark())
         }
         if case .ready(_, let plan) = model.stage, !plan.isEmpty {
-            Button("Importer") { model.startPlannedImport() }.buttonStyle(FilledBlue())
+            Button("Import") { model.startPlannedImport() }.buttonStyle(FilledBlue())
         } else {
             erase
-            Button("Ouvrir les highlights") { router?.tab = .library }
+            Button("Open highlights") { router?.tab = .library }
                 .buttonStyle(FilledBlue())
         }
     }
@@ -192,11 +188,11 @@ struct TransferWindow: View {
             if model.erasing {
                 ProgressView().controlSize(.small)
             } else {
-                Button("Effacer la GoPro (\(plan.cameraCount))…") { model.eraseCamera() }
+                Button("Erase GoPro (\(plan.cameraCount))…") { model.eraseCamera() }
                     .buttonStyle(OutlinedDark())
             }
         } else if let outcome = model.eraseOutcome {
-            Label("\(outcome.erased.count) effacé(s)", systemImage: "checkmark.circle")
+            Label("\(outcome.erased.count) erased", systemImage: "checkmark.circle")
                 .font(Type.caption).foregroundStyle(Ink.secondary)
         }
     }
@@ -235,8 +231,7 @@ private struct Route: View {
 
     private var sourceSummary: String {
         guard let scan = model.lastScanResult else { return "—" }
-        let plural = scan.takes.count == 1 ? "prise" : "prises"
-        return "\(scan.takes.count) \(plural) — \(Bytes.short(scan.totalSize))"
+        return String(localized: "\(scan.takes.count) takes") + " — \(Bytes.short(scan.totalSize))"
     }
 
     private var highlightedCount: Int? {
@@ -251,7 +246,7 @@ private struct Route: View {
 }
 
 private struct SourceCard: View {
-    let header: String
+    let header: String.LocalizationValue
     let title: String
     let summary: String
     let path: String
@@ -260,17 +255,17 @@ private struct SourceCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ColumnHeader(header)
-            Text(title).font(Type.cardTitle).kerning(-0.17).lineLimit(1)
+            Text(verbatim: title).font(Type.cardTitle).kerning(-0.17).lineLimit(1)
             HStack(spacing: 0) {
-                Text(summary)
+                Text(verbatim: summary)
                 if let highlighted {
-                    Text(" — ")
-                    Text("\(highlighted) taguée\(highlighted == 1 ? "" : "s")")
+                    Text(verbatim: " — ")
+                    Text("\(highlighted) tagged")
                         .foregroundStyle(Ink.blueText)
                 }
             }
             .font(.system(size: 13)).foregroundStyle(Ink.secondary)
-            Text(path).font(Type.mono(11.5)).foregroundStyle(Ink.tertiary)
+            Text(verbatim: path).font(Type.mono(11.5)).foregroundStyle(Ink.tertiary)
                 .lineLimit(1).truncationMode(.head)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -308,10 +303,10 @@ private struct FileTable: View {
             // La hauteur compte autant que la largeur : une `Color` sans hauteur imposée
             // s'étire, et c'est tout l'en-tête qui part occuper la fenêtre.
             Color.clear.frame(width: 24, height: 12)
-            ColumnHeader("Fichier").frame(maxWidth: .infinity, alignment: .leading)
-            ColumnHeader("Taille").frame(width: 90, alignment: .leading)
+            ColumnHeader("File").frame(maxWidth: .infinity, alignment: .leading)
+            ColumnHeader("Size").frame(width: 90, alignment: .leading)
             ColumnHeader("Tags").frame(width: 70, alignment: .leading)
-            ColumnHeader("Vérification").frame(width: 100, alignment: .trailing)
+            ColumnHeader("Verification").frame(width: 100, alignment: .trailing)
         }
         .padding(.horizontal, 28)
         .padding(.vertical, 10)
@@ -326,12 +321,12 @@ private struct FileRow: View {
     var body: some View {
         HStack(spacing: 12) {
             state.frame(width: 24, alignment: .leading)
-            Text(file.name).font(Type.mono(12.5))
+            Text(verbatim: file.name).font(Type.mono(12.5))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Text(Bytes.short(file.size)).font(.system(size: 13))
+            Text(verbatim: Bytes.short(file.size)).font(.system(size: 13))
                 .foregroundStyle(Ink.secondary).frame(width: 90, alignment: .leading)
             TagBadge(count: file.tagCount, style: .light).frame(width: 70, alignment: .leading)
-            Text(file.state.label).font(.system(size: 12))
+            Text(verbatim: file.state.label).font(.system(size: 12))
                 .foregroundStyle(isFailed ? .orange : Ink.primary.opacity(0.45))
                 .lineLimit(1)
                 .frame(width: 100, alignment: .trailing)
@@ -361,8 +356,8 @@ private struct FileRow: View {
 /// Un état qui attend quelque chose : une lecture en cours, une réponse de l'utilisateur, une
 /// autorisation. Toujours un titre, une raison, et de quoi agir quand il y a à agir.
 struct Waiting<Action: View>: View {
-    let title: String
-    let detail: String
+    let title: LocalizedStringKey
+    let detail: LocalizedStringKey
     var pulsing = false
     var warning = false
     @ViewBuilder let action: Action
@@ -387,8 +382,8 @@ struct Waiting<Action: View>: View {
 
 /// Ce qu'une fenêtre montre quand elle n'a rien à montrer.
 struct Placeholder: View {
-    let text: String
-    let detail: String
+    let text: LocalizedStringKey
+    let detail: LocalizedStringKey
 
     var body: some View {
         VStack(spacing: 8) {

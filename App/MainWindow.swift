@@ -38,12 +38,12 @@ struct MainWindow: View {
     private var tabs: some View {
         HStack {
             Segmented(selection: Binding(get: { router.tab }, set: { router.tab = $0 }),
-                      options: AppRouter.Tab.allCases, label: \.rawValue)
+                      options: AppRouter.Tab.allCases, label: \.title)
             Spacer()
             if model.stageKind == .importing {
                 HStack(spacing: 7) {
                     PulsingDot(size: 6)
-                    Text("Import en cours").font(Type.caption).foregroundStyle(Ink.blueText)
+                    Text("Import in progress").font(Type.caption).foregroundStyle(Ink.blueText)
                 }
             }
         }

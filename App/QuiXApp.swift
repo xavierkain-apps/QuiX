@@ -84,18 +84,18 @@ struct QuiXApp: App {
             CommandGroup(replacing: .help) {}
 
             CommandGroup(after: .windowArrangement) {
-                Button("Transfert") { router.tab = .transfer }
+                Button("Transfer") { router.tab = .transfer }
                     .keyboardShortcut("1", modifiers: .command)
-                Button("Bibliothèque") { router.tab = .library }
+                Button("Library") { router.tab = .library }
                     .keyboardShortcut("2", modifiers: .command)
-                Button("Réglages") { router.tab = .settings }
+                Button("Settings") { router.tab = .settings }
                     .keyboardShortcut("3", modifiers: .command)
             }
 
             // Les réglages sont un onglet, pas une fenêtre à part : aller les chercher dans le
             // menu de l'app n'était pas le premier endroit où on les cherche.
             CommandGroup(replacing: .appSettings) {
-                Button("Réglages…") { router.tab = .settings }
+                Button("Settings…") { router.tab = .settings }
                     .keyboardShortcut(",", modifiers: .command)
             }
         }

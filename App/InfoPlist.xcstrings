@@ -1,0 +1,38 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSLocalNetworkUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QuiX talks to your GoPro over USB-C to read the clips on it. The camera presents itself as a network device: without this permission, QuiX sees it plugged in but cannot read anything from it."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QuiX parle à votre GoPro branchée en USB-C pour y lire les clips. La caméra se présente comme un périphérique réseau : sans cette autorisation, QuiX la voit branchée sans pouvoir en lire le contenu."
+          }
+        }
+      }
+    },
+    "NSRemovableVolumesUsageDescription": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QuiX reads your GoPro card to find the clips to import. Nothing on it is ever modified or erased."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QuiX lit la carte de votre GoPro pour y repérer les clips à importer. Rien n'y est jamais modifié ni effacé."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

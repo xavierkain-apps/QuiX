@@ -1,0 +1,1537 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "%@": {
+      "extractionState": "manual",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@"
+          }
+        }
+      }
+    },
+    "%@\n\nAll that is left is to choose where the clips go.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@\n\nIl reste à choisir où ranger les clips."
+          }
+        }
+      }
+    },
+    "%lld clips imported": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld clip imported"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld clips imported"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld clip importé"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld clips importés"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld erased": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld erased"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld erased"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld effacé"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld effacés"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld failed"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld failed"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld en échec"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld en échec"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld files — %@": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@count@ — %2$@"
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg file"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg files"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@count@ — %2$@"
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg fichier"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg fichiers"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld files — %@ — verified": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@count@ — %2$@ — verified"
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg file"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg files"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@count@ — %2$@ — vérifiés"
+          },
+          "substitutions": {
+            "count": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg fichier"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg fichiers"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld moments": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld moment"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld moments"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld moment"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld moments"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld of %lld clips": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld clips sur %2$lld"
+          }
+        }
+      }
+    },
+    "%lld tagged": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld tagged"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld tagged"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld taguée"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld taguées"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld tagged takes": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld tagged take"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld tagged takes"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld prise taguée"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld prises taguées"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld takes": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld take"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld takes"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld prise"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld prises"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "All": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout"
+          }
+        }
+      }
+    },
+    "All %lld clips on the camera are present on this Mac, verified one by one. They will be erased from the card and cannot be recovered.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "The %lld clip on the camera is present on this Mac, verified. It will be erased from the card and cannot be recovered."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "All %lld clips on the camera are present on this Mac, verified one by one. They will be erased from the card and cannot be recovered."
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Le clip de la caméra est présent sur ce Mac, vérifié. Il sera effacé de la carte et ne pourra pas être récupéré."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Les %lld clips de la caméra sont tous présents sur ce Mac, vérifiés un par un. Ils seront effacés de la carte et ne pourront pas être récupérés."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "All clips": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tous les clips"
+          }
+        }
+      }
+    },
+    "All highlights": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tous les highlights"
+          }
+        }
+      }
+    },
+    "All that is left is to choose where the clips go.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il reste à choisir où ranger les clips."
+          }
+        }
+      }
+    },
+    "Ask before importing": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demander confirmation avant d'importer"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        }
+      }
+    },
+    "Cannot read the camera — %@": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lecture de la caméra impossible — %@"
+          }
+        }
+      }
+    },
+    "Cannot read the card — %@": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lecture de la carte impossible — %@"
+          }
+        }
+      }
+    },
+    "Card detected": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carte détectée"
+          }
+        }
+      }
+    },
+    "Change…": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier…"
+          }
+        }
+      }
+    },
+    "Check again": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revérifier"
+          }
+        }
+      }
+    },
+    "Choose": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisir"
+          }
+        }
+      }
+    },
+    "Choose import folder…": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisir le dossier d'import…"
+          }
+        }
+      }
+    },
+    "Choose…": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisir…"
+          }
+        }
+      }
+    },
+    "Clips": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clips"
+          }
+        }
+      }
+    },
+    "Connection": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branchement"
+          }
+        }
+      }
+    },
+    "Destination": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Destination"
+          }
+        }
+      }
+    },
+    "Done": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminer"
+          }
+        }
+      }
+    },
+    "Erase %lld clips from the GoPro?": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Erase %lld clip from the GoPro?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Erase %lld clips from the GoPro?"
+                }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Effacer %lld clip de la GoPro ?"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Effacer %lld clips de la GoPro ?"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Erase GoPro (%lld)…": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer la GoPro (%lld)…"
+          }
+        }
+      }
+    },
+    "Erase from the GoPro": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer de la GoPro"
+          }
+        }
+      }
+    },
+    "Erase the clips on the GoPro…": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacer les clips de la GoPro…"
+          }
+        }
+      }
+    },
+    "Everything is already imported. Nothing to copy.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tout est déjà importé. Rien à copier."
+          }
+        }
+      }
+    },
+    "Failed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec"
+          }
+        }
+      }
+    },
+    "File": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichier"
+          }
+        }
+      }
+    },
+    "Folder": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dossier"
+          }
+        }
+      }
+    },
+    "GoPro card": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carte GoPro"
+          }
+        }
+      }
+    },
+    "Highlights": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Highlights"
+          }
+        }
+      }
+    },
+    "Highlights added afterwards in the Quik app stay inside that app.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les highlights ajoutés après coup dans l'app Quik restent dans l'app."
+          }
+        }
+      }
+    },
+    "Import": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importer"
+          }
+        }
+      }
+    },
+    "Import finished": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import terminé"
+          }
+        }
+      }
+    },
+    "Import folder": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dossier d'import"
+          }
+        }
+      }
+    },
+    "Import in progress": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import en cours"
+          }
+        }
+      }
+    },
+    "Import interrupted": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import interrompu"
+          }
+        }
+      }
+    },
+    "Inspector": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspecteur"
+          }
+        }
+      }
+    },
+    "Last import": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernier import"
+          }
+        }
+      }
+    },
+    "Library": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bibliothèque"
+          }
+        }
+      }
+    },
+    "Local Network": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réseau local"
+          }
+        }
+      }
+    },
+    "No card": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune carte"
+          }
+        }
+      }
+    },
+    "No take matches this filter.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune prise ne correspond à ce filtre."
+          }
+        }
+      }
+    },
+    "No video is copied at this stage.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune vidéo n'est copiée à ce stade."
+          }
+        }
+      }
+    },
+    "Nothing here": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien ici"
+          }
+        }
+      }
+    },
+    "Only the headers are read — no video is copied at this stage.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seuls les en-têtes sont lus — aucune vidéo n'est copiée à ce stade."
+          }
+        }
+      }
+    },
+    "Open QuiX": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir QuiX"
+          }
+        }
+      }
+    },
+    "Open QuiX when the GoPro is plugged in": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir QuiX quand la GoPro est branchée"
+          }
+        }
+      }
+    },
+    "Open Settings…": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir les Réglages…"
+          }
+        }
+      }
+    },
+    "Open highlights": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir les highlights"
+          }
+        }
+      }
+    },
+    "Over USB-C the camera is a network device as far as macOS is concerned.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branchée en USB-C, la caméra est un périphérique réseau pour macOS."
+          }
+        }
+      }
+    },
+    "Permission needed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorisation requise"
+          }
+        }
+      }
+    },
+    "Permissions": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorisations"
+          }
+        }
+      }
+    },
+    "Plug the GoPro in over USB-C, or the card into a reader — the import will show up here.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branchez la GoPro en USB-C, ou la carte dans un lecteur — l'import s'affichera ici."
+          }
+        }
+      }
+    },
+    "Plug the card in and the import starts on its own.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branchez la carte, l'import démarre tout seul."
+          }
+        }
+      }
+    },
+    "QuiX": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QuiX"
+          }
+        }
+      }
+    },
+    "QuiX is not running in the meantime — macOS wakes it when the camera arrives. The match only recognises the HERO12 Black.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QuiX ne tourne pas en attendant : c'est macOS qui le réveille au branchement. L'appariement ne reconnaît que la HERO12 Black."
+          }
+        }
+      }
+    },
+    "Quit": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitter"
+          }
+        }
+      }
+    },
+    "Reading the camera": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lecture de la caméra"
+          }
+        }
+      }
+    },
+    "Reading the card": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lecture de la carte"
+          }
+        }
+      }
+    },
+    "Reading…": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lecture…"
+          }
+        }
+      }
+    },
+    "Removable Volumes": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volumes amovibles"
+          }
+        }
+      }
+    },
+    "Reveal in Finder": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Révéler dans le Finder"
+          }
+        }
+      }
+    },
+    "Select a take.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélectionnez une prise."
+          }
+        }
+      }
+    },
+    "Sessions": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sessions"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages"
+          }
+        }
+      }
+    },
+    "Settings…": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages…"
+          }
+        }
+      }
+    },
+    "Size": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taille"
+          }
+        }
+      }
+    },
+    "Source": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source"
+          }
+        }
+      }
+    },
+    "Stop": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrêter"
+          }
+        }
+      }
+    },
+    "Tags": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags"
+          }
+        }
+      }
+    },
+    "The card was not modified.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La carte n'a pas été modifiée."
+          }
+        }
+      }
+    },
+    "The checksum is computed while writing, then read back from the written file. The card is never modified.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empreinte calculée pendant l'écriture puis relue sur le fichier écrit. La carte n'est jamais modifiée."
+          }
+        }
+      }
+    },
+    "The library is being read.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La bibliothèque est en cours de lecture."
+          }
+        }
+      }
+    },
+    "This camera does not allow clips to be read in chunks. Use the card in a reader.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette caméra ne permet pas de lire les clips par morceaux. Utilisez la carte dans un lecteur."
+          }
+        }
+      }
+    },
+    "To read a card in a reader. macOS asks the first time one is inserted; without it, the card looks empty.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pour lire une carte insérée dans un lecteur. macOS la demande au premier branchement ; sans elle, la carte paraît vide."
+          }
+        }
+      }
+    },
+    "Transfer": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transfert"
+          }
+        }
+      }
+    },
+    "Verification": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification"
+          }
+        }
+      }
+    },
+    "Where should imported clips go?": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Où ranger les clips importés ?"
+          }
+        }
+      }
+    },
+    "Whole library": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toute la bibliothèque"
+          }
+        }
+      }
+    },
+    "Without confirmation, plugging the card in starts the copy right away. The guard that matters is elsewhere: a card with no DCIM/###GOPRO folder is never touched, setting or no setting.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sans confirmation, brancher la carte lance la copie tout de suite. La garde qui compte est ailleurs : une carte sans dossier DCIM/###GOPRO n'est jamais touchée, réglage ou pas."
+          }
+        }
+      }
+    },
+    "Your GoPro is plugged in, but macOS is stopping QuiX from talking to it. It has to be allowed under “Local Network”.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre GoPro est branchée, mais macOS empêche QuiX de lui parler. Il faut l'autoriser dans « Réseau local »."
+          }
+        }
+      }
+    },
+    "Your GoPro is plugged in, but macOS is stopping QuiX from talking to it. Over USB-C the camera is a network device: QuiX has to be allowed under “Local Network”.": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre GoPro est branchée, mais macOS empêche QuiX de lui parler. Branchée en USB-C, la caméra est un périphérique réseau : il faut autoriser QuiX dans « Réseau local »."
+          }
+        }
+      }
+    },
+    "asked when needed": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "demandée au besoin"
+          }
+        }
+      }
+    },
+    "copying": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "en cours"
+          }
+        }
+      }
+    },
+    "granted": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "accordée"
+          }
+        }
+      }
+    },
+    "headers only": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "en-têtes seuls"
+          }
+        }
+      }
+    },
+    "in progress": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "en cours"
+          }
+        }
+      }
+    },
+    "in progress…": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "en cours…"
+          }
+        }
+      }
+    },
+    "missing": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "manquante"
+          }
+        }
+      }
+    },
+    "none": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aucun"
+          }
+        }
+      }
+    },
+    "pending": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "en attente"
+          }
+        }
+      }
+    },
+    "recording": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tournage"
+          }
+        }
+      }
+    },
+    "settings.section.import": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import"
+          }
+        }
+      }
+    },
+    "verified": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vérifié"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
