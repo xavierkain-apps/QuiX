@@ -64,22 +64,37 @@ costs two minutes.
 # 1. The number, in the two places that matter
 #    MARKETING_VERSION        → what the user reads
 #    CURRENT_PROJECT_VERSION  → what Sparkle compares, to increment every time
-# 2. A tag, and that is all
+# 2. The notes users will read in the update window
+#    release-notes/1.0.0.en.md   (required — the release job fails without it)
+#    release-notes/1.0.0.fr.md   (optional — French users fall back to English)
+# 3. A tag
 git tag v1.0.0 && git push origin v1.0.0
 ```
 
-CI builds, signs, notarizes, staples, **signs the update**, writes `appcast.xml` and publishes the
-release with both files.
+CI builds, signs, notarizes, staples, **signs the update**, writes `appcast.xml` with the notes
+embedded, and publishes the release with both files. The same notes become the body of the GitHub
+release. How to write them: [release-notes/README.md](../release-notes/README.md).
 
-## What is left to connect
+## How the feed reaches the app
 
-`SUFeedURL` points at `https://quix.xavier-kain.fr/appcast.xml`, which does not exist yet. CI, for
-its part, publishes the appcast as a file of the GitHub release. The site has to serve that file —
-the simplest way is a redirect to the latest release's URL, which avoids redeploying the site for
-every version.
+`SUFeedURL` is `https://quix.xavier-kain.fr/appcast.xml`. The site's `.htaccess` redirects that
+address to the `appcast.xml` attached to the latest GitHub release, so publishing a version never
+requires redeploying the site. Requests for it give the number of active installs and the spread
+of versions, without a line of tracking in the app.
 
-Until then, a manual update check fails with "An error occurred while retrieving update
-information". That is expected, not a bug.
+The update window shows the notes from the feed itself — one `<description>` per language, in
+Markdown, which Sparkle renders natively and picks according to the language the app is shown in.
+It used to show `sparkle:releaseNotesLink`, a GitHub page loaded in a web view; that link is gone.
 
-As a bonus, requests for that file give the **number of active installs and the spread of
-versions**, without a line of tracking in the app.
+## When the update window says "An error occurred in retrieving update information"
+
+Sparkle gives the same message for every failure. Two causes have produced it here:
+
+- **A feed that is not well-formed XML.** `sign_update` prints `length="…"` next to the signature,
+  and the enclosure wrote its own: a duplicate attribute. The job now strips it and runs
+  `xmllint` before publishing. A broken feed can be repaired in place with
+  `gh release upload <tag> appcast.xml --clobber` — the signature covers the ZIP, not the feed.
+- **An invalid HTTPS certificate on the feed's address.** Sparkle verifies it strictly.
+
+Check both with `curl -sSL https://quix.xavier-kain.fr/appcast.xml | xmllint --noout -` — no
+`-k`, so the certificate is checked too.
