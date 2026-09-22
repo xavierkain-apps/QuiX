@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuiX — plug in, every clip lands sorted</title>
+<meta name="description" content="QuiX imports your GoPro session on its own and keeps the takes you tagged while filming in their own Highlights folder. macOS 15+, signed and notarized.">
+<link rel="icon" href="assets/favicon.png">
+<meta property="og:title" content="QuiX — plug in, every clip lands sorted">
+<meta property="og:description" content="A GoPro importer for macOS that sorts your highlights for you.">
+<meta property="og:image" content="https://quix.xavier-kain.fr/assets/icon-1024.png">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/icon-256.png" alt="QuiX"><span>QuiX</span></a>
+    <div class="head-right">
+      <div class="langs" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="fr" aria-pressed="false">FR</button>
+      </div>
+      <a class="btn small" href="#download" data-t="navGet">Download</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="halo" aria-hidden="true"></div>
+  <div class="wrap" style="position: relative">
+    <img class="icon" src="assets/icon-1024.png" alt="QuiX" width="132" height="132">
+    <h1 data-reveal data-t="h1">Plug in. Every clip lands sorted.</h1>
+    <p class="lede" data-reveal data-t="sub"></p>
+    <div class="ctas" data-reveal>
+      <a class="btn" href="#download" data-t="ctaPrimary">Download for macOS</a>
+      <a class="btn ghost" href="https://github.com/xavierkain-apps/QuiX" data-t="ctaSecondary">View source</a>
+    </div>
+    <p class="hero-foot mono" data-t="heroFoot"></p>
+  </div>
+</section>
+
+<section class="wrap" data-reveal style="padding-top: 0">
+  <figure class="shot" style="margin: 0">
+    <span class="sweep" aria-hidden="true"></span>
+    <img id="shot-hero" src="shots/en/transfer.png" alt="" width="1720" height="1022">
+  </figure>
+  <figcaption class="mono note" style="text-align: center; margin-top: 12px" data-t="shotHero"></figcaption>
+</section>
+
+<section class="wrap">
+  <div class="traits" id="traits"></div>
+</section>
+
+<section class="wrap">
+  <div class="two">
+    <div>
+      <div class="kicker mono" data-reveal data-t="hlKicker" style="margin-bottom: 18px"></div>
+      <h2 data-reveal data-t="hlTitle" style="max-width: 18ch"></h2>
+      <p data-reveal data-t="hlBody" style="font-size: 16px; line-height: 1.55; color: var(--muted); margin: 0 0 14px; max-width: 42ch"></p>
+      <p data-reveal data-t="hlNote" style="font-size: 13.5px; line-height: 1.55; color: var(--muted); margin: 0; max-width: 42ch"></p>
+    </div>
+    <div class="steps" id="hlSteps"></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="stats" id="stats" data-reveal></div>
+</section>
+
+<section class="wrap">
+  <div class="onb-head">
+    <h2 data-reveal data-t="onbTitle" style="max-width: 20ch"></h2>
+    <span class="kicker mono" data-t="onbKicker"></span>
+  </div>
+  <div class="onb" id="onb"></div>
+</section>
+
+<section class="wrap">
+  <div class="two middle">
+    <div>
+      <h2 data-reveal data-t="libTitle"></h2>
+      <p data-reveal data-t="libBody" style="font-size: 16px; line-height: 1.55; color: var(--muted); margin: 0 0 22px; max-width: 40ch"></p>
+      <div class="tabs" id="tabs"></div>
+    </div>
+    <div data-reveal>
+      <figure class="shot" style="margin: 0; box-shadow: 0 30px 90px -40px rgba(0,163,228,.3)">
+        <img id="shot-popover" src="shots/en/popover.png" alt="" width="600" height="476"
+             style="margin: 0 auto; max-width: 420px">
+      </figure>
+      <figcaption class="mono note" style="text-align: center; margin-top: 12px" data-t="shotPopover"></figcaption>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="download">
+  <div class="download-box" data-reveal>
+    <img src="assets/icon-256.png" alt="" width="62" height="62">
+    <h2 data-t="dlTitle"></h2>
+    <p data-t="dlBody"></p>
+
+    <form class="gate" method="post" action="telechargement.php" id="gate">
+      <div>
+        <label for="prenom" data-t="dlFirstName">First name</label>
+        <input id="prenom" name="prenom" type="text" autocomplete="given-name" required maxlength="80">
+      </div>
+      <div>
+        <label for="email" data-t="dlEmail">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required maxlength="160">
+      </div>
+      <div style="position: absolute; left: -9999px" aria-hidden="true">
+        <input type="text" name="site" tabindex="-1" autocomplete="off">
+      </div>
+      <label class="consent">
+        <input type="checkbox" name="nouvelles" value="1" checked>
+        <span data-t="dlConsent"></span>
+      </label>
+      <button class="btn" type="submit" data-t="dlSubmit">Get the download link</button>
+      <p class="note" data-t="dlPrivacy"></p>
+    </form>
+
+    <p class="download-foot mono" data-t="dlFoot"></p>
+  </div>
+</section>
+
+<footer>
+  <span class="mono">QuiX — <span data-t="footerTag"></span></span>
+  <a class="mono" href="https://github.com/xavierkain-apps/QuiX">github.com/xavierkain-apps/QuiX</a>
+</footer>
+
+<script src="assets/copy.js"></script>
+<script src="assets/page.js"></script>
+</body>
+</html>

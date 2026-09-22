@@ -1,0 +1,35 @@
+# QuiX — quix.xavier-kain.fr
+
+# Toujours en HTTPS.
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# Le flux de mises à jour de Sparkle. L'app interroge cette adresse ; la CI publie le fichier
+# comme pièce jointe de la release GitHub. Une redirection évite d'avoir à redéployer le site
+# à chaque version — voir docs/UPDATES.md.
+RewriteRule ^appcast\.xml$ https://github.com/xavierkain-apps/QuiX/releases/latest/download/appcast.xml [R=302,L]
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "DENY"
+  # La page ne charge que ses propres fichiers, plus les polices Google. Aucun traceur.
+  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'"
+</IfModule>
+
+# Les registres d'inscriptions et de retours vivent hors de la racine web. Cette règle est une
+# ceinture de plus si jamais quelqu'un les y déplaçait.
+<FilesMatch "\.(jsonl|log)$">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/png "access plus 7 days"
+  ExpiresByType text/css "access plus 1 day"
+  ExpiresByType application/javascript "access plus 1 day"
+</IfModule>
+
+ErrorDocument 404 /index.html

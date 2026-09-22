@@ -26,3 +26,7 @@ xcuserdata/
 *.LRV
 *.THM
 !Core/Tests/QuiXCoreTests/Fixtures/*.mp4
+
+# Registres du site, écrits par le serveur. Ne doivent jamais entrer dans le dépôt.
+quix-inscriptions.jsonl
+quix-retours.jsonl
