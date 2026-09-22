@@ -396,6 +396,11 @@ jobs:
           SIGNATURE=$(printf '%s' "$SPARKLE_PRIVATE_KEY" | "$BIN" --ed-key-file - QuiX.zip)
           echo "$SIGNATURE" | grep -q 'sparkle:edSignature' \
             || { echo "::error::sign_update n'a pas produit de signature."; exit 1; }
+          # sign_update prints `sparkle:edSignature="…" length="…"`. The enclosure below writes its
+          # own length, so the one from sign_update is dropped: a duplicate attribute is not
+          # well-formed XML, and Sparkle then rejects the whole feed with nothing more than
+          # "An error occurred in retrieving update information". That shipped in v0.1.0.
+          SIGNATURE=$(printf '%s' "$SIGNATURE" | sed -E 's/[[:space:]]*length="[0-9]+"//')
 
           VERSION="${GITHUB_REF_NAME#v}"
           BUILD=$(plutil -extract CFBundleVersion raw "$APP/Contents/Info.plist")
@@ -425,6 +430,12 @@ jobs:
           sed -i '' 's/^          //' appcast.xml
           echo "appcast.xml écrit :"
           cat appcast.xml
+
+          # A feed that does not parse fails silently on every user's Mac. Refuse to publish it.
+          xmllint --noout appcast.xml \
+            || { echo "::error::appcast.xml is not well-formed XML"; exit 1; }
+          [ "$(grep -o ' length=' appcast.xml | wc -l | tr -d ' ')" = "1" ] \
+            || { echo "::error::the enclosure must carry exactly one length attribute"; exit 1; }
 
       - name: Publier la release (tags v* uniquement)
         if: startsWith(github.ref, 'refs/tags/v')
