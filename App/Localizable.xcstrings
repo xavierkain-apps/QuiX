@@ -432,26 +432,6 @@
         }
       }
     },
-    "**What happened**\n\n\n**What you expected**\n\n\n**How to reproduce it**\n": {
-      "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "**Ce qui s'est passé**\n\n\n**Ce à quoi vous vous attendiez**\n\n\n**Comment le reproduire**\n"
-          }
-        }
-      }
-    },
-    "**What you would like**\n\n\n**What you are trying to do**\n": {
-      "localizations": {
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "**Ce que vous aimeriez**\n\n\n**Ce que vous cherchez à faire**\n"
-          }
-        }
-      }
-    },
     "All": {
       "localizations": {
         "fr": {
@@ -888,6 +868,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pour une carte dans un lecteur. macOS la demande à la première carte ; sans elle, la carte paraît vide."
+          }
+        }
+      }
+    },
+    "Getting started": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Découverte"
           }
         }
       }
@@ -1412,6 +1402,16 @@
         }
       }
     },
+    "Show the welcome screens again": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revoir les écrans d'accueil"
+          }
+        }
+      }
+    },
     "Size": {
       "localizations": {
         "fr": {
@@ -1528,6 +1528,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "La bibliothèque est en cours de lecture."
+          }
+        }
+      }
+    },
+    "The three screens from the first launch: what QuiX does, where the clips go, and the permissions macOS will ask for.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les trois écrans du premier lancement : ce que fait QuiX, où vont les clips, et les autorisations que macOS va demander."
           }
         }
       }

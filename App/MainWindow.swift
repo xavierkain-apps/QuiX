@@ -49,20 +49,25 @@ struct MainWindow: View {
     /// La barre d'onglets, au même gabarit que l'en-tête de la Bibliothèque : 46 pt, fond de
     /// panneau, filet en bas.
     private var tabs: some View {
-        HStack {
-            Segmented(selection: Binding(get: { router.tab }, set: { router.tab = $0 }),
-                      options: AppRouter.Tab.allCases, label: \.title)
-            Spacer()
-            if model.stageKind == .importing {
-                HStack(spacing: 7) {
-                    PulsingDot(size: 6)
-                    Text("Import in progress").font(Type.caption).foregroundStyle(Ink.blueText)
-                }
+        // Les onglets au centre, et l'état d'import **posé par-dessus** plutôt que mis à côté :
+        // dans un `HStack`, l'apparition de l'indicateur décalait les onglets sous le curseur.
+        Segmented(selection: Binding(get: { router.tab }, set: { router.tab = $0 }),
+                  options: AppRouter.Tab.allCases, label: \.title)
+            .frame(maxWidth: .infinity)
+            .overlay(alignment: .trailing) { importing }
+            .padding(.horizontal, 20)
+            .frame(height: Metrics.headerHeight)
+            .background(Ink.titleBar)
+            .overlay(alignment: .bottom) { Rule() }
+    }
+
+    @ViewBuilder
+    private var importing: some View {
+        if model.stageKind == .importing {
+            HStack(spacing: 7) {
+                PulsingDot(size: 6)
+                Text("Import in progress").font(Type.caption).foregroundStyle(Ink.blueText)
             }
         }
-        .padding(.horizontal, 20)
-        .frame(height: Metrics.headerHeight)
-        .background(Ink.titleBar)
-        .overlay(alignment: .bottom) { Rule() }
     }
 }

@@ -3,10 +3,13 @@ import Foundation
 
 /// Signaler un bug, ou demander une fonctionnalité.
 ///
-/// **Pourquoi pas un formulaire dans l'app.** Un formulaire demanderait un serveur, une adresse
-/// où poster, et ferait transiter par QuiX des textes libres que l'utilisateur n'a pas vus
-/// partir. Ouvrir une page pré-remplie ne fait rien de tout ça : l'utilisateur lit ce qui part,
-/// l'efface s'il veut, et envoie lui-même. Rien ne quitte le Mac sans qu'il ait cliqué.
+/// **Pourquoi une page web et pas un formulaire dans l'app.** Un formulaire intégré ferait
+/// transiter par QuiX des textes que l'utilisateur n'aurait pas vus partir, et demanderait à
+/// l'app de porter une politique de confidentialité. La page, elle, montre ce qui part avant
+/// qu'il n'appuie. Rien ne quitte le Mac sans un clic de sa part.
+///
+/// **Et pas GitHub non plus** : le dépôt est public, mais un compte GitHub est un mur pour
+/// quelqu'un qui vient d'Instagram pour trier ses clips de surf.
 ///
 /// **Ce qui est pré-rempli**, et rien d'autre : la version de QuiX, celle de macOS, le modèle de
 /// Mac, et le modèle de caméra si une a été vue. Aucun nom de fichier, aucun chemin, aucune
@@ -17,69 +20,40 @@ enum Feedback {
     enum Kind {
         case bug, idea
 
-        var title: String {
-            switch self {
-            case .bug: "Bug : "
-            case .idea: "Idée : "
-            }
-        }
-
-        var label: String {
+        var slug: String {
             switch self {
             case .bug: "bug"
-            case .idea: "enhancement"
+            case .idea: "idea"
             }
         }
     }
 
-    /// Le dépôt qui reçoit les retours. Le jour où le site porte un formulaire, c'est la seule
-    /// ligne à changer.
-    static let destination = "https://github.com/xavierkain-apps/QuiX/issues/new"
+    /// Le formulaire de retour du site.
+    static let destination = "https://quix.xavier-kain.fr/retour"
 
+    /// Ouvre le formulaire, avec le contexte technique déjà rempli.
+    ///
+    /// Les paramètres ne portent que des versions et des modèles. Jamais un chemin, jamais un nom
+    /// de fichier, jamais une adresse : ce qui passe par une URL se retrouve dans les journaux du
+    /// serveur, et rien de personnel n'a à y être.
     static func open(_ kind: Kind, cameraName: String?) {
-        var components = URLComponents(string: destination)
-        components?.queryItems = [
-            URLQueryItem(name: "title", value: kind.title),
-            URLQueryItem(name: "labels", value: kind.label),
-            URLQueryItem(name: "body", value: body(kind, cameraName: cameraName)),
+        var items = [
+            URLQueryItem(name: "type", value: kind.slug),
+            URLQueryItem(name: "version", value: version),
+            URLQueryItem(name: "os", value: systemVersion),
+            URLQueryItem(name: "mac", value: model),
+            URLQueryItem(name: "lang", value: Locale.current.identifier),
         ]
+        if let cameraName { items.append(URLQueryItem(name: "camera", value: cameraName)) }
+        var components = URLComponents(string: destination)
+        components?.queryItems = items
         guard let url = components?.url else { return }
         NSWorkspace.shared.open(url)
     }
 
-    /// Le corps pré-rempli : d'abord ce que l'utilisateur a à écrire, puis ce qu'on a mesuré.
-    private static func body(_ kind: Kind, cameraName: String?) -> String {
-        let prompt = switch kind {
-        case .bug:
-            String(localized: """
-                **What happened**
-
-
-                **What you expected**
-
-
-                **How to reproduce it**
-
-                """)
-        case .idea:
-            String(localized: """
-                **What you would like**
-
-
-                **What you are trying to do**
-
-                """)
-        }
-        return prompt + "\n---\n\n" + environment(cameraName: cameraName)
-    }
-
+    /// Ce que l'écran des réglages affiche, pour qu'on voie ce qui sera joint.
     static func environment(cameraName: String?) -> String {
-        let os = ProcessInfo.processInfo.operatingSystemVersion
-        var lines = [
-            "QuiX \(version)",
-            "macOS \(os.majorVersion).\(os.minorVersion).\(os.patchVersion)",
-            model,
-        ]
+        var lines = ["QuiX \(version)", "macOS \(systemVersion)", model]
         if let cameraName { lines.append("Camera \(cameraName)") }
         return lines.joined(separator: " · ")
     }
@@ -93,7 +67,12 @@ enum Feedback {
     /// L'identifiant matériel — « Mac15,3 ». Utile parce qu'un défaut de copie USB peut tenir au
     /// contrôleur, et inutile pour identifier qui que ce soit : des centaines de milliers de Mac
     /// portent le même.
-    private static var model: String {
+    static var systemVersion: String {
+        let os = ProcessInfo.processInfo.operatingSystemVersion
+        return "\(os.majorVersion).\(os.minorVersion).\(os.patchVersion)"
+    }
+
+    static var model: String {
         var size = 0
         sysctlbyname("hw.model", nil, &size, nil, 0)
         guard size > 0 else { return "?" }

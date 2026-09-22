@@ -40,10 +40,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Un agent installé par une version précédente garde le comportement qu'il avait alors.
         CameraAutoLaunch.refreshIfOutdated()
+
     }
 
     /// Rebrancher la caméra alors que QuiX tourne déjà doit ramener sa fenêtre, pas ne rien faire.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        // `hasVisibleWindows` est faux quand on a fermé la fenêtre : il faut la recréer, pas
+        // seulement activer l'app — sinon le clic sur le Dock ne fait rien de visible.
+        if !hasVisibleWindows {
+            NotificationCenter.default.post(name: .quixOpenMainWindow, object: nil)
+        }
         NSApp.activate(ignoringOtherApps: true)
         return true
     }
@@ -129,9 +135,18 @@ private struct MenuBarLabel: View {
         // Le tout premier lancement n'a pas de carte à annoncer : sans cela, l'accueil
         // n'apparaîtrait qu'au moment où l'on brancherait quelque chose — c'est-à-dire trop tard
         // pour expliquer ce qu'il faut autoriser avant de brancher.
+        // Lancer l'app ouvre sa fenêtre. Cela semble aller de soi ; ça n'allait pas : une app
+        // qui vit dans la barre de menus n'en ouvre aucune au démarrage. On cliquait l'icône du
+        // Dock, elle rebondissait, et il fallait aller la chercher dans le menu du haut.
+        //
+        // C'est ici et pas dans l'`AppDelegate` : `applicationDidFinishLaunching` court avant
+        // que cette vue n'existe, et sa notification n'aurait eu personne pour l'entendre.
         .onAppear {
-            guard !model.preferences.onboardingDone else { return }
-            router.tab = .transfer
+            if !model.preferences.onboardingDone { router.tab = .transfer }
+            openWindow(id: WindowID.main)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .quixOpenMainWindow)) { _ in
             openWindow(id: WindowID.main)
             NSApp.activate(ignoringOtherApps: true)
         }

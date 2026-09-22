@@ -21,7 +21,13 @@ struct SettingsWindow: View {
         // de titre.
         ScrollView {
             sections
+                .background(alignment: .top) { OverlayScrollers().frame(height: 0) }
         }
+        // La colonne suit la fenêtre au lieu de rester à 520 pt au milieu d'un grand vide, mais
+        // s'arrête à 860 : au-delà, les paragraphes d'explication deviennent illisibles.
+        .scrollIndicators(.automatic)
+        // Sans cela, la vue rebondit sous le curseur même quand tout tient à l'écran.
+        .scrollBounceBehavior(.basedOnSize)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Ink.window)
         .foregroundStyle(Ink.primary)
@@ -101,6 +107,16 @@ struct SettingsWindow: View {
 
             Divider().overlay(Ink.hairline)
 
+            Section("Getting started") {
+                Button("Show the welcome screens again") {
+                    model.preferences.onboardingDone = false
+                }
+                .buttonStyle(OutlinedDark())
+                Note("The three screens from the first launch: what QuiX does, where the clips go, and the permissions macOS will ask for.")
+            }
+
+            Divider().overlay(Ink.hairline)
+
             Section("Permissions") {
                 Permission(name: "Local Network",
                            granted: networkGranted,
@@ -112,7 +128,9 @@ struct SettingsWindow: View {
                            open: nil)
             }
         }
-        .frame(width: 520, alignment: .leading)
+        .frame(maxWidth: 860, alignment: .leading)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 24)
     }
 
     /// Un changement de langue ne s'applique qu'au lancement suivant : on le dit, et on propose

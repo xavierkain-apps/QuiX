@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Les jetons du redesign, en un seul endroit.
@@ -249,5 +250,22 @@ struct Segmented<Option: Hashable>: View {
         }
         .padding(2)
         .background(Ink.hairline, in: RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+/// Force la barre de défilement fine, celle qui se retire quand on ne s'en sert pas.
+///
+/// macOS réglé sur « Automatique » sort la barre ancienne, large et permanente, dès qu'une souris
+/// est branchée. Au milieu d'un panneau sombre elle tranche, et elle mange la largeur du contenu.
+/// SwiftUI n'expose pas le style du scroller : on va chercher le `NSScrollView` qui nous porte.
+struct OverlayScrollers: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView(frame: .zero)
+        DispatchQueue.main.async { view.enclosingScrollView?.scrollerStyle = .overlay }
+        return view
+    }
+
+    func updateNSView(_ view: NSView, context: Context) {
+        view.enclosingScrollView?.scrollerStyle = .overlay
     }
 }
