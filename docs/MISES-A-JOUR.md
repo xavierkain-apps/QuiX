@@ -45,11 +45,14 @@ porte une app d'interface, un outil d'installation et deux services XPC, tous si
 projet Sparkle et sans horodatage sécurisé. Apple refuse le bundle entier, avec un message qui
 ne dit pas d'où vient le problème :
 
-
+```
+The binary is not signed with a valid Developer ID certificate.
+The signature does not include a secure timestamp.
+```
 
 [Support/signer-sparkle.sh](../Support/signer-sparkle.sh) les resigne du plus profond vers le
 plus extérieur, en conservant leurs droits — les services XPC en ont, et les perdre les
-empêcherait de démarrer.  ne fait pas l'affaire : il ne rejoue pas les droits
+empêcherait de démarrer. `codesign --deep` ne fait pas l'affaire : il ne rejoue pas les droits
 de chaque composant.
 
 La CI le lance après la compilation, puis **vérifie** que plus aucun exécutable imbriqué ne
