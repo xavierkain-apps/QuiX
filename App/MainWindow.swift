@@ -12,6 +12,27 @@ struct MainWindow: View {
     let router: AppRouter
 
     var body: some View {
+        Group {
+            if model.preferences.onboardingDone { tabbed } else { welcome }
+        }
+        .frame(minWidth: 1180, minHeight: 620)
+        .background(Ink.window)
+        .foregroundStyle(Ink.primary)
+        // Dernier filet : une fenêtre qui vient d'apparaître réclame le premier plan. Ouverte par
+        // `launchd` au branchement de la caméra, elle se rangeait sinon derrière l'app courante.
+        .onAppear { NSApp.activate(ignoringOtherApps: true) }
+    }
+
+    /// Le premier lancement n'a pas d'onglets : il n'y a rien à transférer ni à retrouver tant
+    /// qu'on n'a pas dit où ranger les clips.
+    private var welcome: some View {
+        Onboarding(model: model) {
+            model.preferences.onboardingDone = true
+            model.recheckCamera()
+        }
+    }
+
+    private var tabbed: some View {
         VStack(spacing: 0) {
             tabs
             Group {
@@ -23,14 +44,6 @@ struct MainWindow: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        // 1180 pt de large au minimum : en dessous, le sélecteur de filtre de la Bibliothèque
-        // se retrouve à l'étroit et coupe « Highlights » sur deux lignes.
-        .frame(minWidth: 1180, minHeight: 620)
-        .background(Ink.window)
-        .foregroundStyle(Ink.primary)
-        // Dernier filet : une fenêtre qui vient d'apparaître réclame le premier plan. Ouverte par
-        // `launchd` au branchement de la caméra, elle se rangeait sinon derrière l'app courante.
-        .onAppear { NSApp.activate(ignoringOtherApps: true) }
     }
 
     /// La barre d'onglets, au même gabarit que l'en-tête de la Bibliothèque : 46 pt, fond de

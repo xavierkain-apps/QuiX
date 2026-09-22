@@ -101,16 +101,25 @@ struct ColumnHeader: View {
 struct FilledBlue: ButtonStyle {
     var fullWidth = false
 
+    // Un style personnalisé ne grise rien tout seul : `.disabled()` coupait le clic en laissant
+    // le bouton d'un bleu franc. On lisait « Continuer » sans comprendre pourquoi rien ne bougeait.
+    @Environment(\.isEnabled) private var isEnabled
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 13.5, weight: .medium))
-            .foregroundStyle(.white)
+            .foregroundStyle(isEnabled ? Color.white : Color.white.opacity(0.4))
             .padding(.vertical, 9)
             .padding(.horizontal, 16)
             .frame(maxWidth: fullWidth ? .infinity : nil)
-            .background(configuration.isPressed ? Ink.bluePressed : Ink.blue,
+            .background(background(configuration),
                         in: RoundedRectangle(cornerRadius: 9, style: .continuous))
             .contentShape(Rectangle())
+    }
+
+    private func background(_ configuration: Configuration) -> Color {
+        guard isEnabled else { return Ink.blue.opacity(0.28) }
+        return configuration.isPressed ? Ink.bluePressed : Ink.blue
     }
 }
 
@@ -118,10 +127,12 @@ struct FilledBlue: ButtonStyle {
 struct OutlinedDark: ButtonStyle {
     var fullWidth = false
 
+    @Environment(\.isEnabled) private var isEnabled
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 13.5))
-            .foregroundStyle(Ink.primary)
+            .foregroundStyle(isEnabled ? Ink.primary : Ink.primary.opacity(0.35))
             .padding(.vertical, 8)
             .padding(.horizontal, 16)
             .frame(maxWidth: fullWidth ? .infinity : nil)

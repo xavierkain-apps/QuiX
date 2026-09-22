@@ -187,3 +187,28 @@ Deux pièges rencontrés en chemin :
 
 Ce qui ne se traduit pas s'écrit `Text(verbatim:)` : noms de fichiers, chemins, tailles,
 durées. Sans ce marquage, chaque nom de clip finissait comme clé dans le catalogue.
+
+## Le premier lancement
+
+Trois écrans, une seule fois : ce que fait l'app, où ranger les clips, et les autorisations.
+
+Les deux autorisations que QuiX demande — **Réseau local** et **Volumes amovibles** — échouent
+de la même façon trompeuse : l'app voit le matériel et n'y trouve rien. Une carte qui paraît
+vide, une caméra branchée qui n'affiche aucun clip. Les annoncer avant le premier branchement
+coûte un écran ; les laisser découvrir coûte une heure à chercher une panne qui n'existe pas.
+
+Le dossier d'import est **obligatoire** pour aller plus loin : sans lui, l'écran suivant n'a
+rien à proposer et le premier branchement retomberait sur la même question.
+
+Une installation qui a déjà un dossier d'import n'a jamais vu ces écrans et ne les verra pas :
+elle vient d'une version antérieure, et lui infliger une présentation serait un recul.
+
+Deux choses découvertes en le construisant :
+
+- **Un style de bouton ne grise rien tout seul.** `.disabled()` coupait le clic en laissant
+  « Continuer » d'un bleu franc : on lisait un bouton actif qui ne répondait pas. `FilledBlue`
+  et `OutlinedDark` lisent maintenant `\.isEnabled`.
+- **L'étape est adressable au lancement**, `--args -quixOnboardingStep 2`, pour pouvoir
+  photographier chacune. Piloter l'interface en cliquant à des coordonnées calculées ne marche
+  pas : la fenêtre bouge entre la mesure et le clic, et le clic tombe ailleurs — une fois sur
+  une autre app.

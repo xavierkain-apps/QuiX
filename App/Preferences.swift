@@ -12,6 +12,7 @@ final class Preferences {
     private enum Key {
         static let library = "libraryPath"
         static let askBeforeImporting = "askBeforeImporting"
+        static let onboardingDone = "onboardingDone"
     }
 
     private let defaults: UserDefaults
@@ -20,6 +21,10 @@ final class Preferences {
         self.defaults = defaults
         self.library = defaults.string(forKey: Key.library).map { URL(fileURLWithPath: $0, isDirectory: true) }
         self.askBeforeImporting = defaults.bool(forKey: Key.askBeforeImporting)
+        // Une installation qui a déjà un dossier d'import vient d'une version antérieure à
+        // l'accueil : lui infliger trois écrans de présentation serait un recul.
+        self.onboardingDone = defaults.bool(forKey: Key.onboardingDone)
+            || defaults.string(forKey: Key.library) != nil
         self.agentIsLoaded = CameraAutoLaunch.isEnabled
     }
 
@@ -35,6 +40,11 @@ final class Preferences {
     /// n'est jamais touchée, réglage ou pas — mais laisser le choix coûte une ligne.
     var askBeforeImporting: Bool {
         didSet { defaults.set(askBeforeImporting, forKey: Key.askBeforeImporting) }
+    }
+
+    /// Vrai une fois l'accueil traversé. Il ne revient jamais.
+    var onboardingDone: Bool {
+        didSet { defaults.set(onboardingDone, forKey: Key.onboardingDone) }
     }
 
     /// Lancer QuiX au branchement de la caméra.

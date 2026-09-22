@@ -121,6 +121,15 @@ private struct MenuBarLabel: View {
                 Circle().fill(Ink.blue).frame(width: 5, height: 5)
             }
         }
+        // Le tout premier lancement n'a pas de carte à annoncer : sans cela, l'accueil
+        // n'apparaîtrait qu'au moment où l'on brancherait quelque chose — c'est-à-dire trop tard
+        // pour expliquer ce qu'il faut autoriser avant de brancher.
+        .onAppear {
+            guard !model.preferences.onboardingDone else { return }
+            router.tab = .transfer
+            openWindow(id: WindowID.main)
+            NSApp.activate(ignoringOtherApps: true)
+        }
         .onChange(of: model.stageKind) { _, kind in
             // Tout état qui attend quelque chose ouvre la fenêtre, pas seulement ceux qui
             // montrent une table : une app qui attend un dossier d'import doit le demander là où

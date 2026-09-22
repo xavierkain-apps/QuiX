@@ -512,12 +512,32 @@
         }
       }
     },
+    "Allow notifications…": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autoriser les notifications…"
+          }
+        }
+      }
+    },
     "Ask before importing": {
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Demander confirmation avant d'importer"
+          }
+        }
+      }
+    },
+    "Asked": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demandé"
           }
         }
       }
@@ -538,6 +558,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "« Automatique » suit le Mac. Choisir une langue relance QuiX — macOS ne la lit qu'au démarrage."
+          }
+        }
+      }
+    },
+    "Back": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retour"
           }
         }
       }
@@ -582,6 +612,16 @@
         }
       }
     },
+    "Change folder…": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changer de dossier…"
+          }
+        }
+      }
+    },
     "Change…": {
       "localizations": {
         "fr": {
@@ -608,6 +648,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Choisir"
+          }
+        }
+      }
+    },
+    "Choose a folder…": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisir un dossier…"
           }
         }
       }
@@ -648,6 +698,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Branchement"
+          }
+        }
+      }
+    },
+    "Continue": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer"
           }
         }
       }
@@ -742,6 +802,16 @@
         }
       }
     },
+    "Every copy is checksummed, then read back from disk.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chaque copie porte une empreinte, relue ensuite sur le disque."
+          }
+        }
+      }
+    },
     "Everything is already imported. Nothing to copy.": {
       "localizations": {
         "fr": {
@@ -778,6 +848,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Dossier"
+          }
+        }
+      }
+    },
+    "For a card in a reader. macOS asks on the first card; without it, the card looks empty.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pour une carte dans un lecteur. macOS la demande à la première carte ; sans elle, la carte paraît vide."
           }
         }
       }
@@ -912,6 +992,26 @@
         }
       }
     },
+    "Neither is optional, and both fail the same misleading way — QuiX sees the hardware and finds nothing on it.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune n'est facultative, et les deux échouent de la même façon trompeuse : QuiX voit le matériel et n'y trouve rien."
+          }
+        }
+      }
+    },
+    "Never erases": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N'efface jamais"
+          }
+        }
+      }
+    },
     "No card": {
       "localizations": {
         "fr": {
@@ -942,12 +1042,32 @@
         }
       }
     },
+    "No waiting": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sans attendre"
+          }
+        }
+      }
+    },
     "Nothing here": {
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Rien ici"
+          }
+        }
+      }
+    },
+    "Notifications": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications"
           }
         }
       }
@@ -1002,6 +1122,16 @@
         }
       }
     },
+    "Over USB-C the GoPro is a network device. macOS asks the first time QuiX talks to it; if you refuse, the camera looks empty.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En USB-C, la GoPro est un périphérique réseau. macOS la demande la première fois que QuiX lui parle ; en cas de refus, la caméra paraît vide."
+          }
+        }
+      }
+    },
     "Over USB-C the camera is a network device as far as macOS is concerned.": {
       "localizations": {
         "fr": {
@@ -1032,12 +1162,32 @@
         }
       }
     },
+    "Plug in your GoPro": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branchez votre GoPro"
+          }
+        }
+      }
+    },
     "Plug the GoPro in over USB-C, or the card into a reader — the import will show up here.": {
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Branchez la GoPro en USB-C, ou la carte dans un lecteur — l'import s'affichera ici."
+          }
+        }
+      }
+    },
+    "Plug the camera in over USB-C, or the card into a reader. QuiX reads the tags you pressed while filming and files each take in Highlights or Clips. It never modifies the card.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branchez la caméra en USB-C, ou la carte dans un lecteur. QuiX lit les tags posés pendant le tournage et range chaque prise dans Highlights ou dans Clips. Il ne modifie jamais la carte."
           }
         }
       }
@@ -1062,12 +1212,32 @@
         }
       }
     },
+    "QuiX creates one dated folder per import, with Highlights and Clips inside it. Pick somewhere you already keep footage — QuiX will not invent a folder for you.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QuiX crée un dossier daté par import, avec Highlights et Clips dedans. Choisissez un endroit où vous rangez déjà vos rushes — QuiX n'inventera pas de dossier à votre place."
+          }
+        }
+      }
+    },
     "QuiX is not running in the meantime — macOS wakes it when the camera arrives. The match only recognises the HERO12 Black.": {
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "QuiX ne tourne pas en attendant : c'est macOS qui le réveille au branchement. L'appariement ne reconnaît que la HERO12 Black."
+          }
+        }
+      }
+    },
+    "QuiX sorts your GoPro highlights": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QuiX trie les highlights de votre GoPro"
           }
         }
       }
@@ -1202,6 +1372,26 @@
         }
       }
     },
+    "So you know when an import is done and the camera can be unplugged.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pour savoir quand un import est fini et quand débrancher la caméra."
+          }
+        }
+      }
+    },
+    "Sorting reads 34 KB per clip, not the whole file.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le tri lit 34 Ko par clip, pas le fichier entier."
+          }
+        }
+      }
+    },
     "Source": {
       "localizations": {
         "fr": {
@@ -1228,6 +1418,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tags"
+          }
+        }
+      }
+    },
+    "The card is only emptied by a button you press.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La carte ne se vide que par un bouton sur lequel vous appuyez."
           }
         }
       }
@@ -1302,6 +1502,16 @@
         }
       }
     },
+    "Two permissions macOS will ask for": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deux autorisations que macOS va demander"
+          }
+        }
+      }
+    },
     "Verification": {
       "localizations": {
         "fr": {
@@ -1312,12 +1522,32 @@
         }
       }
     },
+    "Verified": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifié"
+          }
+        }
+      }
+    },
     "Where should imported clips go?": {
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
             "value": "Où ranger les clips importés ?"
+          }
+        }
+      }
+    },
+    "Where should the clips go?": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Où ranger les clips ?"
           }
         }
       }
