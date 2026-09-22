@@ -10,6 +10,8 @@
 
 declare(strict_types=1);
 
+require __DIR__ . '/_mail.php';
+
 const TELECHARGEMENT = 'https://github.com/xavierkain-apps/QuiX/releases/latest/download/QuiX.zip';
 const DESTINATAIRE   = 'xavierkain.consulting@gmail.com';
 const REGISTRE       = __DIR__ . '/../quix-inscriptions.jsonl';
@@ -89,15 +91,30 @@ $inscription = [
 
 // L'e-mail n'est pas la voie principale : le lien s'affiche de toute façon ci-dessous. S'il
 // n'arrive pas, personne n'est bloqué.
-$sujet = $langue === 'fr' ? 'Votre telechargement QuiX' : 'Your QuiX download';
+// The subject is MIME-encoded now, so the French one can carry its accents again.
+$sujet = $langue === 'fr' ? 'Votre téléchargement QuiX' : 'Your QuiX download';
 $corps = $langue === 'fr'
     ? "Bonjour " . $inscription['prenom'] . ",\n\nVoici QuiX :\n" . TELECHARGEMENT
-      . "\n\nDecompressez, glissez QuiX dans Applications, et branchez votre GoPro allumee.\n\nXavier"
+      . "\n\nDécompressez, glissez QuiX dans Applications, et branchez votre GoPro allumée.\n\nXavier"
     : "Hi " . $inscription['prenom'] . ",\n\nHere is QuiX:\n" . TELECHARGEMENT
       . "\n\nUnzip it, drag QuiX into Applications, and plug your GoPro in, switched on.\n\nXavier";
-@mail($email, $sujet, $corps, "From: QuiX <no-reply@quix.xavier-kain.fr>\r\nContent-Type: text/plain; charset=utf-8");
-@mail(DESTINATAIRE, 'QuiX — nouvelle inscription', json_encode($inscription, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
-      "From: QuiX <no-reply@quix.xavier-kain.fr>\r\nContent-Type: text/plain; charset=utf-8");
+@mail($email, sujet_mime($sujet), $corps,
+      "From: QuiX <no-reply@quix.xavier-kain.fr>\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8");
+
+envoyer(
+    DESTINATAIRE,
+    '[QuiX · Téléchargement] ' . $inscription['prenom'] . ($inscription['nouvelles'] ? ' (abonné)' : ''),
+    'Nouveau téléchargement',
+    '',
+    [
+        'Prénom'     => $inscription['prenom'],
+        'E-mail'     => $email,
+        'Nouveautés' => $inscription['nouvelles'] ? 'oui, veut être prévenu' : 'non',
+        'Langue'     => $langue,
+        'Reçu le'    => gmdate('d/m/Y H:i') . ' UTC',
+    ],
+    $email
+);
 
 $lien = htmlspecialchars(TELECHARGEMENT, ENT_QUOTES);
 page($mots['title'],

@@ -32,6 +32,11 @@ RewriteRule ^appcast\.xml$ https://github.com/xavierkain-apps/QuiX/releases/late
   Require all denied
 </FilesMatch>
 
+# _mail.php only defines functions for the two endpoints. Nothing in it is meant to be requested.
+<Files "_mail.php">
+  Require all denied
+</Files>
+
 <IfModule mod_expires.c>
   ExpiresActive On
   ExpiresByType image/png "access plus 7 days"
