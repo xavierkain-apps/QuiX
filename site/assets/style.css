@@ -78,7 +78,7 @@ header .wrap { display: flex; align-items: center; justify-content: space-betwee
 /* Héros */
 /* `overflow: hidden` contient le halo : large de 620 px et positionné en absolu, il allongeait
    la largeur de défilement sur mobile et donnait une page qui glisse latéralement. */
-.hero { position: relative; overflow: hidden; text-align: center; padding: 88px 28px 56px; }
+.hero { position: relative; overflow: hidden; text-align: center; padding: 96px 28px 80px; }
 .halo {
   position: absolute; top: 40px; left: 50%; width: 620px; height: 620px; margin-left: -310px;
   border-radius: 50%; pointer-events: none;
@@ -104,33 +104,58 @@ h1 {
   border: 1px solid var(--line); background: var(--raised);
   box-shadow: 0 40px 120px -40px rgba(0, 163, 228, .35);
 }
-.shot .sweep {
-  position: absolute; top: 0; left: 0; height: 1px; width: 30%; z-index: 2;
-  background: linear-gradient(90deg, transparent, var(--blue), transparent);
-  animation: sweep 5s linear infinite;
+/* The light that runs around the hero screen — all four edges, at a steady speed.
+   An SVG rectangle with pathLength=100 lets one dash travel the whole perimeter uniformly, which
+   a rotating conic gradient cannot do on a wide rectangle: it would crawl along the long edges
+   and whip round the corners. */
+section.wrap.shot-section { padding-top: 8px; }
+figure.shot.glow { margin: 0; padding: 1.6vw 1.3vw; background: var(--raised); overflow: visible; }
+.orbit { position: absolute; inset: -1px; width: calc(100% + 2px); height: calc(100% + 2px); pointer-events: none; overflow: visible; z-index: 2; }
+.orbit rect {
+  x: 1px; y: 1px; width: calc(100% - 2px); height: calc(100% - 2px); rx: 18px;
+  fill: none; stroke: var(--blue); stroke-width: 2px; stroke-linecap: round;
+  stroke-dasharray: 9 91; animation: orbit 9s linear infinite;
+  filter: drop-shadow(0 0 5px rgba(0, 163, 228, .9)) drop-shadow(0 0 14px rgba(0, 163, 228, .45));
 }
-@keyframes sweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
+@keyframes orbit { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -100; } }
+.pop-shot { margin: 0; padding: 30px; background: var(--raised); box-shadow: 0 30px 90px -40px rgba(0,163,228,.3); }
 
-section { padding-top: 84px; }
+/* Vertical rhythm. Sections breathe apart; inside a section the steps are fixed:
+   kicker → 16px → title → 22px → text → 48px → content. */
+/* `section.wrap`, not `section`: every section also carries `.wrap`, whose `padding: 0 28px` is a
+   class rule and silently beat a bare element selector. The spacing between sections was never
+   applied at all — which is why each block sat right under the previous one. */
+section, section.wrap { padding-top: 136px; }
+@media (max-width: 720px) { section, section.wrap { padding-top: 96px; } }
 h2 {
-  font-size: clamp(28px, 4.4vw, 46px); line-height: 1; letter-spacing: -.035em;
-  font-weight: 800; text-transform: uppercase; margin: 0 0 18px;
+  font-size: clamp(28px, 4.4vw, 46px); line-height: 1.02; letter-spacing: -.035em;
+  font-weight: 800; text-transform: uppercase; margin: 0 0 22px; text-wrap: balance;
 }
-.kicker { font-size: 10.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+.h2-narrow { max-width: 20ch; margin-bottom: 48px; }
+.kicker { font-size: 10.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+.body-lg { font-size: 16.5px; line-height: 1.62; color: var(--muted); margin: 0 0 18px; max-width: 44ch; text-wrap: pretty; }
+.body-sm { font-size: 13.5px; line-height: 1.6; color: var(--faint); margin: 0; max-width: 44ch; text-wrap: pretty; }
+.caption { text-align: center; margin: 22px auto 0; max-width: 60ch; }
+.hint { font-size: 11px; letter-spacing: .4px; color: var(--muted); }
 
 /* Trois qualités */
-.traits { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.traits { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
 .trait {
   background: rgba(255, 255, 255, .05); border: .5px solid var(--line);
   border-radius: 14px; padding: 24px; transition: border-color .25s, transform .25s;
 }
 .trait:hover { border-color: rgba(0, 163, 228, .5); transform: translateY(-3px); }
-.trait .rule { height: 2px; width: 26px; background: var(--blue); margin-bottom: 18px; }
-.trait h3 { font-size: 17px; font-weight: 600; margin: 0 0 7px; }
-.trait p { font-size: 13.5px; line-height: 1.5; color: var(--faint); margin: 0; }
+.trait { padding: 26px 24px 28px; }
+.trait-ic {
+  display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 20px;
+  border-radius: 11px; color: var(--blue); background: rgba(0, 163, 228, .12);
+}
+.trait-ic svg { width: 21px; height: 21px; }
+.trait h3 { font-size: 17px; font-weight: 600; line-height: 1.3; margin: 0 0 9px; }
+.trait p { font-size: 13.5px; line-height: 1.55; color: var(--faint); margin: 0; }
 
 /* Deux colonnes */
-.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; align-items: start; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 56px 64px; align-items: start; }
 .two.middle { align-items: center; }
 .steps { display: flex; flex-direction: column; gap: 10px; }
 .step {
@@ -153,14 +178,14 @@ h2 {
 .stat .l { font-size: 10.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin-top: 10px; }
 
 /* Accueil */
-.onb-head { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 30px; }
-.onb { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.onb-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 44px; }
+.onb { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
 .card {
   border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--raised);
   transition: border-color .25s, transform .25s;
 }
 .card:hover { border-color: rgba(0, 163, 228, .45); transform: translateY(-4px); }
-.card .body { padding: 20px 22px 24px; border-top: 1px solid var(--hairline); }
+.card .body { padding: 22px 24px 26px; border-top: 1px solid var(--hairline); }
 .card .no { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .card .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); }
 .card .no span { font-size: 10.5px; letter-spacing: 1.2px; color: var(--muted); }
@@ -177,7 +202,7 @@ h2 {
 .tab .key { font-size: 11.5px; color: var(--muted); }
 
 /* Téléchargement */
-#download { padding-top: 110px; }
+section.wrap#download { padding-top: 150px; }
 .download-box {
   position: relative; text-align: center; overflow: hidden;
   border: 1px solid rgba(0, 163, 228, .3); border-radius: 22px; padding: 64px 32px;
@@ -185,7 +210,7 @@ h2 {
 }
 .download-box img { width: 62px; height: 62px; margin: 0 auto 24px; }
 .download-box h2 { font-size: clamp(30px, 5.4vw, 56px); line-height: .98; letter-spacing: -.04em; margin: 0 auto 16px; max-width: 18ch; text-wrap: balance; }
-.download-box p { font-size: 16px; line-height: 1.55; color: var(--muted); margin: 0 auto 28px; max-width: 42ch; text-wrap: pretty; }
+.download-box p { font-size: 16px; line-height: 1.6; color: var(--muted); margin: 0 auto 36px; max-width: 42ch; text-wrap: pretty; }
 .download-foot { font-size: 11.5px; color: var(--muted); margin: 22px 0 0; }
 
 /* Formulaire */
@@ -204,7 +229,7 @@ form.gate button { font: inherit; cursor: pointer; border: 0; justify-content: c
 .ok { color: var(--blue-light); font-size: 14px; }
 
 footer {
-  max-width: 1200px; margin: 96px auto 0; padding: 22px 28px 40px;
+  max-width: 1200px; margin: 120px auto 0; padding: 22px 28px 40px;
   border-top: 1px solid var(--hairline);
   display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
   font-size: 11.5px; color: var(--muted);
@@ -215,7 +240,8 @@ footer a:hover { color: var(--text); }
 [data-reveal].shown { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   [data-reveal] { opacity: 1; transform: none; }
-  .halo, .hero .icon, .shot .sweep { animation: none; }
+  .halo, .hero .icon, .orbit rect { animation: none; }
+  .orbit { display: none; }
   html { scroll-behavior: auto; }
 }
 
@@ -288,9 +314,9 @@ footer a:hover { color: var(--text); }
 .mk-c1 { flex: 1; min-width: 0; font-family: "JetBrains Mono", monospace; display: flex; align-items: center; gap: .9em; }
 .mk-head .mk-c1 { font-family: inherit; }
 .mk-head .mk-bullet { visibility: hidden; }
-.mk-c2 { flex: 0 0 13%; text-align: right; color: rgba(242,240,236,.75); }
-.mk-c3 { flex: 0 0 9%; text-align: center; }
-.mk-c4 { flex: 0 0 12%; text-align: right; color: rgba(242,240,236,.5); }
+.mk-c2 { flex: 0 0 12%; text-align: right; color: rgba(242,240,236,.75); }
+.mk-c3 { flex: 0 0 13%; text-align: center; }
+.mk-c4 { flex: 0 0 11%; text-align: right; color: rgba(242,240,236,.5); }
 .mk-bullet { width: .45em; height: .45em; border-radius: 50%; background: var(--blue); flex: 0 0 auto; }
 .mk-badge {
   display: inline-block; min-width: 1.5em; padding: .12em .4em; border-radius: .3em;
@@ -346,43 +372,119 @@ figure.zoomable:focus-visible { outline: 2px solid var(--blue); outline-offset: 
 }
 .zoom-x:hover { background: rgba(255,255,255,.18); }
 
-/* ── Schéma du bouton GoPro ───────────────────────────────────────────────── */
-.gp { text-align: center; }
-.gp svg { width: 100%; max-width: 400px; margin: 0 auto; overflow: visible; }
-.gp-body { fill: #1C1C21; stroke: rgba(255,255,255,.14); stroke-width: 1.5; }
-.gp-side { fill: #26262B; }
-.gp-lensRing { fill: #111116; stroke: rgba(255,255,255,.1); stroke-width: 1.5; }
-.gp-lens { fill: #05070D; stroke: rgba(0,163,228,.35); stroke-width: 1.5; }
-.gp-glint { fill: rgba(169,220,245,.3); }
-.gp-screen { fill: rgba(255,255,255,.07); }
-.gp-rec { fill: #FF4B3E; animation: gpRec 1.8s ease-in-out infinite; }
-@keyframes gpRec { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
-.gp-recLab { fill: rgba(242,240,236,.45); font-size: 10px; font-family: "JetBrains Mono", monospace; }
-.gp-btn { fill: var(--blue); }
-.gp-halo { fill: rgba(0,163,228,.3); animation: gpPress 2.4s ease-out infinite; transform-origin: 99px 104px; }
-@keyframes gpPress {
-  0%, 62% { transform: scale(1); opacity: .55; }
-  74% { transform: scale(1.75); opacity: 0; }
-  100% { transform: scale(1.75); opacity: 0; }
+/* ── First-launch screens ──────────────────────────────────────────────────── */
+.mock-frame.tiny { font-size: clamp(4.4px, .42vw, 6.4px); }
+.card-shot {
+  position: relative; margin: 0; padding: 22px 18px; background: #131318;
+  display: flex; justify-content: center;
 }
-.gp-lead { stroke: rgba(255,255,255,.22); stroke-width: 1.2; stroke-dasharray: 3 4; fill: none; }
-.gp-lab { fill: var(--text); font-size: 13px; font-weight: 600; font-family: Archivo, sans-serif; }
-.gp-sub { fill: var(--blue-light); font-size: 11px; font-family: "JetBrains Mono", monospace; }
-.gp-mark { fill: var(--blue); animation: gpMark 2.4s ease-out infinite; }
-@keyframes gpMark { 0%, 70% { opacity: 0; r: 3; } 80% { opacity: 1; r: 6; } 100% { opacity: 1; r: 5; } }
-.gp-result { font-size: 13px; color: var(--blue-light); margin: 6px 0 0; font-family: "JetBrains Mono", monospace; }
+.card-shot .mk-win { box-shadow: 0 1.6em 4em -1.4em rgba(0,0,0,.9); }
+.zoom-badge {
+  position: absolute; right: 12px; top: 12px; width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center; color: var(--text);
+  background: rgba(16,16,23,.82); border: .5px solid var(--line);
+  opacity: .75; transition: opacity .2s, transform .2s, background .2s;
+}
+.zoom-badge svg { width: 16px; height: 16px; }
+.card-shot:hover .zoom-badge, .card-shot:focus-visible .zoom-badge { opacity: 1; transform: scale(1.08); background: var(--blue); }
+
+/* One fixed height for all three screens, content centred vertically as in the app — otherwise
+   the three cards come out at three different heights. */
+.mk-onb { width: 60em; height: 42em; display: flex; flex-direction: column; }
+.mk-onbBody {
+  flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 2em 4em; background: #1A1A1E;
+}
+.mk-logo { width: 4.6em; height: 4.6em; margin-bottom: 1.4em; border-radius: 1em; }
+.mk-onbTitle { font-size: 1.85em; font-weight: 700; letter-spacing: -.02em; margin-bottom: .6em; }
+.mk-onbText { font-size: 1.05em; line-height: 1.45; color: rgba(242,240,236,.55); max-width: 42em; margin: 0 0 1.8em; }
+
+.mk-feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1em; width: 100%; max-width: 50em; text-align: left; }
+.mk-feat { background: #242429; border: .08em solid rgba(255,255,255,.08); border-radius: .8em; padding: 1.2em 1.25em 1.3em; }
+.ic { display: inline-grid; place-items: center; }
+.ic svg { width: 100%; height: 100%; }
+.mk-featIc { width: 1.5em; height: 1.5em; color: var(--blue); margin-bottom: .7em; }
+.mk-featT { font-size: 1.1em; font-weight: 600; margin-bottom: .35em; }
+.mk-featB { font-size: .92em; line-height: 1.4; color: rgba(242,240,236,.5); }
+
+.mk-choose { font-size: 1.1em; padding: .75em 1.5em; }
+
+.mk-perms { width: 100%; max-width: 46em; text-align: left; display: flex; flex-direction: column; gap: 1em; }
+.mk-perm { display: flex; align-items: center; gap: 1.1em; }
+.mk-permIc { flex: 0 0 auto; width: 1.55em; height: 1.55em; color: var(--blue); align-self: flex-start; margin-top: .1em; }
+.mk-permText { flex: 1; min-width: 0; }
+.mk-permT { font-size: 1.1em; font-weight: 500; margin-bottom: .2em; }
+.mk-permB { font-size: .92em; line-height: 1.4; color: rgba(242,240,236,.5); }
+.mk-ghostBtn {
+  flex: 0 0 auto; font-size: 1em; padding: .6em 1.2em; border-radius: .55em; white-space: nowrap;
+  background: rgba(255,255,255,.07); border: .08em solid rgba(255,255,255,.14); color: #F2F0EC;
+}
+.mk-check {
+  display: flex; align-items: center; gap: .7em; width: 100%; max-width: 46em; text-align: left;
+  font-size: 1.05em; margin-top: 1.4em; padding-top: 1.3em; border-top: .08em solid rgba(255,255,255,.12);
+}
+.mk-box { width: 1.25em; height: 1.25em; border-radius: .3em; background: var(--blue); color: #fff; display: grid; place-items: center; padding: .15em; }
+
+.mk-onbFoot {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.2em 1.7em; background: #1A1A1E; border-top: .08em solid rgba(255,255,255,.07);
+}
+.mk-pager { display: flex; gap: .55em; }
+.mk-pager i { width: .5em; height: .5em; border-radius: 50%; background: rgba(255,255,255,.22); }
+.mk-pager i.on { background: var(--blue); }
+.mk-actions { display: flex; gap: .7em; }
+.mk-btn.dim { background: #0F3C52; color: rgba(255,255,255,.55); }
+
+/* The zoom view shows the first-launch screens at a readable size. */
+.zoom-inner .mk-onb { margin: 0 auto; }
+
+/* ── GoPro HERO12 diagram ──────────────────────────────────────────────────── */
+.gp { text-align: center; }
+.gp svg { width: 100%; max-width: 480px; margin: 0 auto; overflow: visible; display: block; }
+.gp-body { fill: #1D1D22; }
+.gp-edge { fill: none; stroke: rgba(255,255,255,.16); stroke-width: 1.5; }
+.gp-shutter { fill: #2B2B31; stroke: rgba(255,255,255,.16); stroke-width: 1.2; }
+.gp-shutterRed { fill: #E8453C; }
+.gp-side { fill: var(--blue); }
+.gp-halo { fill: rgba(0,163,228,.35); transform-box: fill-box; transform-origin: center; animation: gpPress 3.2s ease-out infinite; }
+@keyframes gpPress {
+  0%, 44% { transform: scale(.6); opacity: 0; }
+  50% { transform: scale(1); opacity: .9; }
+  66% { transform: scale(1.9); opacity: 0; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+.gp-screen { fill: #0B0C10; stroke: rgba(255,255,255,.08); }
+.gp-rec { fill: #FF4B3E; animation: gpRec 1.6s ease-in-out infinite; }
+@keyframes gpRec { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+.gp-recLab { fill: #FF6B60; font: 600 10px "JetBrains Mono", monospace; }
+.gp-time { fill: rgba(242,240,236,.85); font: 500 15px "JetBrains Mono", monospace; }
+.gp-led { fill: #FF4B3E; opacity: .8; }
+.gp-brand { fill: rgba(242,240,236,.28); font: 700 12px Archivo, sans-serif; letter-spacing: .5px; }
+.gp-lensCover { fill: #121216; stroke: rgba(255,255,255,.1); }
+.gp-lensRing { fill: #0B0C10; stroke: rgba(255,255,255,.12); stroke-width: 1.5; }
+.gp-lens { fill: #04060B; stroke: rgba(0,163,228,.45); stroke-width: 1.5; }
+.gp-glint { fill: rgba(169,220,245,.3); }
+.gp-lead { stroke: rgba(255,255,255,.28); stroke-width: 1.2; stroke-dasharray: 3 4; fill: none; }
+.gp-lab { fill: var(--text); font: 600 13px Archivo, sans-serif; }
+.gp-sub { fill: var(--blue-light); font: 400 11px "JetBrains Mono", monospace; }
+.gp-sub.dim { fill: rgba(242,240,236,.45); }
+.gp-track { fill: rgba(255,255,255,.1); }
+.gp-played { fill: var(--blue); transform-box: fill-box; transform-origin: left center; animation: gpPlay 3.2s linear infinite; }
+@keyframes gpPlay { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* The marker appears when the press lands — the same instant as the halo above. */
+.gp-marker { animation: gpMark 3.2s linear infinite; }
+@keyframes gpMark { 0%, 49% { opacity: 0; } 52%, 94% { opacity: 1; } 100% { opacity: 0; } }
+.gp-flag { fill: var(--blue); }
 
 @media (prefers-reduced-motion: reduce) {
-  .gp-rec, .gp-halo, .gp-mark, .mk-fill { animation: none; }
+  .gp-rec, .gp-halo, .gp-marker, .gp-played { animation: none; }
+  .gp-marker { opacity: 1; }
 }
 
-/* ── Comment ça marche ────────────────────────────────────────────────────── */
+/* ── How it works ──────────────────────────────────────────────────────────── */
 .how { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
-.how .step { flex-direction: column; gap: 10px; padding: 26px 24px 28px; }
-.how .step .no {
-  font-size: 12px; color: var(--blue-light); padding: 0;
-  display: inline-flex; align-items: center; gap: 9px;
-}
+.how .step { flex-direction: column; gap: 12px; padding: 28px 26px 30px; }
+.how .step .no { font-size: 12px; color: var(--blue-light); padding: 0; display: inline-flex; align-items: center; gap: 9px; }
 .how .step .no::before { content: ""; width: 20px; height: 2px; background: var(--blue); }
-.how .step h3 { font-size: 18px; }
-.how .step p { font-size: 14px; }
+.how .step h3 { font-size: 18px; line-height: 1.3; }
+.how .step p { font-size: 14px; line-height: 1.55; }

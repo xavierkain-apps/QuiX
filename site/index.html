@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QuiX — your GoPro highlights, sorted the moment you plug in</title>
-<meta name="description" content="You press the GoPro button when something good happens. QuiX finds those moments and puts the clips in their own folder, automatically. A free GoPro importer for Mac.">
+<title>QuiX — free GoPro importer for Mac that sorts your highlights</title>
+<meta name="description" content="Press the button on your GoPro when something good happens. QuiX finds those moments and puts the clips in their own folder, automatically. Free, for Mac.">
 <link rel="icon" href="assets/favicon.png">
 <meta property="og:title" content="QuiX — your GoPro highlights, sorted the moment you plug in">
-<meta property="og:description" content="Press the button while you film. QuiX does the rest.">
+<meta property="og:description" content="Press the button while you film. QuiX does the rest. Free, for Mac.">
 <meta property="og:image" content="https://quix.xavier-kain.fr/assets/icon-1024.png">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,7 +25,7 @@
         <button type="button" data-lang="en" aria-pressed="true">EN</button>
         <button type="button" data-lang="fr" aria-pressed="false">FR</button>
       </div>
-      <a class="btn small" href="#download" data-t="navGet">Download</a>
+      <a class="btn small" href="#download" data-t="navGet">Free download</a>
     </div>
   </div>
 </header>
@@ -37,35 +37,36 @@
     <h1 data-reveal data-t="h1">Plug in. Your best moments are already sorted.</h1>
     <p class="lede" data-reveal data-t="sub"></p>
     <div class="ctas" data-reveal>
-      <a class="btn" href="#download" data-t="ctaPrimary">Download for Mac</a>
+      <a class="btn" href="#download" data-t="ctaPrimary">Download for free</a>
     </div>
     <p class="hero-foot mono" data-t="heroFoot"></p>
   </div>
 </section>
 
-<!-- L'app telle qu'elle est à la fin d'un import. Redessinée en HTML, donc nette et agrandissable. -->
-<section class="wrap" data-reveal style="padding-top: 0">
-  <figure class="shot" id="fig-transfer" style="margin: 0; padding: 1.4vw 1.2vw; background: var(--raised)">
-    <span class="sweep" aria-hidden="true"></span>
+<!-- The app at the end of an import. Already full width, so it is not zoomable: enlarging it
+     would not show it any bigger. -->
+<section class="wrap shot-section" data-reveal>
+  <figure class="shot glow" id="fig-transfer">
+    <svg class="orbit" aria-hidden="true"><rect pathLength="100" x="1" y="1" rx="18" width="100%" height="100%"/></svg>
     <div class="mock-frame" id="mock-transfer"></div>
   </figure>
-  <figcaption class="mono note" style="text-align: center; margin-top: 12px" data-t="shotHero"></figcaption>
+  <figcaption class="mono note caption" data-t="shotHero"></figcaption>
 </section>
 
 <section class="wrap">
-  <div class="kicker mono" data-reveal data-t="howKicker" style="margin-bottom: 14px"></div>
-  <h2 data-reveal data-t="howTitle" style="max-width: 20ch; margin-bottom: 34px"></h2>
+  <div class="kicker mono" data-reveal data-t="howKicker"></div>
+  <h2 data-reveal data-t="howTitle" class="h2-narrow"></h2>
   <div class="how" id="howSteps"></div>
 </section>
 
-<!-- Le geste que tout le reste suppose. Sans lui, l'app n'a rien à trier. -->
+<!-- The gesture everything else relies on. Without it, the app has nothing to sort. -->
 <section class="wrap">
   <div class="two middle">
     <div>
-      <div class="kicker mono" data-reveal data-t="hlKicker" style="margin-bottom: 18px"></div>
+      <div class="kicker mono" data-reveal data-t="hlKicker"></div>
       <h2 data-reveal data-t="hlTitle" style="max-width: 16ch"></h2>
-      <p data-reveal data-t="hlBody" style="font-size: 16px; line-height: 1.55; color: var(--muted); margin: 0 0 16px; max-width: 44ch"></p>
-      <p data-reveal data-t="hlNote" style="font-size: 13.5px; line-height: 1.55; color: var(--faint); margin: 0; max-width: 44ch"></p>
+      <p class="body-lg" data-reveal data-t="hlBody"></p>
+      <p class="body-sm" data-reveal data-t="hlNote"></p>
     </div>
     <div data-reveal id="gopro"></div>
   </div>
@@ -76,16 +77,27 @@
 </section>
 
 <section class="wrap">
+  <div class="onb-head">
+    <div>
+      <div class="kicker mono" data-reveal data-t="onbKicker"></div>
+      <h2 data-reveal data-t="onbTitle" style="max-width: 20ch; margin-bottom: 0"></h2>
+    </div>
+    <span class="hint mono" data-t="onbHint"></span>
+  </div>
+  <div class="onb" id="onb"></div>
+</section>
+
+<section class="wrap">
   <div class="two middle">
     <div>
       <h2 data-reveal data-t="libTitle" style="max-width: 16ch"></h2>
-      <p data-reveal data-t="libBody" style="font-size: 16px; line-height: 1.55; color: var(--muted); margin: 0; max-width: 40ch"></p>
+      <p class="body-lg" data-reveal data-t="libBody" style="margin-bottom: 0"></p>
     </div>
     <div data-reveal>
-      <figure class="shot" id="fig-popover" style="margin: 0; padding: 26px; background: var(--raised); box-shadow: 0 30px 90px -40px rgba(0,163,228,.3)">
+      <figure class="shot pop-shot" id="fig-popover">
         <div class="mock-frame small" id="mock-popover"></div>
       </figure>
-      <figcaption class="mono note" style="text-align: center; margin-top: 12px" data-t="shotPopover"></figcaption>
+      <figcaption class="mono note caption" data-t="shotPopover"></figcaption>
     </div>
   </div>
 </section>
@@ -112,7 +124,7 @@
         <input type="checkbox" name="nouvelles" value="1" checked>
         <span data-t="dlConsent"></span>
       </label>
-      <button class="btn" type="submit" data-t="dlSubmit">Send me the link</button>
+      <button class="btn" type="submit" data-t="dlSubmit">Send me the free download</button>
       <p class="note" data-t="dlPrivacy"></p>
     </form>
 
