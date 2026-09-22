@@ -1,10 +1,26 @@
 # L'icône absente des notifications
 
 La bannière de fin d'import s'affiche, avec le bon titre et le bon texte, mais à la place de
-l'icône de QuiX macOS dessine son **gabarit vide** — le carré arrondi pâle strié d'une grille,
-celui d'Icon Composer quand aucune image n'est fournie.
+l'icône de QuiX macOS dessine son **gabarit vide** — le carré arrondi pâle strié d'une grille.
 
-## Ce qui a été écarté, mesuré et non supposé
+**Ce n'est pas un défaut de QuiX.** C'est l'enregistrement de l'identifiant
+`com.xavierkain.QuiX` auprès du système de notifications du Mac de développement qui est
+abîmé. Un Mac qui installe QuiX une seule fois n'a pas le problème.
+
+## La preuve
+
+Une app témoin de quarante lignes — rien d'autre qu'une notification — signée du même
+certificat, posée dans `/Applications`, portant **le même fichier `AppIcon.icns` que QuiX** :
+
+| Identifiant du témoin | Icône dans la bannière |
+|---|---|
+| `com.xavierkain.SondeNotif` (neuf) | **affichée** |
+| `com.xavierkain.QuiX` | **absente** |
+
+Même binaire, même icône, même signature. Seul l'identifiant change. L'icône n'entre pas en
+ligne de compte : c'est l'identifiant qui porte le défaut.
+
+## Ce qui a été écarté en chemin
 
 Chaque essai a été vérifié de la même façon : un import réel depuis une fausse carte GoPro,
 puis une capture de la **fenêtre de la bannière par son identifiant** — jamais une capture
@@ -12,40 +28,32 @@ d'écran, qui emporterait ce qu'il y a derrière.
 
 | Piste | Résultat |
 |---|---|
-| Copies périmées du bundle dans LaunchServices (six, dont trois fantômes) | désenregistrées — sans effet |
-| Cache d'icônes utilisateur, `usernoted`, `NotificationCenter` | vidés et relancés — sans effet |
+| Six copies périmées du bundle dans LaunchServices, dont trois fantômes | désenregistrées — sans effet |
+| Caches d'icônes, `usernoted`, `NotificationCenter`, `iconservicesagent` | vidés et relancés — sans effet |
 | Réinstallation propre dans `/Applications` | sans effet |
 | `NSPrincipalClass` absent de l'`Info.plist` | ajouté — sans effet, mais gardé : c'est correct |
+| Nom localisé de l'app résolu en « ? » par `lsregister` | corrigé — sans effet, mais gardé |
 | Catalogue d'assets (dix tailles, `Assets.car` complet) | forme d'origine — sans effet |
 | Format Icon Composer `AppIcon.icon` de macOS 26 | accepté par `actool` — sans effet |
 | `.icns` complet, dix types `ic04`→`ic14`, sans catalogue | forme actuelle — sans effet |
+| `tccutil reset All com.xavierkain.QuiX` | sans effet : les notifications ne sont pas dans TCC |
+| Purge de l'historique de notifications de l'app | sans effet |
 
-Le bundle est par ailleurs irréprochable : `codesign` donne `Identifier=com.xavierkain.QuiX`,
-signé Developer ID et notarisé ; `lsregister` résout l'app ; et `NSWorkspace.icon(forFile:)`
-rend l'icône jusqu'en 2048 px.
-
-## Les deux indices qui restent
-
-**Le journal.** Pendant la bannière, `iconservicesagent` écrit :
+Le journal système dit, pendant chaque bannière :
 
 ```
-Failed to find named image for name:<private> scaleFactor:0.000000 … appearanceName:NSAppearanceNameAqua
+iconservicesagent: Failed to find named image for name:<private> … appearanceName:NSAppearanceNameAqua
 ```
 
-**L'absence.** `com.apple.ncprefs` liste 144 apps autorisées à notifier — Chrome, Notion,
-WhatsApp, jusqu'à l'app GoPro. **QuiX n'y est pas**, alors que ses notifications arrivent.
-C'est l'anomalie : une app dont les bannières s'affichent sans qu'elle figure parmi les
-clients enregistrés. Le gabarit vide ressemble à la conséquence de cette absence, pas à un
-problème d'icône.
+## Comment le réparer sur ce Mac
 
-Une hypothèse tient : le bundle de `/Applications/QuiX.app` a été remplacé des dizaines de fois
-pendant le développement. Si l'enregistrement est lié au bundle et disparaît avec lui,
-l'autorisation, elle, reste accordée — donc l'invite système ne revient jamais, et
-l'enregistrement n'est jamais recréé. Sur un Mac qui installe QuiX une fois, le problème
-n'existerait pas. **Ce n'est pas démontré.**
+Le magasin qui porte le défaut vit dans le conteneur scellé de `usernoted` ; aucune commande
+n'y touche. `usernoted` reconstruit ses fiches d'applications **à l'ouverture de session** :
+**quitter QuiX, redémarrer le Mac, rouvrir QuiX**. Non vérifié — on ne redémarre pas la
+machine de quelqu'un pour tester.
 
-## Ce qui trancherait
+## Ce qui reste utile de cette chasse
 
-Une app témoin, avec un identifiant neuf, qui poste une notification. Son invite d'autorisation
-demande un clic. Si elle obtient son icône, le défaut est propre à l'enregistrement de QuiX sur
-ce Mac ; sinon, aucune app tierce n'obtient d'icône ici et il n'y a rien à corriger dans QuiX.
+Trois corrections de fond, gardées parce qu'elles sont justes même si elles n'ont rien résolu
+ici : un `Info.plist` qui nous appartient, un `.icns` complet au lieu des quatre tailles que
+gardait Xcode, et le nom de l'app déclaré dans les catalogues de langue.
