@@ -404,6 +404,28 @@ jobs:
 
           VERSION="${GITHUB_REF_NAME#v}"
           BUILD=$(plutil -extract CFBundleVersion raw "$APP/Contents/Info.plist")
+
+          # Release notes, written for users, embedded in the feed. Without them Sparkle showed the
+          # GitHub release page inside the update window. One <description> per language: Sparkle
+          # picks the one matching the language the app is shown in, and renders the Markdown
+          # natively. See release-notes/README.md.
+          if [ ! -f "release-notes/$VERSION.en.md" ]; then
+            echo "::error::release-notes/$VERSION.en.md is missing: the update window would have nothing to say."
+            exit 1
+          fi
+          NOTES_XML=""
+          for LANG_CODE in en fr; do
+            FILE="release-notes/$VERSION.$LANG_CODE.md"
+            [ -f "$FILE" ] || continue
+            if grep -q ']]>' "$FILE"; then
+              echo "::error::$FILE contains ']]>', which would end the CDATA section early."
+              exit 1
+            fi
+            NOTES_XML="${NOTES_XML}      <description xml:lang=\"$LANG_CODE\" sparkle:format=\"markdown\"><![CDATA[
+          $(cat "$FILE")
+          ]]></description>
+          "
+          done
           LENGTH=$(stat -f%z QuiX.zip)
           URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/QuiX.zip"
 
@@ -420,7 +442,7 @@ jobs:
                 <sparkle:version>${BUILD}</sparkle:version>
                 <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
                 <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-                <sparkle:releaseNotesLink>https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}</sparkle:releaseNotesLink>
+                ${NOTES_XML}
                 <enclosure url="${URL}" length="${LENGTH}" type="application/octet-stream" ${SIGNATURE} />
               </item>
             </channel>
@@ -442,6 +464,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # The same user-facing notes as the update window, instead of a generated commit list.
+          VERSION="${GITHUB_REF_NAME#v}"
+          {
+            cat "release-notes/$VERSION.en.md"
+            if [ -f "release-notes/$VERSION.fr.md" ]; then
+              printf '\n---\n\n'
+              cat "release-notes/$VERSION.fr.md"
+            fi
+          } > "$RUNNER_TEMP/notes.md"
           gh release create "$GITHUB_REF_NAME" QuiX.zip appcast.xml \
             --title "QuiX $GITHUB_REF_NAME" \
-            --generate-notes
+            --notes-file "$RUNNER_TEMP/notes.md"
