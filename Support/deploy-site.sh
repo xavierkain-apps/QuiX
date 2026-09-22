@@ -3,9 +3,11 @@
 #
 #   Support/deploy-site.sh <user@host> <remote path>
 #
-# rsync with --delete, so the remote directory ends up as an exact copy of site/. Two paths are
+# rsync with --delete, so the remote directory ends up as an exact copy of site/. Three paths are
 # excluded on purpose: the registers written by the PHP endpoints live one level above the web
-# root, but if anyone ever moves them down, --delete must not wipe them.
+# root, but if anyone ever moves them down, --delete must not wipe them; and .well-known holds the
+# Let's Encrypt challenge, which the host writes into the document root. A deploy landing in the
+# middle of a certificate issuance must not delete it.
 #
 # The download file itself is never uploaded: it lives on the GitHub releases, and the page only
 # links to it.
@@ -21,6 +23,7 @@ echo "Publishing $HERE/site/ to $TARGET:$REMOTE"
 rsync -az --delete --human-readable \
   --exclude ".DS_Store" \
   --exclude "*.jsonl" \
+  --exclude ".well-known" \
   --chmod=D755,F644 \
   "$HERE/site/" "$TARGET:$REMOTE/"
 

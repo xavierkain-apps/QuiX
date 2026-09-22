@@ -1,7 +1,14 @@
 # QuiX — quix.xavier-kain.fr
 
-# Toujours en HTTPS.
+# Toujours en HTTPS — sauf la vérification Let's Encrypt.
 RewriteEngine On
+
+# L'émission d'un certificat passe par une requête en clair sur
+# http://<domaine>/.well-known/acme-challenge/<jeton>. La rediriger vers HTTPS revient à la
+# renvoyer vers le certificat qu'on cherche justement à obtenir. La règle est donc exclue avant
+# la redirection, pas après.
+RewriteRule ^\.well-known/acme-challenge/ - [L]
+
 RewriteCond %{HTTPS} !=on
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
