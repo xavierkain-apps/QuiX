@@ -16,6 +16,36 @@ struct SettingsWindow: View {
     @State private var pendingLanguage: AppLanguage?
 
     var body: some View {
+        // Les réglages ont dépassé la hauteur d'un écran de portable le jour où la langue et les
+        // retours s'y sont ajoutés : sans défilement, la première section passait sous la barre
+        // de titre.
+        ScrollView {
+            sections
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Ink.window)
+        .foregroundStyle(Ink.primary)
+        .toggleStyle(.checkbox)
+        .onAppear { refresh() }
+        .onReceive(NotificationCenter.default.publisher(
+            for: NSApplication.didBecomeActiveNotification)) { _ in refresh() }
+        .alert("Restart QuiX?", isPresented: Binding(
+            get: { pendingLanguage != nil },
+            set: { if !$0 { pendingLanguage = nil } })) {
+            Button("Restart") {
+                if let pendingLanguage { AppLanguage.store(pendingLanguage) }
+                AppLanguage.restart()
+            }
+            Button("Cancel", role: .cancel) {
+                language = AppLanguage.current
+                pendingLanguage = nil
+            }
+        } message: {
+            Text("The interface language is read once, when the app starts.")
+        }
+    }
+
+    private var sections: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Clé distincte : « Import » le titre de section et « Import » le bouton se
             // traduisent différemment en français — « Import » et « Importer ».
@@ -57,6 +87,20 @@ struct SettingsWindow: View {
 
             Divider().overlay(Ink.hairline)
 
+            Section("Feedback") {
+                HStack(spacing: 10) {
+                    Button("Report a bug…") { Feedback.open(.bug, cameraName: model.cameraName) }
+                        .buttonStyle(OutlinedDark())
+                    Button("Suggest a feature…") { Feedback.open(.idea, cameraName: model.cameraName) }
+                        .buttonStyle(OutlinedDark())
+                }
+                Note("Opens a pre-filled page in your browser. Nothing is sent from QuiX — you read it, edit it, and send it yourself.")
+                Text(verbatim: Feedback.environment(cameraName: model.cameraName))
+                    .font(Type.mono(11.5)).foregroundStyle(Ink.tertiary)
+            }
+
+            Divider().overlay(Ink.hairline)
+
             Section("Permissions") {
                 Permission(name: "Local Network",
                            granted: networkGranted,
@@ -69,27 +113,6 @@ struct SettingsWindow: View {
             }
         }
         .frame(width: 520, alignment: .leading)
-        .background(Ink.window)
-        .foregroundStyle(Ink.primary)
-        .toggleStyle(.checkbox)
-        .onAppear { refresh() }
-        .onReceive(NotificationCenter.default.publisher(
-            for: NSApplication.didBecomeActiveNotification)) { _ in refresh() }
-        .alert("Restart QuiX?", isPresented: Binding(
-            get: { pendingLanguage != nil },
-            set: { if !$0 { pendingLanguage = nil } })) {
-            Button("Restart") {
-                if let pendingLanguage { AppLanguage.store(pendingLanguage) }
-                AppLanguage.restart()
-            }
-            Button("Cancel", role: .cancel) {
-                // Le segment a déjà bougé : on le remet là où il était.
-                language = AppLanguage.current
-                pendingLanguage = nil
-            }
-        } message: {
-            Text("The interface language is read once, when the app starts.")
-        }
     }
 
     /// Un changement de langue ne s'applique qu'au lancement suivant : on le dit, et on propose

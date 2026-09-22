@@ -81,7 +81,12 @@ struct QuiXApp: App {
             CommandGroup(replacing: .undoRedo) {}
             CommandGroup(replacing: .toolbar) {}
             CommandGroup(replacing: .sidebar) {}
-            CommandGroup(replacing: .help) {}
+            // Le menu Aide était vide. C'est l'endroit où l'on cherche « comment leur dire
+            // que ça ne marche pas ».
+            CommandGroup(replacing: .help) {
+                Button("Report a bug…") { Feedback.open(.bug, cameraName: model.cameraName) }
+                Button("Suggest a feature…") { Feedback.open(.idea, cameraName: model.cameraName) }
+            }
 
             CommandGroup(after: .windowArrangement) {
                 Button("Transfer") { router.tab = .transfer }

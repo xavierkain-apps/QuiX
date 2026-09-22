@@ -14,6 +14,9 @@ avant d'écrire du code.
 écrit par la HERO12 de Xavier, mesuré sur deux vrais clips. Deux pièges y sont
 relevés, dont un qui casse l'app en silence.
 
+**[docs/RETOURS.md](docs/RETOURS.md)** — ce que l'app joint à un rapport de bug, et pourquoi
+chacune des quatre lignes est nécessaire. À lire avant d'y ajouter quoi que ce soit.
+
 **[docs/USB.md](docs/USB.md)** — ce que la caméra est vraiment quand on la branche :
 pas un disque, mais un serveur HTTP. À lire avant de toucher au chemin USB.
 

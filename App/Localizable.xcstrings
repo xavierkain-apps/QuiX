@@ -432,6 +432,26 @@
         }
       }
     },
+    "**What happened**\n\n\n**What you expected**\n\n\n**How to reproduce it**\n": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "**Ce qui s'est passé**\n\n\n**Ce à quoi vous vous attendiez**\n\n\n**Comment le reproduire**\n"
+          }
+        }
+      }
+    },
+    "**What you would like**\n\n\n**What you are trying to do**\n": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "**Ce que vous aimeriez**\n\n\n**Ce que vous cherchez à faire**\n"
+          }
+        }
+      }
+    },
     "All": {
       "localizations": {
         "fr": {
@@ -832,6 +852,16 @@
         }
       }
     },
+    "Feedback": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retours"
+          }
+        }
+      }
+    },
     "File": {
       "localizations": {
         "fr": {
@@ -1122,6 +1152,16 @@
         }
       }
     },
+    "Opens a pre-filled page in your browser. Nothing is sent from QuiX — you read it, edit it, and send it yourself.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvre une page pré-remplie dans votre navigateur. Rien ne part de QuiX : vous lisez, vous modifiez, et vous envoyez vous-même."
+          }
+        }
+      }
+    },
     "Over USB-C the GoPro is a network device. macOS asks the first time QuiX talks to it; if you refuse, the camera looks empty.": {
       "localizations": {
         "fr": {
@@ -1292,6 +1332,16 @@
         }
       }
     },
+    "Report a bug…": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signaler un bug…"
+          }
+        }
+      }
+    },
     "Restart": {
       "localizations": {
         "fr": {
@@ -1408,6 +1458,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arrêter"
+          }
+        }
+      }
+    },
+    "Suggest a feature…": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proposer une idée…"
           }
         }
       }
