@@ -1,59 +1,70 @@
-# L'icône absente des notifications
+# The missing icon in notifications
 
-La bannière de fin d'import s'affiche, avec le bon titre et le bon texte, mais à la place de
-l'icône de QuiX macOS dessine son **gabarit vide** — le carré arrondi pâle strié d'une grille.
+The end-of-import banner shows up with the right title and the right text, but where the QuiX
+icon should be, macOS draws its **empty template** — the pale rounded square with a faint grid.
 
-**Ce n'est pas un défaut de QuiX.** C'est l'enregistrement de l'identifiant
-`com.xavierkain.QuiX` auprès du système de notifications du Mac de développement qui est
-abîmé. Un Mac qui installe QuiX une seule fois n'a pas le problème.
+**Nothing in the bundle causes it.** The bundle identifier carries the fault, in the
+notification system's own store on the development Mac.
 
-## La preuve
+## The proof
 
-Une app témoin de quarante lignes — rien d'autre qu'une notification — signée du même
-certificat, posée dans `/Applications`, portant **le même fichier `AppIcon.icns` que QuiX** :
+A forty-line probe app — nothing but one notification — signed with the same certificate, put in
+`/Applications`, carrying **the same `AppIcon.icns` file as QuiX**:
 
-| Identifiant du témoin | Icône dans la bannière |
+| Probe's bundle identifier | Icon in the banner |
 |---|---|
-| `com.xavierkain.SondeNotif` (neuf) | **affichée** |
-| `com.xavierkain.QuiX` | **absente** |
+| `com.xavierkain.SondeNotif` (fresh) | **shown** |
+| `com.xavierkain.QuiX` | **missing** |
 
-Même binaire, même icône, même signature. Seul l'identifiant change. L'icône n'entre pas en
-ligne de compte : c'est l'identifiant qui porte le défaut.
+Same binary, same icon, same signature. Only the identifier changed. The icon is not part of the
+question: the identifier is.
 
-## Ce qui a été écarté en chemin
+## What was ruled out along the way
 
-Chaque essai a été vérifié de la même façon : un import réel depuis une fausse carte GoPro,
-puis une capture de la **fenêtre de la bannière par son identifiant** — jamais une capture
-d'écran, qui emporterait ce qu'il y a derrière.
+Every attempt was checked the same way: a real import from a fake GoPro card, then a capture of
+the **banner's own window, by its window id** — never a screen capture, which would take whatever
+is behind it.
 
-| Piste | Résultat |
+| Attempt | Result |
 |---|---|
-| Six copies périmées du bundle dans LaunchServices, dont trois fantômes | désenregistrées — sans effet |
-| Caches d'icônes, `usernoted`, `NotificationCenter`, `iconservicesagent` | vidés et relancés — sans effet |
-| Réinstallation propre dans `/Applications` | sans effet |
-| `NSPrincipalClass` absent de l'`Info.plist` | ajouté — sans effet, mais gardé : c'est correct |
-| Nom localisé de l'app résolu en « ? » par `lsregister` | corrigé — sans effet, mais gardé |
-| Catalogue d'assets (dix tailles, `Assets.car` complet) | forme d'origine — sans effet |
-| Format Icon Composer `AppIcon.icon` de macOS 26 | accepté par `actool` — sans effet |
-| `.icns` complet, dix types `ic04`→`ic14`, sans catalogue | forme actuelle — sans effet |
-| `tccutil reset All com.xavierkain.QuiX` | sans effet : les notifications ne sont pas dans TCC |
-| Purge de l'historique de notifications de l'app | sans effet |
+| Six stale copies of the bundle in LaunchServices, three of them ghosts | unregistered — no effect |
+| Icon caches, `usernoted`, `NotificationCenter`, `iconservicesagent` | cleared and restarted — no effect |
+| A clean reinstall in `/Applications` | no effect |
+| `NSPrincipalClass` missing from `Info.plist` | added — no effect, but kept: it is correct |
+| The app's localized name resolving to "?" in `lsregister` | fixed — no effect, but kept |
+| Asset catalog (ten sizes, complete `Assets.car`) | the original form — no effect |
+| macOS 26 Icon Composer `AppIcon.icon` format | accepted by `actool` — no effect |
+| A complete `.icns`, all ten types `ic04`→`ic14`, no catalog | the current form — no effect |
+| `tccutil reset All com.xavierkain.QuiX` | no effect: notifications do not live in TCC |
+| Purging the app's notification history | no effect |
+| Restarting the Mac | no effect |
 
-Le journal système dit, pendant chaque bannière :
+The system log says this during every banner:
 
 ```
 iconservicesagent: Failed to find named image for name:<private> … appearanceName:NSAppearanceNameAqua
 ```
 
-## Comment le réparer sur ce Mac
+**One dead end is worth recording.** `~/Library/Preferences/com.apple.ncprefs.plist` lists 144
+apps allowed to post notifications, and QuiX was not among them — which looked like the smoking
+gun. It was not: on macOS 26 that file is no longer written. Its last modification predated all
+of the testing. A conclusion drawn from a file nothing updates any more is worth nothing.
 
-Le magasin qui porte le défaut vit dans le conteneur scellé de `usernoted` ; aucune commande
-n'y touche. `usernoted` reconstruit ses fiches d'applications **à l'ouverture de session** :
-**quitter QuiX, redémarrer le Mac, rouvrir QuiX**. Non vérifié — on ne redémarre pas la
-machine de quelqu'un pour tester.
+## The fix: a new bundle identifier
 
-## Ce qui reste utile de cette chasse
+`com.xavierkain.QuiX` became `fr.xavier-kain.quix`, before any public release and therefore with
+nobody to migrate. The old preferences domain is read once at first launch so that an import
+folder already chosen is not asked for again, and the launch agent installed under the old label
+is unloaded and removed — it pointed at the same binary and would have woken a second copy.
 
-Trois corrections de fond, gardées parce qu'elles sont justes même si elles n'ont rien résolu
-ici : un `Info.plist` qui nous appartient, un `.icns` complet au lieu des quatre tailles que
-gardait Xcode, et le nom de l'app déclaré dans les catalogues de langue.
+The identifier appears nowhere in the signing chain, so neither the Developer ID certificate nor
+notarization is affected.
+
+## If the permission prompt is missed
+
+A new identifier means macOS asks for notification permission again. **A prompt that is dismissed
+without an answer is recorded as a refusal**, and `requestAuthorization` never asks twice: it
+returns the stored answer in silence, and no banner is ever shown again.
+
+It is recoverable — System Settings → Notifications → QuiX, and turn it back on — but the symptom
+looks exactly like the app being broken. Worth remembering before blaming the code.

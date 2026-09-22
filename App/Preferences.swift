@@ -17,7 +17,13 @@ final class Preferences {
 
     private let defaults: UserDefaults
 
+    /// Le domaine d'avant le changement d'identifiant de bundle. macOS range les réglages par
+    /// identifiant : changer d'identifiant, c'est repartir de zéro. On récupère donc l'ancien
+    /// jeu une fois, plutôt que de redemander un dossier d'import à quelqu'un qui l'a déjà donné.
+    private static let retiredDomain = "com.xavierkain.QuiX"
+
     init(defaults: UserDefaults = .standard) {
+        Preferences.migrateFromRetiredDomain(into: defaults)
         self.defaults = defaults
         self.library = defaults.string(forKey: Key.library).map { URL(fileURLWithPath: $0, isDirectory: true) }
         self.askBeforeImporting = defaults.bool(forKey: Key.askBeforeImporting)
@@ -26,6 +32,17 @@ final class Preferences {
         self.onboardingDone = defaults.bool(forKey: Key.onboardingDone)
             || defaults.string(forKey: Key.library) != nil
         self.agentIsLoaded = CameraAutoLaunch.isEnabled
+    }
+
+    private static func migrateFromRetiredDomain(into defaults: UserDefaults) {
+        // Une seule fois, et seulement si le nouveau domaine est vierge : sinon on écraserait
+        // un réglage que l'utilisateur vient de changer.
+        guard defaults.string(forKey: Key.library) == nil,
+              let old = UserDefaults(suiteName: retiredDomain),
+              let library = old.string(forKey: Key.library) else { return }
+        defaults.set(library, forKey: Key.library)
+        defaults.set(old.bool(forKey: Key.askBeforeImporting), forKey: Key.askBeforeImporting)
+        defaults.set(old.bool(forKey: Key.onboardingDone) || true, forKey: Key.onboardingDone)
     }
 
     /// Racine de la bibliothèque. Les dossiers datés se créent dedans.

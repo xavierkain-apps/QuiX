@@ -234,10 +234,10 @@ jobs:
           echo "APP=build/Build/Products/Release/QuiX.app" >> "$GITHUB_ENV"
 
       # Xcode signe le framework Sparkle, mais pas les exécutables qu'il contient : Apple les
-      # refuse. Voir Support/signer-sparkle.sh.
+      # refuse. Voir Support/sign-sparkle.sh.
       - name: Resigner les exécutables de Sparkle
         if: env.CODESIGN_IDENTITY != ''
-        run: Support/signer-sparkle.sh "$APP" "$CODESIGN_IDENTITY"
+        run: Support/sign-sparkle.sh "$APP" "$CODESIGN_IDENTITY"
 
       - name: Vérifier le bundle
         run: |
@@ -352,7 +352,7 @@ jobs:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
           if [ -z "$SPARKLE_PRIVATE_KEY" ]; then
-            echo "::error::SPARKLE_PRIVATE_KEY manquant : cette release ne pourrait pas être installée comme mise à jour. Voir docs/MISES-A-JOUR.md."
+            echo "::error::SPARKLE_PRIVATE_KEY manquant : cette release ne pourrait pas être installée comme mise à jour. Voir docs/UPDATES.md."
             exit 1
           fi
 

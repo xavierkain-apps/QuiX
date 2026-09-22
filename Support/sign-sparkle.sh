@@ -1,7 +1,7 @@
 #!/bin/bash
 # Resigne les exécutables imbriqués de Sparkle avec notre identité Developer ID.
 #
-#   Support/signer-sparkle.sh <QuiX.app> <identité de signature>
+#   Support/sign-sparkle.sh <QuiX.app> <identité de signature>
 #
 # Xcode signe le framework qu'il embarque, mais **pas ce qu'il y a dedans** : Sparkle porte une
 # app d'interface (Updater.app), un outil d'installation (Autoupdate) et deux services XPC, tous

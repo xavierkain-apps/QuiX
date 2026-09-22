@@ -46,7 +46,7 @@ struct Onboarding: View {
 
     private var welcome: some View {
         Pane(title: "QuiX sorts your GoPro highlights",
-             detail: "Plug the camera in over USB-C, or the card into a reader. QuiX reads the tags you pressed while filming and files each take in Highlights or Clips. It never modifies the card.") {
+             detail: "Plug the camera in over USB-C and switch it on, or put the card into a reader. QuiX reads the tags you pressed while filming and files each take in Highlights or Clips. It never modifies the card.") {
             HStack(spacing: 14) {
                 Trait(symbol: "bolt.fill", title: "No waiting",
                       detail: "Sorting reads 34 KB per clip, not the whole file.")
@@ -132,7 +132,7 @@ struct Onboarding: View {
                     // branchement retomberait sur la même question.
                     .disabled(step == 1 && model.preferences.library == nil)
             } else {
-                Button("Plug in your GoPro", action: finish).buttonStyle(FilledBlue())
+                Button("Plug in and turn on your GoPro", action: finish).buttonStyle(FilledBlue())
             }
         }
         .padding(.init(top: 16, leading: 28, bottom: 18, trailing: 28))

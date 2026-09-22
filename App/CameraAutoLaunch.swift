@@ -35,7 +35,12 @@ import XPC
 /// `ioreg -p IOUSB -l | grep -A20 GoPro`.
 enum CameraAutoLaunch {
 
-    static let label = "com.xavierkain.QuiX.camera"
+    static let label = "fr.xavier-kain.quix.camera"
+
+    /// L'agent posé par les versions antérieures au changement d'identifiant. Il pointe sur le
+    /// même binaire et répondrait au même branchement : le laisser tourner ferait démarrer deux
+    /// exemplaires de QuiX.
+    private static let retiredLabel = "com.xavierkain.QuiX.camera"
 
     /// GoPro. `0x2672`, relevé sur la HERO12 — voir `docs/USB.md`.
     static let goProVendorID = 9842
@@ -60,11 +65,27 @@ enum CameraAutoLaunch {
     /// réécrit que s'il diffère : recharger un agent à chaque démarrage pour rien serait une
     /// façon discrète de le rendre instable.
     static func refreshIfOutdated() {
+        retireOldAgent()
         guard FileManager.default.fileExists(atPath: plistURL.path) else { return }
         guard let onDisk = NSDictionary(contentsOf: plistURL) as? [String: Any] else { return }
         let wanted = agent()
         guard !NSDictionary(dictionary: onDisk).isEqual(to: wanted) else { return }
         enable()
+    }
+
+    /// Retire l'agent des versions antérieures au changement d'identifiant.
+    ///
+    /// Il pointe sur le même binaire et répond au même branchement : le laisser en place ferait
+    /// réveiller QuiX deux fois. On le décharge et on efface sa définition ; si l'ancienne était
+    /// active, la nouvelle prend sa place juste après.
+    private static func retireOldAgent() {
+        let old = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/LaunchAgents/\(retiredLabel).plist")
+        guard FileManager.default.fileExists(atPath: old.path) else { return }
+        _ = launchctl(["bootout", "gui/\(getuid())/\(retiredLabel)"])
+        try? FileManager.default.removeItem(at: old)
+        // L'ancienne était chargée : on réinstalle la nouvelle pour ne pas perdre le réglage.
+        if !isEnabled { enable() }
     }
 
     /// La définition de l'agent, telle qu'elle doit être sur le disque.

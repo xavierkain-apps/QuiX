@@ -1222,12 +1222,12 @@
         }
       }
     },
-    "Plug in your GoPro": {
+    "Plug in and turn on your GoPro": {
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Branchez votre GoPro"
+            "value": "Branchez et allumez votre GoPro"
           }
         }
       }
@@ -1242,12 +1242,12 @@
         }
       }
     },
-    "Plug the camera in over USB-C, or the card into a reader. QuiX reads the tags you pressed while filming and files each take in Highlights or Clips. It never modifies the card.": {
+    "Plug the camera in over USB-C and switch it on, or put the card into a reader. QuiX reads the tags you pressed while filming and files each take in Highlights or Clips. It never modifies the card.": {
       "localizations": {
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Branchez la caméra en USB-C, ou la carte dans un lecteur. QuiX lit les tags posés pendant le tournage et range chaque prise dans Highlights ou dans Clips. Il ne modifie jamais la carte."
+            "value": "Branchez la caméra en USB-C et allumez-la, ou mettez la carte dans un lecteur. QuiX lit les tags posés pendant le tournage et range chaque prise dans Highlights ou dans Clips. Il ne modifie jamais la carte."
           }
         }
       }
