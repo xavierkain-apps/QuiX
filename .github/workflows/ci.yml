@@ -24,6 +24,40 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  site:
+    name: Site — quix.xavier-kain.fr
+    runs-on: ubuntu-latest
+    # Only from main, and only once the deploy key exists. Until then the job is skipped rather
+    # than failing: the site is not on the critical path of a build.
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Publish over SSH
+        env:
+          SSH_KEY: ${{ secrets.SITE_SSH_KEY }}
+          SSH_TARGET: ${{ secrets.SITE_SSH_TARGET }}
+          SSH_PATH: ${{ secrets.SITE_SSH_PATH }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SITE_KNOWN_HOSTS }}
+        run: |
+          if [ -z "$SSH_KEY" ] || [ -z "$SSH_TARGET" ]; then
+            echo "::notice::No deploy key yet — site not published. See Support/deploy-site.sh."
+            exit 0
+          fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
+          # The host key is pinned rather than trusted on first use: a deploy that silently
+          # accepts a new key is a deploy that can be redirected.
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts && chmod 600 ~/.ssh/known_hosts
+          cat >> ~/.ssh/config <<CONF
+          Host site
+            HostName ${SSH_TARGET#*@}
+            User ${SSH_TARGET%@*}
+            IdentityFile ~/.ssh/id_deploy
+            IdentitiesOnly yes
+          CONF
+          Support/deploy-site.sh site "${SSH_PATH:-public_html}"
+
   core:
     name: Core — moteur pur (Linux)
     runs-on: ubuntu-latest
