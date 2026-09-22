@@ -17,6 +17,9 @@ relevés, dont un qui casse l'app en silence.
 **[docs/RETOURS.md](docs/RETOURS.md)** — ce que l'app joint à un rapport de bug, et pourquoi
 chacune des quatre lignes est nécessaire. À lire avant d'y ajouter quoi que ce soit.
 
+**[docs/MISES-A-JOUR.md](docs/MISES-A-JOUR.md)** — les deux signatures qui protègent le chemin
+de mise à jour, où vivent les clés, et comment publier une version.
+
 **[docs/USB.md](docs/USB.md)** — ce que la caméra est vraiment quand on la branche :
 pas un disque, mais un serveur HTTP. À lire avant de toucher au chemin USB.
 

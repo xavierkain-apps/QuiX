@@ -24,6 +24,14 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+	<key>SUFeedURL</key>
+	<string>https://quix.xavier-kain.fr/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>+zUSn/5LVUCmLuWhJCAcXFopeyq5hdMlWMPgOC4mNZU=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSHighResolutionCapable</key>

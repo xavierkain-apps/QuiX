@@ -105,6 +105,11 @@ struct QuiXApp: App {
 
             // Les réglages sont un onglet, pas une fenêtre à part : aller les chercher dans le
             // menu de l'app n'était pas le premier endroit où on les cherche.
+            // Sous le nom de l'app, là où tout le monde la cherche.
+            CommandGroup(after: .appInfo) {
+                Button("Check for Updates…") { Updater.shared.checkNow() }
+            }
+
             CommandGroup(replacing: .appSettings) {
                 Button("Settings…") { router.tab = .settings }
                     .keyboardShortcut(",", modifiers: .command)

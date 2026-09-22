@@ -93,6 +93,20 @@ struct SettingsWindow: View {
 
             Divider().overlay(Ink.hairline)
 
+            Section("Updates") {
+                HStack {
+                    Toggle("Check for updates automatically", isOn: Binding(
+                        get: { Updater.shared.checksAutomatically },
+                        set: { Updater.shared.checksAutomatically = $0 }))
+                    Spacer()
+                    Button("Check now…") { Updater.shared.checkNow() }
+                        .buttonStyle(OutlinedDark())
+                }
+                Note("QuiX is distributed outside the App Store. Each update is signed; one that is not signed with the right key is refused, whatever it claims to be.")
+            }
+
+            Divider().overlay(Ink.hairline)
+
             Section("Feedback") {
                 HStack(spacing: 10) {
                     Button("Report a bug…") { Feedback.open(.bug, cameraName: model.cameraName) }

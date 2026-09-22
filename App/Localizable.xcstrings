@@ -642,6 +642,36 @@
         }
       }
     },
+    "Check for Updates…": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher les mises à jour…"
+          }
+        }
+      }
+    },
+    "Check for updates automatically": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher les mises à jour automatiquement"
+          }
+        }
+      }
+    },
+    "Check now…": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifier maintenant…"
+          }
+        }
+      }
+    },
     "Choose": {
       "localizations": {
         "fr": {
@@ -1252,6 +1282,16 @@
         }
       }
     },
+    "QuiX is distributed outside the App Store. Each update is signed; one that is not signed with the right key is refused, whatever it claims to be.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QuiX se distribue hors de l'App Store. Chaque mise à jour est signée ; une mise à jour qui ne porte pas la bonne signature est refusée, quoi qu'elle prétende être."
+          }
+        }
+      }
+    },
     "QuiX is not running in the meantime — macOS wakes it when the camera arrives. The match only recognises the HERO12 Black.": {
       "localizations": {
         "fr": {
@@ -1578,6 +1618,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Deux autorisations que macOS va demander"
+          }
+        }
+      }
+    },
+    "Updates": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mises à jour"
           }
         }
       }

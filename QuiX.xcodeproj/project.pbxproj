@@ -67,6 +67,7 @@
 			name = QuiX;
 			packageProductDependencies = (
 				AA0000000000000000000010 /* QuiXCore */,
+				AA0000000000000000000022 /* Sparkle */,
 			);
 			productName = QuiX;
 			productReference = AA0000000000000000000002 /* QuiX.app */;
@@ -99,6 +100,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				AA000000000000000000000F /* XCLocalSwiftPackageReference "Core" */,
+				AA0000000000000000000021 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AA0000000000000000000006 /* Products */;
@@ -242,10 +244,26 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		AA0000000000000000000021 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		AA0000000000000000000010 /* QuiXCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = QuiXCore;
+		};
+		AA0000000000000000000022 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA0000000000000000000021 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
