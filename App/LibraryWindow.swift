@@ -254,6 +254,10 @@ private struct Thumb: View {
                         .font(.system(size: 12)).foregroundStyle(Ink.tertiary)
                 }
             }
+            // Sans cela, seuls les pixels dessinés répondent : l'espace entre la vignette et le
+            // nom, et le vide entre le nom et la durée, avalaient le clic. Une prise sur deux
+            // semblait refuser d'être sélectionnée.
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -280,6 +284,11 @@ private struct Poster: View {
             }
         }
         .aspectRatio(16 / 9, contentMode: .fit)
+        // L'extraction se demande ici, jamais depuis `body` : une lecture qui modifie l'état
+        // observé relance la mise en page en boucle tant que les vignettes arrivent, et les clics
+        // se perdent dans ce va-et-vient.
+        .task(id: clip.id) { thumbnails.request(clip) }
+        .task(id: clip.moments.first) { thumbnails.request(clip) }
     }
 }
 

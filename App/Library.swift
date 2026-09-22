@@ -170,28 +170,39 @@ final class Thumbnails {
 
     private var cache: [String: NSImage] = [:]
     private var inFlight: Set<String> = []
+    private var done: Set<String> = []
 
-    func image(for clip: LibraryModel.Clip) -> NSImage? {
-        if let ready = cache[clip.id] { return ready }
-        guard !inFlight.contains(clip.id) else { return nil }
-        inFlight.insert(clip.id)
+    /// Lecture pure : appelable depuis un `body` sans rien déclencher.
+    func image(for clip: LibraryModel.Clip) -> NSImage? { cache[clip.id] }
 
+    /// Lance l'extraction si elle n'a pas déjà eu lieu pour cet instant-là.
+    ///
+    /// Les moments arrivent après la grille : la première demande vise 1 s, la seconde le premier
+    /// tag. On accepte de refaire l'image une fois, pas davantage.
+    func request(_ clip: LibraryModel.Clip) {
         let at = clip.moments.first.map { Double($0) / 1000 } ?? 1.0
+        let key = "\(clip.id)@\(at)"
+        guard !done.contains(key), !inFlight.contains(key) else { return }
+        inFlight.insert(key)
+
         Task.detached(priority: .utility) { [url = clip.url] in
             let asset = AVURLAsset(url: url)
             let generator = AVAssetImageGenerator(asset: asset)
             generator.appliesPreferredTrackTransform = true
             generator.maximumSize = CGSize(width: 640, height: 360)
             let time = CMTime(seconds: at, preferredTimescale: 600)
-            guard let cgImage = try? await generator.image(at: time).image else { return }
+            guard let cgImage = try? await generator.image(at: time).image else {
+                await MainActor.run { self.inFlight.remove(key) }
+                return
+            }
             let image = NSImage(cgImage: cgImage, size: .zero)
-            await MainActor.run { self.store(image, for: clip.id) }
+            await MainActor.run { self.store(image, for: clip.id, key: key) }
         }
-        return nil
     }
 
-    private func store(_ image: NSImage, for id: String) {
+    private func store(_ image: NSImage, for id: String, key: String) {
         cache[id] = image
-        inFlight.remove(id)
+        inFlight.remove(key)
+        done.insert(key)
     }
 }
