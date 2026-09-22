@@ -4,7 +4,7 @@ import Foundation
 // Dessine l'icône de QuiX d'après le bloc 4c du handoff, à toutes les tailles demandées.
 // Les proportions sont exprimées en 168e, comme la maquette, puis mises à l'échelle.
 //
-//   swift tools/AppIcon.swift App/Assets.xcassets/AppIcon.appiconset
+//   swift tools/AppIcon.swift Support/AppIcon.iconset
 //
 // Un fichier par emplacement, et jamais le même deux fois : Xcode abandonne en silence les
 // emplacements qui partagent une image, et l'`.icns` produit se retrouve amputé de ses grandes

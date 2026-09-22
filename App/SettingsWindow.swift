@@ -12,6 +12,8 @@ struct SettingsWindow: View {
 
     let model: ImportModel
     @State private var networkGranted: Bool?
+    @State private var language = AppLanguage.current
+    @State private var pendingLanguage: AppLanguage?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -28,6 +30,20 @@ struct SettingsWindow: View {
                     get: { model.preferences.askBeforeImporting },
                     set: { model.preferences.askBeforeImporting = $0 }))
                 Note("Without confirmation, plugging the card in starts the copy right away. The guard that matters is elsewhere: a card with no DCIM/###GOPRO folder is never touched, setting or no setting.")
+            }
+
+            Divider().overlay(Ink.hairline)
+
+            Section("Language") {
+                Picker("", selection: Binding(get: { language }, set: { choose($0) })) {
+                    ForEach(AppLanguage.allCases) { option in
+                        Text(verbatim: option.label).tag(option)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 360)
+                Note("Automatic follows the Mac. Choosing a language restarts QuiX — macOS only reads it at launch.")
             }
 
             Divider().overlay(Ink.hairline)
@@ -59,6 +75,29 @@ struct SettingsWindow: View {
         .onAppear { refresh() }
         .onReceive(NotificationCenter.default.publisher(
             for: NSApplication.didBecomeActiveNotification)) { _ in refresh() }
+        .alert("Restart QuiX?", isPresented: Binding(
+            get: { pendingLanguage != nil },
+            set: { if !$0 { pendingLanguage = nil } })) {
+            Button("Restart") {
+                if let pendingLanguage { AppLanguage.store(pendingLanguage) }
+                AppLanguage.restart()
+            }
+            Button("Cancel", role: .cancel) {
+                // Le segment a déjà bougé : on le remet là où il était.
+                language = AppLanguage.current
+                pendingLanguage = nil
+            }
+        } message: {
+            Text("The interface language is read once, when the app starts.")
+        }
+    }
+
+    /// Un changement de langue ne s'applique qu'au lancement suivant : on le dit, et on propose
+    /// de relancer tout de suite plutôt que de laisser l'utilisateur se demander si ça a marché.
+    private func choose(_ new: AppLanguage) {
+        language = new
+        guard new != AppLanguage.current else { return }
+        pendingLanguage = new
     }
 
     /// L'état de l'autorisation réseau se déduit de ce que la caméra répond, faute d'API pour
