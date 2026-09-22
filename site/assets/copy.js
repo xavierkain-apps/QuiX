@@ -31,7 +31,7 @@ window.QUIX_COPY = {
 
     hlKicker: "The GoPro button",
     hlTitle: "One press. That's the whole trick.",
-    hlBody: "While your GoPro is recording, give a short press to the button on its side — the one you use to switch it on. The camera keeps filming and writes the moment inside the video file. You can also just say “GoPro, HiLight”, hands free.",
+    hlBody: "While your GoPro is recording, give a short press to the button on its side — the one you use to switch it on. The camera keeps filming and writes the moment inside the video file. You can also just say “GoPro, HighLight”, hands free.",
     hlNote: "It only works for presses made while filming. Highlights added afterwards in the Quik phone app stay in the app, and QuiX cannot see them.",
     hlDiagram: {
       camera: "GoPro HERO12 Black, seen from the front",
@@ -39,9 +39,9 @@ window.QUIX_COPY = {
       shutterNote: "starts and stops recording",
       side: "Power / Mode",
       sideNote1: "short press while",
-      sideNote2: "filming = HiLight",
+      sideNote2: "filming = HighLight",
       timeline: "Your clip",
-      marker: "HiLight"
+      marker: "HighLight"
     },
 
     traits: [
@@ -127,6 +127,27 @@ window.QUIX_COPY = {
       popClips: "Clips",
       popNote: "The card was not modified."
     },
+    // The animated hero: transfer, then the library, then the Finder, then the clip playing.
+    // The labels are the app's own (Localizable.xcstrings) and the Finder's.
+    demo: {
+      progressFmt: "{x} MB of 720.2 MB",
+      decimal: ".",
+      allHighlights: "All highlights",
+      allClips: "All clips",
+      sessions: "Sessions",
+      importFolder: "Import folder",
+      filters: ["Highlights", "Clips", "All"],
+      summary: "6 takes — 3 tagged",
+      inspector: "Inspector",
+      moments: "Moments",
+      reveal: "Reveal in Finder",
+      quikNote: "Highlights added afterwards in the Quik app stay inside that app.",
+      favorites: "Favorites",
+      places: ["AirDrop", "Recents", "Applications", "Movies", "Downloads"],
+      path: ["Movies", "GoPro", "2026-09-22", "Highlights"],
+      items: "3 items",
+      highlight: "HighLight"
+    },
     zoomClose: "Close"
   },
 
@@ -152,7 +173,7 @@ window.QUIX_COPY = {
 
     hlKicker: "Le bouton de la GoPro",
     hlTitle: "Un appui. C'est toute l'astuce.",
-    hlBody: "Pendant que votre GoPro enregistre, donnez un appui court sur le bouton de son côté — celui qui sert à l'allumer. La caméra continue de filmer et écrit l'instant à l'intérieur du fichier vidéo. Vous pouvez aussi dire « GoPro, HiLight », sans les mains.",
+    hlBody: "Pendant que votre GoPro enregistre, donnez un appui court sur le bouton de son côté — celui qui sert à l'allumer. La caméra continue de filmer et écrit l'instant à l'intérieur du fichier vidéo. Vous pouvez aussi dire « GoPro, HighLight », sans les mains.",
     hlNote: "Ça ne marche que pour les appuis faits pendant le tournage. Les highlights ajoutés après coup dans l'app Quik du téléphone restent dans l'app, et QuiX ne peut pas les voir.",
     hlDiagram: {
       camera: "GoPro HERO12 Black, vue de face",
@@ -160,9 +181,9 @@ window.QUIX_COPY = {
       shutterNote: "lance et arrête l'enregistrement",
       side: "Power / Mode",
       sideNote1: "appui court en",
-      sideNote2: "filmant = HiLight",
+      sideNote2: "filmant = HighLight",
       timeline: "Votre clip",
-      marker: "HiLight"
+      marker: "HighLight"
     },
 
     traits: [
@@ -247,6 +268,25 @@ window.QUIX_COPY = {
       popHighlights: "Highlights",
       popClips: "Clips",
       popNote: "La carte n'a pas été modifiée."
+    },
+    demo: {
+      progressFmt: "{x} Mo sur 720,2 Mo",
+      decimal: ",",
+      allHighlights: "Tous les highlights",
+      allClips: "Tous les clips",
+      sessions: "Sessions",
+      importFolder: "Dossier d'import",
+      filters: ["Highlights", "Clips", "Tout"],
+      summary: "6 prises — 3 taguées",
+      inspector: "Inspecteur",
+      moments: "Moments",
+      reveal: "Révéler dans le Finder",
+      quikNote: "Les highlights ajoutés après coup dans l'app Quik restent dans l'app.",
+      favorites: "Favoris",
+      places: ["AirDrop", "Récents", "Applications", "Vidéos", "Téléchargements"],
+      path: ["Vidéos", "GoPro", "2026-09-22", "Highlights"],
+      items: "3 éléments",
+      highlight: "HighLight"
     },
     zoomClose: "Fermer"
   }
