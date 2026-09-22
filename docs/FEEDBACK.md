@@ -1,46 +1,45 @@
-# Recevoir les retours des utilisateurs
+# Receiving feedback from users
 
-Deux boutons, dans les Réglages et dans le menu Aide : **Signaler un bug** et **Proposer une
-idée**. Chacun ouvre, dans le navigateur, le formulaire de
-[quix.xavier-kain.fr/retour](https://quix.xavier-kain.fr/retour), avec le contexte technique
-déjà rempli.
+Two buttons, in Settings and in the Help menu: **Report a bug** and **Suggest a feature**. Each
+opens, in the browser, the form at
+[quix.xavier-kain.fr/retour](https://quix.xavier-kain.fr/retour), with the technical context
+already filled in.
 
-## Pourquoi une page web
+## Why a web page
 
-**Pas un formulaire dans l'app** : il ferait transiter par QuiX des textes que l'utilisateur
-n'aurait pas vus partir, et obligerait l'app à porter une politique de confidentialité. La page
-montre ce qui part avant qu'il n'appuie. Rien ne quitte le Mac sans un clic de sa part.
+**Not a form inside the app**: it would carry text through QuiX that the user had not seen leave,
+and it would force the app to hold a privacy policy. The page shows what will be sent before they
+press anything. Nothing leaves the Mac without a click of theirs.
 
-**Pas GitHub non plus**, bien que le dépôt soit public et que les tickets s'y classent tout
-seuls. Un compte GitHub est un mur pour quelqu'un qui vient d'Instagram pour trier ses clips.
-Le serveur, lui, peut ouvrir le ticket à sa place.
+**Not GitHub either**, even though the repository is public and issues would file themselves. A
+GitHub account is a wall for someone who came from Instagram to sort their clips. The server can
+open the issue on their behalf.
 
-## Ce que l'app passe dans l'URL
+## What the app puts in the URL
 
 ```
 ?type=bug&version=0.1.0+(1)&os=26.6.2&mac=Mac16,6&lang=fr_FR&camera=HERO12+Black
 ```
 
-Des versions et des modèles, rien d'autre. **Jamais un chemin, jamais un nom de fichier, jamais
-une adresse** : ce qui passe par une URL se retrouve dans les journaux du serveur.
+Versions and models, nothing else. **Never a path, never a file name, never an address**:
+whatever goes through a URL ends up in the server's logs.
 
-Chacun de ces champs sert :
+Each of those fields earns its place:
 
-- **la version de QuiX**, sans quoi on corrige un bug déjà corrigé ;
-- **la version de macOS**, parce que les autorisations et les notifications changent de
-  comportement d'une version à l'autre — [NOTIFICATIONS.md](NOTIFICATIONS.md) en est une
-  démonstration ;
-- **le modèle de Mac**, parce qu'un défaut de copie USB peut tenir au contrôleur. Des centaines
-  de milliers de Mac portent le même identifiant : il n'identifie personne ;
-- **le modèle de caméra**, le plus important. Le format HiLight n'a été mesuré que sur une
-  HERO12 Black — voir [HILIGHT.md](HILIGHT.md). Un rapport sans le modèle ne mène nulle part.
+- **the QuiX version**, without which we fix a bug that is already fixed;
+- **the macOS version**, because permissions and notifications change behaviour from one release
+  to the next — [NOTIFICATIONS.md](NOTIFICATIONS.md) is a demonstration of exactly that;
+- **the Mac model**, because a USB copy fault can come down to the controller. Hundreds of
+  thousands of Macs carry the same identifier: it identifies nobody;
+- **the camera model**, the most important of all. The HiLight format has only ever been measured
+  on a HERO12 Black — see [HILIGHT.md](HILIGHT.md). A report without the model leads nowhere.
 
-L'écran des réglages affiche ces lignes telles qu'elles partiront : on doit pouvoir lire ce
-qu'on envoie avant de l'envoyer.
+The Settings screen shows those lines exactly as they will be sent: one should be able to read
+what one is sending before sending it.
 
-## Ce qu'il reste à faire côté serveur
+## What is left to build on the server
 
-Le formulaire n'existe pas encore : le lien mène à une page absente. Il lui faut un champ libre,
-un champ e-mail **facultatif** — pour pouvoir répondre, pas pour constituer une liste — et de
-quoi déposer une capture. Derrière, un ticket GitHub ouvert par le serveur, étiqueté `bug` ou
-`enhancement` selon `type`.
+The form does not exist yet: the link leads to a missing page. It needs a free-text field, an
+**optional** email field — to be able to reply, not to build a mailing list — and a way to attach
+a screenshot. Behind it, a GitHub issue opened by the server, labelled `bug` or `enhancement`
+according to `type`.

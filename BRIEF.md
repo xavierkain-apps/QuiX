@@ -1,117 +1,127 @@
-# QuiX — importeur GoPro pour macOS
+# QuiX — a GoPro importer for macOS
 
-## Le problème
+> The original brief, kept as written. Where reality turned out differently, a note says so and
+> points at the document that measured it.
 
-GoPro a retiré Quik Desktop du Mac App Store fin 2024 et ne le maintient plus.
-Xavier s'en servait uniquement pour **importer** ses clips, jamais pour monter.
-Les alternatives citées partout (iMovie, UniConverter, HitPaw) sont des monteurs :
-elles ne répondent pas au besoin, qui est un transfert fiable et trié.
+## The problem
 
-## Ce que l'app doit faire
+GoPro pulled Quik Desktop from the Mac App Store in late 2024 and no longer maintains it.
+Xavier only ever used it to **import** his clips, never to edit. The alternatives everyone
+recommends (iMovie, UniConverter, HitPaw) are editors: they do not answer the need, which is a
+reliable, sorted transfer.
 
-Une seule chose, bien :
+## What the app must do
 
-1. Détecter que la GoPro (ou sa carte SD) vient d'être branchée.
-2. Copier les clips dans le dossier habituel de Xavier, dans un **nouveau dossier daté**.
-3. À l'intérieur, deux sous-dossiers : `Highlights/` et `Clips/`.
-4. Permettre de voir tout de suite les clips highlightés.
+One thing, well:
 
-Pas de montage, pas de trim, pas de cloud, pas d'export réseaux sociaux. Le jour
-où on ajoute ça, on a refait Quik et perdu la raison d'être du produit.
+1. Notice that the GoPro (or its SD card) has just been plugged in.
+2. Copy the clips into Xavier's usual folder, in a **new dated folder**.
+3. Inside it, two subfolders: `Highlights/` and `Clips/`.
+4. Let him see the highlighted clips straight away.
 
-## Le fait technique qui rend tout ça possible
+No editing, no trimming, no cloud, no social export. The day we add that, we have rebuilt Quik
+and lost the reason the product exists.
 
-Les tags HiLight sont écrits **dans le fichier MP4 lui-même**, dans l'atome
-`moov` → `udta` → `HMMT` : un `uint32` big-endian donnant le nombre de moments,
-puis un `uint32` par moment (timestamp en millisecondes depuis le début du clip).
+## The technical fact that makes it possible
 
-Conséquences pratiques, toutes bonnes :
+HiLight tags are written **into the MP4 file itself**, in the `moov` → `udta` → `HMMT` atom: a
+big-endian `uint32` giving the number of moments, then one `uint32` per moment (a timestamp in
+milliseconds from the start of the clip).
 
-- Lisible en Swift pur, sans dépendance et sans AVFoundation.
-- On ne lit que l'en-tête, pas la vidéo : scanner une carte entière prend
-  quelques secondes même à travers un lecteur de carte.
-- Le tri se décide **avant** la copie, donc on écrit directement au bon endroit
-  au lieu de copier puis déplacer.
+The practical consequences are all good ones:
 
-Deux réserves à lever tôt :
+- Readable in plain Swift, with no dependency and no AVFoundation.
+- Only the header is read, never the video: scanning a whole card takes seconds, even through a
+  card reader.
+- Sorting is decided **before** the copy, so each file is written straight to the right place
+  instead of being copied and then moved.
 
-- Les modèles récents (Hero 11/12/13) pourraient s'écarter du HMMT classique.
-  **À vérifier sur un vrai clip de la caméra de Xavier avant d'écrire l'app.**
-- Les highlights ajoutés *après coup dans l'app mobile Quik* restent dans l'app
-  et ne sont pas réécrits dans le MP4. Seuls ceux posés pendant le tournage
-  (bouton, commande vocale) sont récupérables. Ce n'est pas un bug à corriger,
-  c'est une limite à documenter dans l'interface.
+Two reservations to clear early:
 
-## Ce qu'il faut savoir sur les fichiers GoPro
+- Recent models (Hero 11/12/13) might depart from the classic HMMT layout.
+  **To be checked against a real clip from Xavier's camera before writing the app.**
+  → Measured on a HERO12 Black, with two traps found: see [docs/HILIGHT.md](docs/HILIGHT.md).
+- Highlights added *afterwards in the Quik mobile app* stay inside that app and are not written
+  back into the MP4. Only the ones pressed while filming (button, voice command) can be
+  recovered. That is not a bug to fix, it is a limitation to state in the interface.
 
-- Nommage `GX010123.MP4` : `GX` = encodage, `01` = numéro de chapitre,
-  `0123` = numéro de prise. Une longue prise est découpée en chapitres qui
-  partagent le numéro de prise.
-  → **Si un chapitre porte un highlight, toute la prise part dans `Highlights/`.**
-  Séparer les chapitres d'une même prise rendrait le dossier inutilisable.
-- `.LRV` (proxy basse résolution) et `.THM` (vignette) : ignorés par défaut.
-- Les fichiers vivent dans `DCIM/100GOPRO/`, `101GOPRO/`, etc.
+## What to know about GoPro files
 
-## Branchement de la caméra
+- Naming, `GX010123.MP4`: `GX` = encoding, `01` = chapter number, `0123` = take number. A long
+  take is cut into chapters that share the take number.
+  → **If one chapter carries a highlight, the whole take goes to `Highlights/`.** Splitting the
+  chapters of one take would make the folder useless.
+- `.LRV` (low-resolution proxy) and `.THM` (thumbnail): ignored by default.
+- Files live in `DCIM/100GOPRO/`, `101GOPRO/`, and so on.
 
-En USB, la GoPro se présente en MTP — pénible à piloter. Avec la carte dans un
-lecteur, c'est un volume normal monté sous `/Volumes/`, et le transfert est
-nettement plus rapide. **Cibler le volume monté en premier** ; le MTP est une
-extension éventuelle, pas le chemin nominal.
+## Connecting the camera
 
-Détection : `NSWorkspace.shared.notificationCenter`, `didMountNotification`.
-On confirme que c'est bien une carte GoPro par la présence de `DCIM/1xxGOPRO/`
-(et non par le nom du volume, que l'utilisateur peut avoir renommé).
+Over USB the GoPro presents itself as MTP — painful to drive. With the card in a reader it is an
+ordinary volume mounted under `/Volumes/`, and the transfer is markedly faster. **Target the
+mounted volume first**; MTP is a possible extension, not the nominal path.
+
+> This turned out to be wrong, and it is the most important correction in the project. Over
+> USB-C the HERO12 exposes **no mass storage at all**. It brings up a network interface and
+> answers HTTP, and it honours `Range` requests — which is what keeps sorting free over the
+> cable. See [docs/USB.md](docs/USB.md).
+
+Detection: `NSWorkspace.shared.notificationCenter`, `didMountNotification`. A card is confirmed
+to be a GoPro card by the presence of `DCIM/1xxGOPRO/` — never by the volume name, which the
+user may have changed.
 
 ## Architecture
 
-App **SwiftUI pour macOS**. Xavier a déjà un compte Apple Developer, donc
-signature et notarisation sont possibles — l'app peut être installée
-durablement, et distribuée si le produit prend.
+A **SwiftUI app for macOS**. Xavier already has an Apple Developer account, so signing and
+notarization are possible — the app can be installed for good, and distributed if the product
+catches on.
 
-Séparer dès le départ :
+Separate from the start:
 
-- **Le moteur** (parsing HMMT, planification de l'import, copie vérifiée) en
-  Swift pur, sans UI, testable en ligne de commande. C'est là qu'est la valeur
-  et c'est là que les bugs coûtent cher.
-- **L'interface** par-dessus : une fenêtre, une liste, une barre de progression.
+- **The engine** (HMMT parsing, import planning, verified copying) in plain Swift, with no UI,
+  testable from the command line. That is where the value is, and where bugs are expensive.
+- **The interface** on top: a window, a list, a progress bar.
 
-Règles non négociables du moteur :
+Non-negotiable rules for the engine:
 
-- **Ne jamais supprimer sur la carte.** L'effacement reste une action manuelle
-  de l'utilisateur, dans la caméra. Une erreur d'import est rattrapable, une
-  carte effacée ne l'est pas.
-- **Import idempotent** : un index (nom + taille + date) des fichiers déjà
-  importés, pour que rebrancher la carte ne recopie que le nouveau.
-- **Copie vérifiée** avant de considérer un fichier importé.
+- **Never delete anything on the card.** Erasing stays a manual action by the user, in the
+  camera. A failed import can be recovered from; an erased card cannot.
+  → Softened deliberately later: there is now a button that erases the camera, held by three
+  independent locks. Nothing automatic ever triggers it.
+- **Idempotent import**: an index (name + size + date) of the files already imported, so that
+  plugging the card in again only copies what is new.
+- **Verified copy** before a file counts as imported.
 
-## Ordre de construction
+## Order of construction
 
-1. **Valider le parseur HiLight sur un vrai clip taggé de la GoPro de Xavier.**
-   Bloquant : tout le reste en dépend. Ne rien construire avant.
-2. Moteur d'import en Swift, piloté en ligne de commande, testé sur une copie
-   de carte.
-3. App SwiftUI : fenêtre, détection automatique du volume, progression.
-4. Signature + notarisation.
+1. **Validate the HiLight parser against a real tagged clip from Xavier's GoPro.**
+   Blocking: everything else depends on it. Build nothing before that.
+2. The import engine in Swift, driven from the command line, tested on a copy of a card.
+3. The SwiftUI app: window, automatic volume detection, progress.
+4. Signing and notarization.
 
-## Questions ouvertes
+## Open questions
 
-- Modèle exact de la GoPro.
-- Chemin du « dossier habituel » d'import.
-- Format du nom de dossier daté (`2026-09-07` ? avec un libellé de sortie ?).
-- Import auto dès le branchement, ou proposition à confirmer ? (l'auto sans
-  confirmation surprend la première fois qu'on branche une carte d'un autre appareil)
-- Affichage des highlights : Finder suffit-il, ou faut-il une galerie dans l'app
-  avec une vignette extraite à chaque instant taggé ?
+All of them have since been answered by the app as it stands; they are kept because they show
+what was undecided at the start.
 
-## Contrainte serveur (importante)
+- The exact GoPro model. → HERO12 Black.
+- The path of the "usual folder". → Chosen by the user on first launch; nothing is guessed.
+- The format of the dated folder name. → `2026-09-07`.
+- Automatic import on connection, or a prompt to confirm? → Automatic by default, with a
+  setting; the guard that matters is elsewhere, since a card with no `DCIM/###GOPRO` folder is
+  never touched either way.
+- Showing the highlights: is the Finder enough, or is a gallery needed inside the app, with a
+  thumbnail extracted at each tagged moment? → A library tab, with the thumbnail taken at the
+  first tagged moment.
 
-Ce serveur Linux est saturé : ~650 Mo de RAM libre, swap à 99 %, earlyoom tue
-régulièrement des processus. **L'app macOS se compile sur le Mac, jamais ici.**
-Ce dossier ne sert qu'à écrire le code et les décisions. Vérifier `free -m`
-avant de lancer quoi que ce soit de permanent.
+## Where the work happens
 
-## Méthode
+Two machines, and the instructions differ:
 
-Xavier travaille avec flowkit (`/flowkit-mvp:brief`, `/flowkit-mvp:plan`,
-`/flowkit-mvp:ship`). Passer par là plutôt que d'improviser un découpage.
+- **On Xavier's Linux server**, where the project was written: code and decisions are written,
+  nothing is compiled. The machine is saturated (a few hundred MB of free RAM, swap at the
+  ceiling) and Swift is not even installed there. Continuous integration compiles and tests —
+  see [.github/workflows/ci.yml](.github/workflows/ci.yml).
+- **On the Mac**: compile, run, try against a real card. The exact commands are in the
+  [README](README.md), and what has to be checked by hand is in
+  [VERIFICATION.md](VERIFICATION.md).

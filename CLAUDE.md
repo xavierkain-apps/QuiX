@@ -1,65 +1,74 @@
 # QuiX
 
-App macOS qui importe les clips d'une GoPro et sépare automatiquement les prises
-**highlightées** du reste. Remplace la seule fonction de Quik Desktop dont
-Xavier se servait, après son abandon par GoPro fin 2024.
+A macOS app that imports GoPro clips and automatically separates the **highlighted** takes from
+the rest. Replaces the one function of Quik Desktop that Xavier actually used, after GoPro
+dropped it in late 2024.
 
-## À lire en premier
+## Read first
 
-**[BRIEF.md](BRIEF.md)** — le besoin, le format des tags HiLight, les pièges des
-fichiers GoPro, l'architecture et l'ordre de construction. Le lire en entier
-avant d'écrire du code.
+**[BRIEF.md](BRIEF.md)** — the need, the HiLight tag format, the traps in GoPro files, the
+architecture and the order of construction. Read it whole before writing code.
 
-**[docs/HILIGHT.md](docs/HILIGHT.md)** — le format HiLight tel qu'il est réellement
-écrit par la HERO12 de Xavier, mesuré sur deux vrais clips. Deux pièges y sont
-relevés, dont un qui casse l'app en silence.
+**[docs/HILIGHT.md](docs/HILIGHT.md)** — the HiLight format as it is really written by Xavier's
+HERO12, measured on two real clips. Two traps are recorded there, one of which breaks the app
+silently.
 
-**[docs/FEEDBACK.md](docs/FEEDBACK.md)** — ce que l'app joint à un rapport de bug, et pourquoi
-chacune des quatre lignes est nécessaire. À lire avant d'y ajouter quoi que ce soit.
+**[docs/USB.md](docs/USB.md)** — what the camera really is when you plug it in: not a disk, but
+an HTTP server. Read it before touching the USB path.
 
-**[docs/UPDATES.md](docs/UPDATES.md)** — les deux signatures qui protègent le chemin
-de mise à jour, où vivent les clés, et comment publier une version.
+**[docs/FEEDBACK.md](docs/FEEDBACK.md)** — what the app attaches to a bug report, and why each of
+the four lines is necessary. Read it before adding anything to it.
 
-**[docs/USB.md](docs/USB.md)** — ce que la caméra est vraiment quand on la branche :
-pas un disque, mais un serveur HTTP. À lire avant de toucher au chemin USB.
+**[docs/UPDATES.md](docs/UPDATES.md)** — the two signatures that protect the update path, where
+the keys live, and how to publish a version.
 
 ## Structure
 
-- `Core/` — moteur Swift pur (parsing HMMT + import), testable sur Linux
-- `App/` — app SwiftUI macOS, compilée sur le Mac uniquement : un popover de barre
-  de menus, une fenêtre Transfert, une fenêtre Bibliothèque. Les jetons de design
-  (couleurs, échelle typographique, métriques) sont dans `App/Theme.swift` et
-  nulle part ailleurs.
-- `docs/` — décisions et notes
+- `Core/` — the pure Swift engine (HMMT parsing + import), testable on Linux
+- `App/` — the macOS SwiftUI app, built on the Mac only: a menu-bar popover and one window with
+  three tabs. The design tokens (colours, type scale, metrics) live in `App/Theme.swift` and
+  nowhere else.
+- `Support/` — the `Info.plist`, the icon sources, the signing script
+- `docs/` — decisions and notes
 
-## Les quatre choses à ne pas oublier
+## Language
 
-1. **Le tri est gratuit.** Les tags HiLight sont dans `moov/udta/HMMT`, et chez
-   GoPro `moov` est en **fin** de fichier : trois `seek` et ~34 Ko lus suffisent
-   à savoir où va un clip. Ne pas copier puis trier. Et ne jamais déduire le
-   nombre de highlights de la taille de HMMT — voir [docs/HILIGHT.md](docs/HILIGHT.md).
-2. **Une prise, un dossier.** Les chapitres d'une longue prise partagent le
-   numéro de fichier GoPro. Si l'un est taggé, tous suivent.
-3. **L'effacement ne part jamais tout seul.** Il existe désormais un bouton, dans
-   le compte rendu d'import, qui efface les clips de la caméra. Trois verrous le
-   tiennent : le bouton n'apparaît que si **chaque** fichier de la caméra est
-   retrouvé sur le Mac à la bonne taille, une alerte demande confirmation, et
-   `CameraCleanup.erase` refuse de son côté tout plan non vérifié. Rien dans une
-   détection ni dans une fin d'import ne l'enclenche.
-4. **La caméra en USB n'est pas un disque.** Elle n'expose aucun stockage de masse :
-   elle monte un réseau et répond en HTTP. Le tri y reste gratuit parce qu'elle
-   honore `Range` — mesuré, pas supposé. Voir [docs/USB.md](docs/USB.md).
+**Everything in this repository is written in English** — documentation, code comments, commit
+messages. The repository is public.
 
-## Où l'on se trouve
+The app's interface is bilingual: English is the source language, French is a translation, and
+both live in `App/Localizable.xcstrings`. Two strings are deliberately *not* localised —
+`Highlights` and `Clips` — because they are folder names on disk. See
+[docs/INTERFACE.md](docs/INTERFACE.md).
 
-Ce dépôt se travaille depuis deux machines, et la consigne n'est pas la même :
+**Never add an attribution line to a commit** — no `Co-Authored-By`, no mention of the tool that
+wrote it. Xavier asked for this explicitly, for all of his projects.
 
-- **Sur le serveur Linux de Xavier**, où le projet a été écrit : on écrit le code
-  et les décisions, on ne compile rien. La machine est saturée (~200 Mo de RAM
-  libre, swap au plafond) et Swift n'y est même pas installé. C'est
-  l'intégration continue qui compile et qui teste — voir
+## The four things not to forget
+
+1. **Sorting is free.** HiLight tags live in `moov/udta/HMMT`, and in GoPro files `moov` sits at
+   the **end**: three seeks and about 34 KB are enough to know where a clip goes. Do not copy
+   and then sort. And never infer the number of highlights from the size of HMMT — see
+   [docs/HILIGHT.md](docs/HILIGHT.md).
+2. **One take, one folder.** The chapters of a long take share the GoPro file number. If one is
+   tagged, they all follow.
+3. **Erasing never starts on its own.** There is a button, in the import report, that erases the
+   clips from the camera. Three locks hold it: the button only appears if **every** file on the
+   camera has been found on the Mac at the right size, an alert asks for confirmation, and
+   `CameraCleanup.erase` refuses on its own side any plan that is not verified. Nothing in
+   detection or in the end of an import triggers it.
+4. **The camera over USB is not a disk.** It exposes no mass storage at all: it brings up a
+   network interface and answers HTTP. Sorting stays free there because it honours `Range` —
+   measured, not assumed. See [docs/USB.md](docs/USB.md).
+
+## Where the work happens
+
+This repository is worked on from two machines, and the instructions differ:
+
+- **On Xavier's Linux server**, where the project was written: code and decisions are written,
+  nothing is compiled. The machine is saturated (~200 MB of free RAM, swap at the ceiling) and
+  Swift is not even installed there. Continuous integration compiles and tests — see
   [.github/workflows/ci.yml](.github/workflows/ci.yml).
-- **Sur le Mac** : on compile, on lance, on essaie sur une vraie carte. Les
-  commandes exactes sont dans le [README](README.md), section « Construire sur
-  le Mac », et ce qu'il faut vérifier à la main dans
+- **On the Mac**: compile, run, try against a real card. The exact commands are in the
+  [README](README.md), under "Building on the Mac", and what has to be checked by hand is in
   [VERIFICATION.md](VERIFICATION.md).

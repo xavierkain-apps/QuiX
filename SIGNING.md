@@ -1,120 +1,127 @@
-# Signature et notarisation
+# Signing and notarization
 
-La CI signe et notarise l'app **dès que les cinq secrets existent**. Sans eux, elle produit quand
-même un bundle, en signature ad hoc : il se lance, mais Gatekeeper avertit au premier démarrage sur
-une machine qui ne l'a pas compilé.
+CI signs and notarizes the app **as soon as the five secrets exist**. Without them it still
+produces a bundle, ad-hoc signed: it launches, but Gatekeeper warns on first start on any machine
+that did not build it.
 
-QuiX vit dans l'organisation **`xavierkain-apps`**, avec FCP CleanX. L'objectif est que les secrets
-y soient posés **une fois pour toutes**, au niveau de l'organisation, pour que chaque nouvelle app
-soit signée sans rien avoir à recopier.
+QuiX lives in the **`xavierkain-apps`** organisation, alongside FCP CleanX. The goal is for the
+secrets to be set there **once and for all**, at organisation level, so that each new app is
+signed without copying anything around.
 
-## Comment fabriquer les cinq valeurs
+## Producing the five values
 
-À faire sur le Mac. Rien à refaire si le `.p12` de FCP CleanX a été gardé : c'est le même
-certificat qui signe toutes les apps distribuées hors App Store.
+To be done on the Mac. Nothing to redo if FCP CleanX's `.p12` was kept: the same certificate signs
+every app distributed outside the App Store.
 
-**1. Le certificat.** Xcode ▸ Settings ▸ Accounts ▸ l'Apple ID ▸ **Manage Certificates…** ▸ **+** ▸
-**Developer ID Application**. Puis Trousseau d'accès ▸ « Mes certificats » ▸ clic droit sur
-« Developer ID Application: … » ▸ **Exporter…** ▸ format `.p12` ▸ choisir un mot de passe.
+**1. The certificate.** Xcode ▸ Settings ▸ Accounts ▸ the Apple ID ▸ **Manage Certificates…** ▸
+**+** ▸ **Developer ID Application**. Then Keychain Access ▸ "My Certificates" ▸ right-click
+"Developer ID Application: …" ▸ **Export…** ▸ `.p12` format ▸ choose a password.
 
-**2. L'encoder**, parce qu'un secret GitHub ne prend que du texte :
+**2. Encode it**, because a GitHub secret only takes text:
 
 ```sh
-base64 -i certificat.p12 | pbcopy
+base64 -i certificate.p12 | pbcopy
 ```
 
-La CI accepte aussi l'hexadécimal (`xxd -p certificat.p12 | pbcopy`) : ce sont les mêmes octets,
-et elle reconnaît lequel des deux elle a reçu. Ce qu'elle ne peut pas deviner, c'est un `.cer`
-téléchargé depuis le portail Apple — il ne contient pas la clé privée.
+CI also accepts hexadecimal (`xxd -p certificate.p12 | pbcopy`): the same bytes either way, and it
+recognises which of the two it received. What it cannot guess is a `.cer` downloaded from the Apple
+portal — that one does not contain the private key.
 
-**3. Le mot de passe d'application.** https://account.apple.com ▸ Connexion et sécurité ▸
-**Mots de passe d'application** ▸ en créer un, nom « CI apps macOS ». Ce n'est **pas** le mot de
-passe Apple.
+**3. The app-specific password.** https://account.apple.com ▸ Sign-In and Security ▸
+**App-Specific Passwords** ▸ create one, name it "CI macOS apps". This is **not** the Apple ID
+password.
 
-**4. L'identifiant d'équipe.** https://developer.apple.com/account ▸ Membership details, dix
-caractères.
+**4. The team identifier.** https://developer.apple.com/account ▸ Membership details, ten
+characters.
 
-| Secret | Contenu |
+| Secret | Contents |
 |---|---|
-| `MACOS_CERT_P12` | Le `.p12` encodé en base64 (étape 2) |
-| `MACOS_CERT_PASSWORD` | Le mot de passe choisi à l'export |
-| `APPLE_ID` | L'Apple ID, en clair |
-| `APPLE_APP_PASSWORD` | Le mot de passe d'application (étape 3) |
-| `APPLE_TEAM_ID` | L'identifiant d'équipe (étape 4) |
+| `MACOS_CERT_P12` | The `.p12`, base64 encoded (step 2) |
+| `MACOS_CERT_PASSWORD` | The password chosen at export |
+| `APPLE_ID` | The Apple ID, in plain text |
+| `APPLE_APP_PASSWORD` | The app-specific password (step 3) |
+| `APPLE_TEAM_ID` | The team identifier (step 4) |
 
-## Où les poser — au niveau de l'organisation
+A sixth secret lives on the repository itself rather than the organisation, because it is specific
+to this app: `SPARKLE_PRIVATE_KEY`, which signs updates. See [docs/UPDATES.md](docs/UPDATES.md).
+
+## Where to put them — at organisation level
 
 https://github.com/organizations/xavierkain-apps/settings/secrets/actions ▸ **New organization
-secret**, cinq fois.
+secret**, five times.
 
-Pour chacun, **Repository access : Public repositories**.
+For each one, **Repository access: Public repositories**.
 
-C'est le seul choix disponible : l'organisation est en plan **Free**, où GitHub écrit noir sur blanc
-« Organization secrets cannot be used by private repositories with your plan ». C'est pour cette
-raison que QuiX est un dépôt **public**. Le contenu des échantillons a été audité avant l'ouverture,
-voir plus bas.
+It is the only choice available: the organisation is on the **Free** plan, where GitHub states
+plainly that "Organization secrets cannot be used by private repositories with your plan". That is
+why QuiX is a **public** repository. The fixtures were audited before it was opened — see below.
 
-En ligne de commande, si tu préfères — il faut d'abord élargir le jeton, `gh` ne demande pas le
-scope `admin:org` par défaut :
+From the command line, if you prefer — the token has to be widened first, since `gh` does not ask
+for the `admin:org` scope by default:
 
 ```sh
 gh auth refresh -h github.com -s admin:org
 
-base64 -i certificat.p12 | gh secret set MACOS_CERT_P12 --org xavierkain-apps --visibility all
+base64 -i certificate.p12 | gh secret set MACOS_CERT_P12 --org xavierkain-apps --visibility all
 gh secret set MACOS_CERT_PASSWORD --org xavierkain-apps --visibility all
 gh secret set APPLE_ID            --org xavierkain-apps --visibility all
 gh secret set APPLE_APP_PASSWORD  --org xavierkain-apps --visibility all
 gh secret set APPLE_TEAM_ID       --org xavierkain-apps --visibility all
 ```
 
-(`--visibility all` vaut « tous les dépôts auxquels le plan donne droit », soit les publics ici.)
+(`--visibility all` means "every repository the plan allows", which here means the public ones.)
 
-## Vérifier
+## Checking
 
-Pousser un commit. Dans le job « App — bundle macOS », les étapes **Importer le certificat
-Developer ID** et **Notariser** doivent **apparaître au lieu d'être sautées**, et l'étape de
-vérification doit répondre `accepted` à `spctl --assess`. C'est un signal sans ambiguïté : soit les
-deux étapes tournent, soit elles sont grisées.
+Push a commit. In the "App — bundle macOS" job, the **Import the Developer ID certificate** and
+**Notarize** steps must **appear instead of being skipped**, and the verification step must get
+`accepted` from `spctl --assess`. It is an unambiguous signal: either both steps run, or they are
+greyed out.
 
-## Deux pièges rencontrés, et réglés
+## Three traps met, and settled
 
-**Le certificat peut être fourni en hexadécimal.** `xxd -p certificat.p12` et
-`base64 -i certificat.p12` portent les mêmes octets ; la CI reconnaît lequel elle a reçu. Ce qu'elle
-refuse, à raison, c'est un `.cer` du portail Apple — il ne contient pas la clé privée.
+**The certificate may arrive in hexadecimal.** `xxd -p certificate.p12` and
+`base64 -i certificate.p12` carry the same bytes; CI recognises which it received. What it rightly
+refuses is a `.cer` from the Apple portal — no private key in it.
 
-**`xcodebuild build` injecte un entitlement de débogage.** `com.apple.security.get-task-allow`
-autorise un débogueur à s'attacher au processus : normal en développement, refusé par Apple à la
-notarisation. `CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO` le retire, et la vérification le contrôle
-avant chaque soumission — une seconde ici plutôt que deux minutes d'aller-retour chez Apple pour un
-message qui ne dit pas comment s'en défaire.
+**`xcodebuild build` injects a debugging entitlement.** `com.apple.security.get-task-allow` lets a
+debugger attach to the process: normal in development, refused by Apple at notarization.
+`CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO` strips it, and the verification checks for it before every
+submission — one second here rather than a two-minute round trip to Apple for a message that does
+not say how to get rid of it.
 
-## Ce qu'un dépôt public change
+**Sparkle's nested executables keep their own signature.** Xcode signs the framework it embeds,
+but not the updater app, the installer tool or the two XPC services inside it. Apple refuses the
+whole bundle over them. [Support/sign-sparkle.sh](Support/sign-sparkle.sh) re-signs them from the
+inside out, and CI then verifies that no nested executable carries a foreign signature.
 
-**Le certificat reste hors d'atteinte.** GitHub retient les secrets sur toute proposition de
-modification venue d'un fork, et le workflow ajoute la garde explicite : les étapes de signature ne
-tournent que sur un `push`, jamais sur une `pull_request`. Le droit d'écriture du jeton est réduit
-au seul job qui publie une release.
+## What a public repository changes
 
-**Les minutes deviennent gratuites.** Les exécuteurs standards sont sans quota sur un dépôt public,
-macOS compris. La contrainte des 2 000 minutes mensuelles de l'organisation ne s'applique plus à
-QuiX — elle ne concerne plus que les dépôts restés privés.
+**The certificate stays out of reach.** GitHub withholds secrets from any change proposed by a
+fork, and the workflow adds an explicit guard: the signing steps only run on a `push`, never on a
+`pull_request`. The token's write permission is narrowed to the single job that publishes a
+release.
 
-**Les échantillons ont été nettoyés.** Voir
-[Core/Tests/QuiXCoreTests/Fixtures/README.md](Core/Tests/QuiXCoreTests/Fixtures/README.md) : les
-numéros de série de la caméra et de l'objectif, et l'empreinte binaire du boîtier, ont été
-remplacés par des zéros avant l'ouverture du dépôt — historique git réécrit compris. Aucune donnée
-GPS n'a jamais été présente : la télémétrie vit dans le `mdat`, qui n'est pas dans les échantillons.
+**Minutes become free.** Standard runners have no quota on a public repository, macOS included.
+The organisation's 2,000 monthly minutes no longer apply to QuiX — only to the repositories that
+stayed private.
 
-## Ce que les secrets ne font pas tout seuls
+**The fixtures were cleaned.** See
+[Core/Tests/QuiXCoreTests/Fixtures/README.md](Core/Tests/QuiXCoreTests/Fixtures/README.md): the
+camera and lens serial numbers, and the body's binary fingerprint, were replaced with zeros before
+the repository was opened — rewritten git history included. No GPS data was ever present:
+telemetry lives in the `mdat`, which is not in the fixtures.
 
-Une nouvelle app dans l'organisation est signée automatiquement **à condition d'avoir le workflow**.
-Les secrets ne signent rien ; c'est `.github/workflows/ci.yml` qui les utilise. Pour une prochaine
-app, copier le job « App — bundle macOS » de QuiX et remplacer le nom du projet, du schéma et du
-bundle suffit — c'est le seul fichier à reprendre.
+## What the secrets do not do on their own
 
-## Pour la prochaine app
+A new app in the organisation is signed automatically **provided it has the workflow**. The
+secrets sign nothing; `.github/workflows/ci.yml` is what uses them. For a next app, copying QuiX's
+"App — bundle macOS" job and replacing the project, scheme and bundle names is enough — it is the
+only file to carry over.
 
-Si elle est publique, elle hérite des cinq secrets sans rien faire, et ses minutes sont gratuites.
+## For the next app
 
-Si elle doit rester privée, les secrets d'organisation ne l'atteindront pas : il faudra les reposer
-sur son dépôt, comme pour FCP CleanX aujourd'hui, ou passer l'organisation en plan Team.
+If it is public, it inherits the five secrets with no effort, and its minutes are free.
+
+If it has to stay private, organisation secrets will not reach it: they will have to be set on its
+own repository, as FCP CleanX does today, or the organisation moved to the Team plan.

@@ -1,63 +1,75 @@
-# Checklist matérielle
+# Hardware checklist
 
-Ce que l'intégration continue ne peut pas prouver. À cocher sur le Mac, avec la vraie GoPro et un
-lecteur de carte.
+What continuous integration cannot prove. To be ticked off on the Mac, with the real GoPro and a
+card reader.
 
-L'automatisé est ailleurs : `swift test --package-path Core` couvre le décodage HMMT sur les deux
-`moov` réels, le regroupement en prises, le plan d'import, l'idempotence et la copie vérifiée ; la
-CI compile l'app sur macOS. Rien de ce qui suit n'est automatisable sans matériel.
+The automated part lives elsewhere: `swift test --package-path Core` covers HMMT decoding against
+the two real `moov` atoms, grouping into takes, the import plan, idempotence and verified
+copying; CI builds the app on macOS. Nothing below can be automated without hardware.
 
-## Préparation, une seule fois
+## Setup, once
 
-- [ ] Ouvrir `QuiX.xcodeproj`, onglet **Signing & Capabilities**, choisir l'équipe de développement.
-      Xcode inscrit `DEVELOPMENT_TEAM` dans le projet — à committer.
-- [ ] Compiler, lancer, choisir le dossier d'import quand l'app le demande.
-- [ ] **Accorder l'accès aux volumes amovibles** quand macOS le demande, au premier branchement.
-      Sans cette autorisation, l'app voit le volume monter et ne trouve aucun fichier dedans — le
-      symptôme ressemble exactement à une carte vide.
-      La présence de `NSRemovableVolumesUsageDescription` dans l'`Info.plist` est vérifiée par la
-      CI ; ce qui reste à voir à la main, c'est que macOS pose bien la question.
+- [ ] Open `QuiX.xcodeproj`, **Signing & Capabilities**, pick the development team. Xcode writes
+      `DEVELOPMENT_TEAM` into the project — commit it.
+- [ ] Build, launch, walk through the three welcome screens and choose the import folder.
+- [ ] **Grant access to removable volumes** when macOS asks, on the first card. Without that
+      permission the app watches the volume mount and finds no files in it — the symptom looks
+      exactly like an empty card.
+      CI checks that `NSRemovableVolumesUsageDescription` is in the `Info.plist`; what is left to
+      see by hand is that macOS actually asks the question.
+- [ ] **Grant local network access** when macOS asks, on the first camera over USB-C. Same
+      misleading failure: the camera is seen, and nothing is found on it.
+- [ ] **Answer the notification prompt.** A prompt dismissed without an answer counts as a
+      refusal, and it never comes back — see [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md).
 
-## Le comportement quotidien
+## Everyday behaviour
 
-- [ ] **1.** Carte GoPro dans le lecteur : la fenêtre réagit seule et l'import démarre.
-- [ ] **2.** **Les highlights sont les bons.** Prendre une prise dont on se souvient d'avoir tagué,
-      vérifier qu'elle est dans `Highlights/` — et qu'une prise non taguée est dans `Clips/`.
-      C'est le seul point qui valide le produit ; tout le reste n'est que de la plomberie.
-- [ ] **3.** **Une longue prise à plusieurs chapitres.** Filmer plus de 4 Go d'un coup, tagger un
-      seul chapitre, vérifier que **tous** les chapitres arrivent ensemble dans `Highlights/`.
-      Ce cas produit un `mdat` de plus de 4 Go, donc un en-tête de taille sur 64 bits : c'est aussi
-      le seul moyen de vérifier en vrai le chemin de code testé par `testSixtyFourBitSizeIsUnderstood`.
-- [ ] **4.** **La carte est intacte.** Après un import complet, comparer le nombre de fichiers dans
-      `DCIM/` avant et après. Rien ne doit avoir bougé.
-- [ ] **5.** **Rebrancher la même carte ne recopie rien.** Le second import doit annoncer
-      « déjà importé » sur toute la carte et ne créer aucun dossier daté vide.
-- [ ] **6.** **Débrancher la carte en plein import.** L'app doit s'arrêter proprement, et il ne doit
-      rester aucun `.quix-partiel` ni aucun `.MP4` tronqué dans le dossier de destination.
-- [ ] **7.** **Une carte qui n'est pas une GoPro** — clé USB, carte d'appareil photo, disque
-      externe. L'app ne doit rien faire du tout, même si le volume s'appelle « GOPRO ».
-- [ ] **8.** Case « demander confirmation » cochée : brancher la carte affiche le résumé et attend
-      le clic. Décochée : l'import part seul.
-- [ ] **9.** « Ouvrir les highlights » ouvre bien le dossier dans le Finder.
-- [ ] **10.** **La durée sur une carte pleine.** Chronométrer le scan d'une carte bien remplie : il
-      doit se compter en secondes, pas en minutes. Si c'est long, c'est que quelque chose lit les
-      vidéos au lieu de leurs en-têtes, et toute la conception s'effondre.
+- [ ] **1.** GoPro card in the reader: the window reacts on its own and the import starts.
+- [ ] **2.** **The highlights are the right ones.** Take a clip you remember tagging, check it is
+      in `Highlights/` — and that an untagged take is in `Clips/`. This is the only point that
+      validates the product; all the rest is plumbing.
+- [ ] **3.** **A long take with several chapters.** Film more than 4 GB in one go, tag a single
+      chapter, check that **all** the chapters land together in `Highlights/`. That case produces
+      an `mdat` over 4 GB, and therefore a 64-bit size header: it is also the only way to exercise
+      for real the code path covered by `testSixtyFourBitSizeIsUnderstood`.
+- [ ] **4.** **The card is untouched.** After a full import, compare the number of files in
+      `DCIM/` before and after. Nothing should have moved.
+- [ ] **5.** **Plugging the same card in again copies nothing.** The second import must report
+      "already imported" across the whole card and create no empty dated folder.
+- [ ] **6.** **Unplug the card mid-import.** The app must stop cleanly, and no `.quix-partiel`
+      and no truncated `.MP4` may be left in the destination folder.
+- [ ] **7.** **A card that is not a GoPro** — a USB stick, a camera card, an external disk. The
+      app must do nothing at all, even if the volume happens to be called "GOPRO".
+- [ ] **8.** "Ask before importing" ticked: plugging the card in shows the summary and waits for
+      the click. Unticked: the import starts on its own.
+- [ ] **9.** "Open highlights" switches to the Library tab on the right session.
+- [ ] **10.** **Timing on a full card.** Time the scan of a well-filled card: it must be counted
+      in seconds, not minutes. If it is slow, something is reading the videos instead of their
+      headers, and the whole design collapses.
 
-## Ce qu'on sait déjà ne pas marcher
+## The camera over USB-C
 
-- [ ] **La caméra branchée en USB** se présente en MTP et n'apparaît pas sous `/Volumes/`. L'app ne
-      la verra pas. C'est attendu : le chemin nominal est la carte dans un lecteur. Vérifier au
-      moins que ça ne provoque rien de bizarre.
-- [ ] **Les highlights ajoutés après coup dans l'app mobile Quik** ne sont pas dans le MP4 et ne
-      seront jamais vus. Vérifier que la fenêtre le dit clairement.
+- [ ] **11.** Plug the camera in **and switch it on**. Switched off it exposes nothing, and
+      nothing will happen — which is not a bug.
+- [ ] **12.** With both a card in the reader and the camera plugged in, **the card wins**.
+- [ ] **13.** Import from the camera, then check the erase button: it only appears once every
+      clip on the camera has been found on the Mac at the right size.
 
-## Avant de distribuer
+## What is already known not to work
 
-`codesign --verify`, l'universalité du binaire et le runtime durci sont vérifiés par la CI à chaque
-push — voir [SIGNING.md](SIGNING.md). Ne reste que ce qui demande une vraie machine :
+- [ ] **Highlights added afterwards in the Quik mobile app** are not in the MP4 and will never be
+      seen. Check that the window says so clearly.
 
-- [ ] Télécharger l'artefact `QuiX` de la CI sur un Mac qui n'a jamais compilé le projet, et le
-      lancer. Il est signé Developer ID, notarisé et agrafé : **Gatekeeper ne doit rien dire du
-      tout**, pas même au premier lancement. S'il avertit, c'est que le ticket n'a pas suivi.
-- [ ] Lancer l'app depuis un compte utilisateur qui ne l'a jamais vue, pour retomber sur la demande
-      d'autorisation des volumes amovibles à froid.
+## Before distributing
+
+`codesign --verify`, the universality of the binary, the hardened runtime and the signature of
+Sparkle's nested executables are all checked by CI on every push — see [SIGNING.md](SIGNING.md)
+and [docs/UPDATES.md](docs/UPDATES.md). What is left needs a real machine:
+
+- [ ] Download the CI `QuiX` artifact onto a Mac that has never built the project, and launch it.
+      It is Developer ID signed, notarized and stapled: **Gatekeeper must say nothing at all**,
+      not even on first launch. If it warns, the ticket did not follow.
+- [ ] Launch the app from a user account that has never seen it, to hit the removable-volumes
+      prompt cold.
+- [ ] **Check for updates** from the menu, against a published appcast, and let an update install
+      itself end to end. An update path that has never been walked is not a feature.

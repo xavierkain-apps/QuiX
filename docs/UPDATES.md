@@ -1,83 +1,85 @@
-# Les mises à jour
+# Updates
 
-QuiX se distribue hors de l'App Store. Sans mécanisme de mise à jour, une version défectueuse
-reste installée chez tout le monde jusqu'à ce que chacun repasse sur le site de son plein gré
-— c'est-à-dire jamais. C'est **Sparkle 2** qui s'en charge : l'app vérifie une fois par jour,
-annonce ce que la version apporte, télécharge et installe.
+QuiX is distributed outside the App Store. With no update mechanism, a broken version stays
+installed on everyone's machine until each of them goes back to the site of their own accord —
+which is to say, never. **Sparkle 2** handles it: the app checks once a day, announces what the
+version brings, downloads and installs.
 
-## La signature, qui est tout le sujet
+## The signature, which is the whole subject
 
-Une mise à jour automatique est un moyen d'exécuter du code sur la machine de quelqu'un. Deux
-signatures indépendantes protègent ce chemin, et elles ne disent pas la même chose :
+An automatic update is a way to run code on someone else's machine. Two independent signatures
+protect that path, and they do not say the same thing:
 
-- **Developer ID + notarisation**, d'Apple : Gatekeeper accepte d'ouvrir l'app.
-- **EdDSA, de Sparkle** : l'app *déjà installée* vérifie que l'archive qu'elle vient de
-  télécharger vient bien de nous. `SUPublicEDKey` est inscrite dans l'`Info.plist` ; toute
-  archive signée d'une autre clé est refusée, quoi qu'elle prétende être.
+- **Developer ID + notarization**, from Apple: Gatekeeper agrees to open the app.
+- **EdDSA, from Sparkle**: the *already installed* app checks that the archive it just downloaded
+  really came from us. `SUPublicEDKey` is written into the `Info.plist`; any archive signed with
+  another key is refused, whatever it claims to be.
 
-La conséquence pratique : **quelqu'un qui prendrait le contrôle du serveur ne pourrait pas
-faire installer son propre binaire.** Il pourrait au pire empêcher les mises à jour.
+The practical consequence: **someone who took over the server could not make their own binary be
+installed.** At worst, they could prevent updates.
 
-## Où vivent les clés
+## Where the keys live
 
-| | Où | Qui y touche |
+| | Where | Who touches it |
 |---|---|---|
-| Clé privée EdDSA | trousseau de Xavier, et le secret `SPARKLE_PRIVATE_KEY` du dépôt | personne d'autre |
-| Clé publique EdDSA | `Support/Info.plist`, en clair | tout le monde, c'est le but |
-| Certificat Developer ID | secrets `MACOS_CERT_P12` et compagnie | voir [SIGNING.md](../SIGNING.md) |
+| EdDSA private key | Xavier's keychain, and the repository's `SPARKLE_PRIVATE_KEY` secret | nobody else |
+| EdDSA public key | `Support/Info.plist`, in plain sight | everyone, that is the point |
+| Developer ID certificate | the `MACOS_CERT_P12` secrets and friends | see [SIGNING.md](../SIGNING.md) |
 
-La clé privée a été produite par `generate_keys` de Sparkle et **n'a jamais été affichée**.
-Pour l'exporter afin d'alimenter le secret :
+The private key was produced by Sparkle's `generate_keys` and **was never displayed**. To export
+it in order to feed the secret:
 
 ```sh
-build/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_keys -x cle-privee.txt
-gh secret set SPARKLE_PRIVATE_KEY --repo xavierkain-apps/QuiX < cle-privee.txt
-rm cle-privee.txt
+build/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_keys -x private-key.txt
+gh secret set SPARKLE_PRIVATE_KEY --repo xavierkain-apps/QuiX < private-key.txt
+rm private-key.txt
 ```
 
-Perdre cette clé n'est pas rattrapable à distance : les apps installées refuseraient toute
-mise à jour signée d'une nouvelle clé, et il faudrait que chacun réinstalle à la main.
+Losing that key cannot be fixed remotely: installed apps would refuse any update signed with a new
+key, and everyone would have to reinstall by hand.
 
-## Le piège de la signature imbriquée
+## The nested-signature trap
 
-Xcode signe le framework Sparkle qu'il embarque, **mais pas ce qu'il y a dedans**. Sparkle
-porte une app d'interface, un outil d'installation et deux services XPC, tous signés par le
-projet Sparkle et sans horodatage sécurisé. Apple refuse le bundle entier, avec un message qui
-ne dit pas d'où vient le problème :
+Xcode signs the Sparkle framework it embeds, **but not what is inside it**. Sparkle carries an
+updater app, an installer tool and two XPC services, all signed by the Sparkle project and without
+a secure timestamp. Apple refuses the whole bundle, with a message that does not say where the
+problem comes from:
 
 ```
 The binary is not signed with a valid Developer ID certificate.
 The signature does not include a secure timestamp.
 ```
 
-[Support/sign-sparkle.sh](../Support/sign-sparkle.sh) les resigne du plus profond vers le
-plus extérieur, en conservant leurs droits — les services XPC en ont, et les perdre les
-empêcherait de démarrer. `codesign --deep` ne fait pas l'affaire : il ne rejoue pas les droits
-de chaque composant.
+[Support/sign-sparkle.sh](../Support/sign-sparkle.sh) re-signs them from the inside out, keeping
+their entitlements — the XPC services have some, and losing them would stop them starting.
+`codesign --deep` does not do the job: it does not replay each component's entitlements.
 
-La CI le lance après la compilation, puis **vérifie** que plus aucun exécutable imbriqué ne
-porte une autre signature. L'apprendre là coûte une seconde ; l'apprendre du service de
-notarisation coûte deux minutes.
+CI runs it after the build, then **verifies** that no nested executable carries a foreign
+signature any more. Learning it there costs a second; learning it from the notarization service
+costs two minutes.
 
-## Publier une version
+## Publishing a version
 
 ```sh
-# 1. Le numéro, aux deux endroits qui comptent
-#    MARKETING_VERSION  → ce que l'utilisateur lit
-#    CURRENT_PROJECT_VERSION → ce que Sparkle compare, à incrémenter à chaque fois
-# 2. Un tag, et c'est tout
+# 1. The number, in the two places that matter
+#    MARKETING_VERSION        → what the user reads
+#    CURRENT_PROJECT_VERSION  → what Sparkle compares, to increment every time
+# 2. A tag, and that is all
 git tag v1.0.0 && git push origin v1.0.0
 ```
 
-L'intégration continue compile, signe, notarise, agrafe, **signe la mise à jour**, écrit
-`appcast.xml` et publie la release avec les deux fichiers.
+CI builds, signs, notarizes, staples, **signs the update**, writes `appcast.xml` and publishes the
+release with both files.
 
-## Ce qui reste à brancher
+## What is left to connect
 
-`SUFeedURL` pointe sur `https://quix.xavier-kain.fr/appcast.xml`, qui n'existe pas encore. La
-CI, elle, publie l'appcast comme fichier de la release GitHub. Il faut que le site serve ce
-fichier — le plus simple est une redirection vers l'URL de la dernière release, ce qui évite
-d'avoir à redéployer le site à chaque version.
+`SUFeedURL` points at `https://quix.xavier-kain.fr/appcast.xml`, which does not exist yet. CI, for
+its part, publishes the appcast as a file of the GitHub release. The site has to serve that file —
+the simplest way is a redirect to the latest release's URL, which avoids redeploying the site for
+every version.
 
-En prime, les requêtes sur ce fichier donnent le **nombre d'installations actives et la
-répartition des versions**, sans une ligne de traçage dans l'app.
+Until then, a manual update check fails with "An error occurred while retrieving update
+information". That is expected, not a bug.
+
+As a bonus, requests for that file give the **number of active installs and the spread of
+versions**, without a line of tracking in the app.
