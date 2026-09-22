@@ -76,7 +76,9 @@ header .wrap { display: flex; align-items: center; justify-content: space-betwee
 .btn.ghost:hover { background: rgba(255, 255, 255, .09); transform: none; }
 
 /* Héros */
-.hero { position: relative; text-align: center; padding: 88px 28px 56px; }
+/* `overflow: hidden` contient le halo : large de 620 px et positionné en absolu, il allongeait
+   la largeur de défilement sur mobile et donnait une page qui glisse latéralement. */
+.hero { position: relative; overflow: hidden; text-align: center; padding: 88px 28px 56px; }
 .halo {
   position: absolute; top: 40px; left: 50%; width: 620px; height: 620px; margin-left: -310px;
   border-radius: 50%; pointer-events: none;
@@ -216,3 +218,171 @@ footer a:hover { color: var(--text); }
   .halo, .hero .icon, .shot .sweep { animation: none; }
   html { scroll-behavior: auto; }
 }
+
+/* ── Maquettes d'interface ────────────────────────────────────────────────────
+   Tout est en `em` : le cadre fixe la taille de police, la maquette suit. C'est ce qui permet
+   d'afficher la même interface dans le flux de la page et en plein écran sans la déformer. */
+
+.mock-frame {
+  font-size: clamp(6.2px, 1.26vw, 16.5px);
+  display: flex; justify-content: center;
+}
+.mock-frame.small { font-size: clamp(7.5px, 1.5vw, 13px); }
+
+.mk {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Archivo, sans-serif;
+  color: #F2F0EC; text-align: left; line-height: 1.35;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Fenêtre */
+.mk-win {
+  width: 68em; max-width: 100%;
+  background: #0E0E12; border: .08em solid rgba(255, 255, 255, .13);
+  border-radius: 1em; overflow: hidden;
+  box-shadow: 0 3em 7em -2.5em rgba(0, 0, 0, .9);
+}
+.mk-bar {
+  display: flex; align-items: center; gap: .9em; padding: .85em 1.1em;
+  background: #232327; border-bottom: .08em solid rgba(255, 255, 255, .07);
+}
+.mk-dots { display: flex; gap: .5em; }
+.mk-dot { width: .95em; height: .95em; border-radius: 50%; display: block; }
+.mk-r { background: #FF5F57; } .mk-y { background: #FEBC2E; } .mk-g { background: #28C840; }
+.mk-title { font-size: 1.05em; font-weight: 600; }
+
+.mk-tabs { display: flex; justify-content: center; gap: .2em; padding: 1.1em 0 1.3em; background: #17171B; }
+.mk-tab { font-size: 1.05em; padding: .45em 1.1em; border-radius: .5em; color: rgba(242,240,236,.6); }
+.mk-tab.on { background: rgba(255, 255, 255, .13); color: #fff; font-weight: 500; }
+
+.mk-body { padding: 0 1.7em; background: #0E0E12; }
+
+.mk-route { display: flex; align-items: center; gap: 1.1em; padding: .4em 0 1.5em; }
+.mk-card {
+  flex: 1; min-width: 0; background: #1C1C21; border: .08em solid rgba(255,255,255,.07);
+  border-radius: .75em; padding: 1.1em 1.3em 1.2em;
+}
+.mk-lab { font-size: .82em; letter-spacing: .12em; text-transform: uppercase; color: rgba(242,240,236,.45); }
+.mk-big { font-size: 1.6em; font-weight: 700; letter-spacing: -.02em; margin: .3em 0 .25em; }
+.mk-meta { font-size: .95em; color: rgba(242,240,236,.62); }
+.mk-meta b { color: var(--blue-light); font-weight: 500; }
+.mk-path { font-family: "JetBrains Mono", monospace; font-size: .8em; color: rgba(242,240,236,.34); margin-top: .7em; }
+.mk-arrow {
+  flex: 0 0 auto; width: 2.6em; height: 2.6em; border-radius: 50%; background: var(--blue);
+  display: grid; place-items: center; color: #fff;
+}
+.mk-arrow svg { width: 1.5em; height: 1.5em; }
+
+.mk-prog { display: flex; align-items: center; gap: 1.1em; padding-bottom: 1.5em; }
+.mk-track { flex: 1; height: .38em; border-radius: .2em; background: rgba(255,255,255,.12); overflow: hidden; }
+.mk-fill { display: block; height: 100%; width: 100%; background: var(--blue); border-radius: .2em; }
+.mk-progLab { font-size: .95em; color: rgba(242,240,236,.75); white-space: nowrap; }
+
+.mk-table { border-top: .08em solid rgba(255,255,255,.09); }
+
+/* Les largeurs sont en pourcentage, pas en `em`. Un `em` se résout contre la police de
+   l'élément lui-même : l'en-tête, écrit plus petit, aurait des colonnes plus étroites que les
+   lignes et les deux ne s'aligneraient plus. Le pourcentage, lui, se résout contre le tableau. */
+.mk-row { display: flex; align-items: center; padding: .72em 0; font-size: .95em; }
+.mk-head { letter-spacing: .12em; text-transform: uppercase; color: rgba(242,240,236,.38); padding: .9em 0; }
+.mk-c1 { flex: 1; min-width: 0; font-family: "JetBrains Mono", monospace; display: flex; align-items: center; gap: .9em; }
+.mk-head .mk-c1 { font-family: inherit; }
+.mk-head .mk-bullet { visibility: hidden; }
+.mk-c2 { flex: 0 0 13%; text-align: right; color: rgba(242,240,236,.75); }
+.mk-c3 { flex: 0 0 9%; text-align: center; }
+.mk-c4 { flex: 0 0 12%; text-align: right; color: rgba(242,240,236,.5); }
+.mk-bullet { width: .45em; height: .45em; border-radius: 50%; background: var(--blue); flex: 0 0 auto; }
+.mk-badge {
+  display: inline-block; min-width: 1.5em; padding: .12em .4em; border-radius: .3em;
+  background: rgba(0,163,228,.22); color: var(--blue-light); font-size: .9em; font-weight: 600; text-align: center;
+}
+.mk-ok { color: rgba(242,240,236,.5); }
+
+.mk-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 1.5em;
+  padding: 1.3em 1.7em; margin-top: 1.2em;
+  background: #17171B; border-top: .08em solid rgba(255,255,255,.07);
+}
+.mk-note { font-size: .92em; color: rgba(242,240,236,.5); margin: 0; max-width: 34em; }
+.mk-btn {
+  background: var(--blue); color: #fff; font-size: 1em; font-weight: 600;
+  padding: .65em 1.3em; border-radius: .55em; white-space: nowrap;
+}
+.mk-wide { display: block; text-align: center; padding: .85em; }
+
+/* Popover */
+.mk-pop {
+  width: 26em; max-width: 100%; background: #16161A;
+  border: .08em solid rgba(255,255,255,.1); border-radius: 1.1em; padding: 1.6em;
+  box-shadow: 0 2.5em 6em -2em rgba(0,0,0,.85);
+}
+.mk-popTitle { font-size: 1.55em; font-weight: 700; letter-spacing: -.02em; }
+.mk-popMeta { font-size: 1em; color: rgba(242,240,236,.55); margin-top: .35em; }
+.mk-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: .8em; margin: 1.3em 0; }
+.mk-tile { background: rgba(255,255,255,.055); border-radius: .7em; padding: 1em 1.1em 1.1em; }
+.mk-n { font-size: 2.1em; font-weight: 700; line-height: 1; }
+.mk-n.blue { color: var(--blue); }
+.mk-tl { font-size: .95em; color: rgba(242,240,236,.55); margin-top: .35em; }
+.mk-popNote { font-size: .9em; color: rgba(242,240,236,.4); margin-top: 1.1em; }
+
+/* Cadre cliquable */
+figure.shot { cursor: default; }
+figure.zoomable { cursor: zoom-in; }
+figure.zoomable:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
+
+/* Plein écran */
+.zoom {
+  position: fixed; inset: 0; z-index: 90; display: grid; place-items: center;
+  padding: 4vmin; background: rgba(6, 6, 9, .93); backdrop-filter: blur(6px);
+  opacity: 0; transition: opacity .2s; cursor: zoom-out;
+}
+.zoom.on { opacity: 1; }
+.zoom-inner { width: 100%; max-width: 1400px; font-size: clamp(8px, 1.15vw, 17px); }
+.zoom-inner .mk-pop { margin: 0 auto; }
+.zoom-x {
+  position: fixed; top: 20px; right: 24px; font: inherit; font-size: 30px; line-height: 1;
+  width: 46px; height: 46px; border-radius: 50%; cursor: pointer;
+  color: var(--text); background: rgba(255,255,255,.1); border: .5px solid var(--line);
+}
+.zoom-x:hover { background: rgba(255,255,255,.18); }
+
+/* ── Schéma du bouton GoPro ───────────────────────────────────────────────── */
+.gp { text-align: center; }
+.gp svg { width: 100%; max-width: 400px; margin: 0 auto; overflow: visible; }
+.gp-body { fill: #1C1C21; stroke: rgba(255,255,255,.14); stroke-width: 1.5; }
+.gp-side { fill: #26262B; }
+.gp-lensRing { fill: #111116; stroke: rgba(255,255,255,.1); stroke-width: 1.5; }
+.gp-lens { fill: #05070D; stroke: rgba(0,163,228,.35); stroke-width: 1.5; }
+.gp-glint { fill: rgba(169,220,245,.3); }
+.gp-screen { fill: rgba(255,255,255,.07); }
+.gp-rec { fill: #FF4B3E; animation: gpRec 1.8s ease-in-out infinite; }
+@keyframes gpRec { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+.gp-recLab { fill: rgba(242,240,236,.45); font-size: 10px; font-family: "JetBrains Mono", monospace; }
+.gp-btn { fill: var(--blue); }
+.gp-halo { fill: rgba(0,163,228,.3); animation: gpPress 2.4s ease-out infinite; transform-origin: 99px 104px; }
+@keyframes gpPress {
+  0%, 62% { transform: scale(1); opacity: .55; }
+  74% { transform: scale(1.75); opacity: 0; }
+  100% { transform: scale(1.75); opacity: 0; }
+}
+.gp-lead { stroke: rgba(255,255,255,.22); stroke-width: 1.2; stroke-dasharray: 3 4; fill: none; }
+.gp-lab { fill: var(--text); font-size: 13px; font-weight: 600; font-family: Archivo, sans-serif; }
+.gp-sub { fill: var(--blue-light); font-size: 11px; font-family: "JetBrains Mono", monospace; }
+.gp-mark { fill: var(--blue); animation: gpMark 2.4s ease-out infinite; }
+@keyframes gpMark { 0%, 70% { opacity: 0; r: 3; } 80% { opacity: 1; r: 6; } 100% { opacity: 1; r: 5; } }
+.gp-result { font-size: 13px; color: var(--blue-light); margin: 6px 0 0; font-family: "JetBrains Mono", monospace; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gp-rec, .gp-halo, .gp-mark, .mk-fill { animation: none; }
+}
+
+/* ── Comment ça marche ────────────────────────────────────────────────────── */
+.how { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.how .step { flex-direction: column; gap: 10px; padding: 26px 24px 28px; }
+.how .step .no {
+  font-size: 12px; color: var(--blue-light); padding: 0;
+  display: inline-flex; align-items: center; gap: 9px;
+}
+.how .step .no::before { content: ""; width: 20px; height: 2px; background: var(--blue); }
+.how .step h3 { font-size: 18px; }
+.how .step p { font-size: 14px; }

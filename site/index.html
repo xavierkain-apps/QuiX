@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QuiX — plug in, every clip lands sorted</title>
-<meta name="description" content="QuiX imports your GoPro session on its own and keeps the takes you tagged while filming in their own Highlights folder. macOS 15+, signed and notarized.">
+<title>QuiX — your GoPro highlights, sorted the moment you plug in</title>
+<meta name="description" content="You press the GoPro button when something good happens. QuiX finds those moments and puts the clips in their own folder, automatically. A free GoPro importer for Mac.">
 <link rel="icon" href="assets/favicon.png">
-<meta property="og:title" content="QuiX — plug in, every clip lands sorted">
-<meta property="og:description" content="A GoPro importer for macOS that sorts your highlights for you.">
+<meta property="og:title" content="QuiX — your GoPro highlights, sorted the moment you plug in">
+<meta property="og:description" content="Press the button while you film. QuiX does the rest.">
 <meta property="og:image" content="https://quix.xavier-kain.fr/assets/icon-1024.png">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,22 +34,41 @@
   <div class="halo" aria-hidden="true"></div>
   <div class="wrap" style="position: relative">
     <img class="icon" src="assets/icon-1024.png" alt="QuiX" width="132" height="132">
-    <h1 data-reveal data-t="h1">Plug in. Every clip lands sorted.</h1>
+    <h1 data-reveal data-t="h1">Plug in. Your best moments are already sorted.</h1>
     <p class="lede" data-reveal data-t="sub"></p>
     <div class="ctas" data-reveal>
-      <a class="btn" href="#download" data-t="ctaPrimary">Download for macOS</a>
-      <a class="btn ghost" href="https://github.com/xavierkain-apps/QuiX" data-t="ctaSecondary">View source</a>
+      <a class="btn" href="#download" data-t="ctaPrimary">Download for Mac</a>
     </div>
     <p class="hero-foot mono" data-t="heroFoot"></p>
   </div>
 </section>
 
+<!-- L'app telle qu'elle est à la fin d'un import. Redessinée en HTML, donc nette et agrandissable. -->
 <section class="wrap" data-reveal style="padding-top: 0">
-  <figure class="shot" style="margin: 0">
+  <figure class="shot" id="fig-transfer" style="margin: 0; padding: 1.4vw 1.2vw; background: var(--raised)">
     <span class="sweep" aria-hidden="true"></span>
-    <img id="shot-hero" src="shots/en/transfer.png" alt="" width="1720" height="1022">
+    <div class="mock-frame" id="mock-transfer"></div>
   </figure>
   <figcaption class="mono note" style="text-align: center; margin-top: 12px" data-t="shotHero"></figcaption>
+</section>
+
+<section class="wrap">
+  <div class="kicker mono" data-reveal data-t="howKicker" style="margin-bottom: 14px"></div>
+  <h2 data-reveal data-t="howTitle" style="max-width: 20ch; margin-bottom: 34px"></h2>
+  <div class="how" id="howSteps"></div>
+</section>
+
+<!-- Le geste que tout le reste suppose. Sans lui, l'app n'a rien à trier. -->
+<section class="wrap">
+  <div class="two middle">
+    <div>
+      <div class="kicker mono" data-reveal data-t="hlKicker" style="margin-bottom: 18px"></div>
+      <h2 data-reveal data-t="hlTitle" style="max-width: 16ch"></h2>
+      <p data-reveal data-t="hlBody" style="font-size: 16px; line-height: 1.55; color: var(--muted); margin: 0 0 16px; max-width: 44ch"></p>
+      <p data-reveal data-t="hlNote" style="font-size: 13.5px; line-height: 1.55; color: var(--faint); margin: 0; max-width: 44ch"></p>
+    </div>
+    <div data-reveal id="gopro"></div>
+  </div>
 </section>
 
 <section class="wrap">
@@ -57,40 +76,14 @@
 </section>
 
 <section class="wrap">
-  <div class="two">
-    <div>
-      <div class="kicker mono" data-reveal data-t="hlKicker" style="margin-bottom: 18px"></div>
-      <h2 data-reveal data-t="hlTitle" style="max-width: 18ch"></h2>
-      <p data-reveal data-t="hlBody" style="font-size: 16px; line-height: 1.55; color: var(--muted); margin: 0 0 14px; max-width: 42ch"></p>
-      <p data-reveal data-t="hlNote" style="font-size: 13.5px; line-height: 1.55; color: var(--muted); margin: 0; max-width: 42ch"></p>
-    </div>
-    <div class="steps" id="hlSteps"></div>
-  </div>
-</section>
-
-<section class="wrap">
-  <div class="stats" id="stats" data-reveal></div>
-</section>
-
-<section class="wrap">
-  <div class="onb-head">
-    <h2 data-reveal data-t="onbTitle" style="max-width: 20ch"></h2>
-    <span class="kicker mono" data-t="onbKicker"></span>
-  </div>
-  <div class="onb" id="onb"></div>
-</section>
-
-<section class="wrap">
   <div class="two middle">
     <div>
-      <h2 data-reveal data-t="libTitle"></h2>
-      <p data-reveal data-t="libBody" style="font-size: 16px; line-height: 1.55; color: var(--muted); margin: 0 0 22px; max-width: 40ch"></p>
-      <div class="tabs" id="tabs"></div>
+      <h2 data-reveal data-t="libTitle" style="max-width: 16ch"></h2>
+      <p data-reveal data-t="libBody" style="font-size: 16px; line-height: 1.55; color: var(--muted); margin: 0; max-width: 40ch"></p>
     </div>
     <div data-reveal>
-      <figure class="shot" style="margin: 0; box-shadow: 0 30px 90px -40px rgba(0,163,228,.3)">
-        <img id="shot-popover" src="shots/en/popover.png" alt="" width="600" height="476"
-             style="margin: 0 auto; max-width: 420px">
+      <figure class="shot" id="fig-popover" style="margin: 0; padding: 26px; background: var(--raised); box-shadow: 0 30px 90px -40px rgba(0,163,228,.3)">
+        <div class="mock-frame small" id="mock-popover"></div>
       </figure>
       <figcaption class="mono note" style="text-align: center; margin-top: 12px" data-t="shotPopover"></figcaption>
     </div>
@@ -119,7 +112,7 @@
         <input type="checkbox" name="nouvelles" value="1" checked>
         <span data-t="dlConsent"></span>
       </label>
-      <button class="btn" type="submit" data-t="dlSubmit">Get the download link</button>
+      <button class="btn" type="submit" data-t="dlSubmit">Send me the link</button>
       <p class="note" data-t="dlPrivacy"></p>
     </form>
 
@@ -129,10 +122,10 @@
 
 <footer>
   <span class="mono">QuiX — <span data-t="footerTag"></span></span>
-  <a class="mono" href="https://github.com/xavierkain-apps/QuiX">github.com/xavierkain-apps/QuiX</a>
 </footer>
 
 <script src="assets/copy.js"></script>
+<script src="assets/mockups.js"></script>
 <script src="assets/page.js"></script>
 </body>
 </html>
