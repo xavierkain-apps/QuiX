@@ -33,6 +33,22 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # Sonde temporaire : dire ce que l'exécuteur atteint réellement, plutôt que de supposer.
+      - name: Que voit l'exécuteur ?
+        env:
+          SSH_TARGET: ${{ secrets.SITE_SSH_TARGET }}
+        run: |
+          HOST="${SSH_TARGET#*@}"
+          echo "hôte : $HOST -> $(getent hosts "$HOST" | awk '{print $1}' | head -1)"
+          for PORT in 21 22 2222 21098; do
+            if timeout 8 bash -c "cat < /dev/null > /dev/tcp/$HOST/$PORT" 2>/dev/null; then
+              echo "port $PORT : ouvert"
+            else
+              echo "port $PORT : injoignable"
+            fi
+          done
+        continue-on-error: true
+
       - name: Publish over SSH
         env:
           SSH_KEY: ${{ secrets.SITE_SSH_KEY }}
