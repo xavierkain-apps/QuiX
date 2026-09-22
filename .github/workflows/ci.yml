@@ -11,6 +11,9 @@ permissions:
 on:
   push:
     branches: [main, "feat/**"]
+    # Sans cette ligne, pousser un tag ne déclenchait rien : l'étape « Publier la release » était
+    # écrite, conditionnée aux tags, et hors d'atteinte. Une release n'aurait jamais pu sortir.
+    tags: ["v*"]
     # Un commit qui ne touche que de la documentation n'a rien à compiler.
     paths-ignore: ["**.md", "docs/**", ".gitignore"]
   pull_request:
