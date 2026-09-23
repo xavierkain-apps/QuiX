@@ -91,7 +91,7 @@ header .wrap { display: flex; align-items: center; justify-content: space-betwee
 
 h1 {
   font-size: clamp(40px, 8vw, 88px); line-height: .96; letter-spacing: -.045em;
-  font-weight: 800; text-transform: uppercase; margin: 0 auto 20px; max-width: 16ch;
+  font-weight: 800; text-transform: uppercase; margin: 0 auto 20px; max-width: 22ch;
   text-wrap: balance;
 }
 .lede { font-size: 18px; line-height: 1.5; color: var(--muted); margin: 0 auto 32px; max-width: 44ch; text-wrap: pretty; }
