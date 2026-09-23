@@ -15,14 +15,14 @@ window.QUIX_COPY = {
     description: "Press the button on your GoPro when something good happens. QuiX finds those moments and puts the clips in their own folder, automatically. Free, for Mac.",
 
     navGet: "Free download",
-    h1: "Plug in. Your best moments are already sorted.",
+    h1: "Skip the rushes.<br>Keep the moments.",
     sub: "You pressed the button when it happened. QuiX finds those clips and keeps them apart, while it imports the rest of your session. Nothing to click.",
     ctaPrimary: "Download for free",
     heroFoot: "100% free · No account · No ads · For Mac",
     shotHero: "The end of an import: three marked takes, already waiting in Highlights.",
 
     howKicker: "How it works",
-    howTitle: "Three things, and two of them are already habits.",
+    howTitle: "Film. Press. Plug in.",
     howSteps: [
       { no: "01", title: "You press the button while filming", body: "Something good happens — a jump, a wave, a turn. A short press on the button on the side of your GoPro, and the moment is marked." },
       { no: "02", title: "Back home, you plug in", body: "The camera over USB-C, switched on. Or the memory card in a reader. QuiX starts on its own." },
@@ -30,7 +30,7 @@ window.QUIX_COPY = {
     ],
 
     hlKicker: "The GoPro button",
-    hlTitle: "One press. That's the whole trick.",
+    hlTitle: "One press. One highlight.",
     hlBody: "While your GoPro is recording, give a short press to the button on its side — the one you use to switch it on. The camera keeps filming and writes the moment inside the video file. You can also just say “GoPro, HighLight”, hands free.",
     hlNote: "It only works for presses made while filming. Highlights added afterwards in the Quik phone app stay in the app, and QuiX cannot see them.",
     hlDiagram: {
@@ -52,7 +52,7 @@ window.QUIX_COPY = {
     ],
 
     onbKicker: "First launch",
-    onbTitle: "Three screens, then you plug in.",
+    onbTitle: "Ready in under a minute.",
     onbHint: "Click a screen to enlarge it",
     onbCards: [
       { no: "01", title: "What QuiX does", body: "Your GoPro over USB-C, or its card in a reader. Your footage is never modified." },
@@ -157,14 +157,14 @@ window.QUIX_COPY = {
     description: "Appuyez sur le bouton de votre GoPro quand il se passe quelque chose. QuiX retrouve ces moments et range les clips dans leur propre dossier, tout seul. Gratuit, pour Mac.",
 
     navGet: "Téléchargement gratuit",
-    h1: "Branchez. Vos meilleurs moments sont déjà triés.",
+    h1: "Vos meilleures prises,<br>déjà triées.",
     sub: "Vous avez appuyé sur le bouton au bon moment. QuiX retrouve ces clips et les met à part, pendant qu'il importe le reste de la session. Aucun clic.",
     ctaPrimary: "Télécharger gratuitement",
     heroFoot: "100 % gratuit · Sans compte · Sans pub · Pour Mac",
     shotHero: "La fin d'un import : trois prises marquées, qui attendent déjà dans Highlights.",
 
     howKicker: "Comment ça marche",
-    howTitle: "Trois choses, dont deux sont déjà des réflexes.",
+    howTitle: "Filmez. Appuyez. Branchez.",
     howSteps: [
       { no: "01", title: "Vous appuyez sur le bouton en filmant", body: "Il se passe quelque chose — un saut, une vague, une courbe. Un appui court sur le bouton sur le côté de votre GoPro, et l'instant est marqué." },
       { no: "02", title: "De retour chez vous, vous branchez", body: "La caméra en USB-C, allumée. Ou la carte mémoire dans un lecteur. QuiX démarre tout seul." },
@@ -172,7 +172,7 @@ window.QUIX_COPY = {
     ],
 
     hlKicker: "Le bouton de la GoPro",
-    hlTitle: "Un appui. C'est toute l'astuce.",
+    hlTitle: "Un appui, un highlight.",
     hlBody: "Pendant que votre GoPro enregistre, donnez un appui court sur le bouton de son côté — celui qui sert à l'allumer. La caméra continue de filmer et écrit l'instant à l'intérieur du fichier vidéo. Vous pouvez aussi dire « GoPro, HighLight », sans les mains.",
     hlNote: "Ça ne marche que pour les appuis faits pendant le tournage. Les highlights ajoutés après coup dans l'app Quik du téléphone restent dans l'app, et QuiX ne peut pas les voir.",
     hlDiagram: {
@@ -194,7 +194,7 @@ window.QUIX_COPY = {
     ],
 
     onbKicker: "Premier lancement",
-    onbTitle: "Trois écrans, puis vous branchez.",
+    onbTitle: "Prêt en moins d'une minute.",
     onbHint: "Cliquez sur un écran pour l'agrandir",
     onbCards: [
       { no: "01", title: "Ce que fait QuiX", body: "Votre GoPro en USB-C, ou sa carte dans un lecteur. Vos vidéos ne sont jamais modifiées." },
