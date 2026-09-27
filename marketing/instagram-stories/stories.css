@@ -1,0 +1,81 @@
+/* Instagram stories for QuiX — 1080 × 1920.
+   Instagram covers roughly the top 220 px (progress bar, profile) and the bottom 340 px (reply
+   bar, stickers): everything that must be read sits between y = 240 and y = 1560. */
+:root { --ink:#101017; --text:#F2F0EC; --muted:rgba(242,240,236,.62); --blue:#00A3E4; --blue2:#5BBDEE; --pale:#E6F7FF; }
+* { box-sizing: border-box; margin: 0; }
+body { background: #000; font-family: Archivo, -apple-system, "Helvetica Neue", sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+.mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+.story { position: relative; width: 1080px; height: 1920px; overflow: hidden; background:
+  radial-gradient(900px 700px at 50% 42%, rgba(0,163,228,.20), transparent 65%), var(--ink); }
+.story + .story { margin-top: 40px; }
+
+/* Viewfinder: the camera framing the design uses on the site. */
+.vf i { position: absolute; width: 70px; height: 70px; border-color: rgba(242,240,236,.55); border-style: solid; border-width: 0; }
+.vf .tl { top: 250px; left: 64px; border-top-width: 3px; border-left-width: 3px; }
+.vf .tr { top: 250px; right: 64px; border-top-width: 3px; border-right-width: 3px; }
+.vf .bl { bottom: 330px; left: 64px; border-bottom-width: 3px; border-left-width: 3px; }
+.vf .br { bottom: 330px; right: 64px; border-bottom-width: 3px; border-right-width: 3px; }
+.hud { position: absolute; top: 272px; left: 160px; right: 160px; display: flex; justify-content: space-between; font: 500 26px "JetBrains Mono", monospace; letter-spacing: .14em; }
+.hud .rec { color: #FF5A4E; display: flex; align-items: center; gap: 14px; }
+.hud .rec::before { content: ""; width: 18px; height: 18px; border-radius: 50%; background: #FF4B3E; box-shadow: 0 0 16px #FF4B3E; }
+.hud .tc { color: rgba(242,240,236,.7); }
+
+.content { position: absolute; left: 90px; right: 90px; }
+.kicker { font: 500 28px "JetBrains Mono", monospace; letter-spacing: .16em; text-transform: uppercase; color: var(--blue2); margin-bottom: 26px; }
+h1 { font-weight: 850; font-stretch: 88%; text-transform: uppercase; letter-spacing: -.045em; line-height: .92; font-size: 136px; }
+h1 .hl { display: inline-block; background: var(--blue); color: #0B0B10; padding: 4px 20px 10px; margin: 8px -20px 0; border-radius: 14px;
+         box-shadow: 0 0 60px rgba(0,163,228,.55); }
+.lede { font-size: 40px; line-height: 1.38; color: var(--muted); margin-top: 40px; max-width: 24ch; }
+.foot { position: absolute; left: 0; right: 0; bottom: 380px; text-align: center; font: 500 30px "JetBrains Mono", monospace; letter-spacing: .06em; color: rgba(242,240,236,.75); }
+
+/* 1 — the wall of footage */
+.wall { position: absolute; left: -300px; right: -300px; top: 330px; height: 900px; transform: perspective(1400px) rotateX(22deg) rotateZ(-9deg); opacity: .9; }
+.wall .row { display: flex; gap: 22px; margin-bottom: 22px; }
+.tile { position: relative; flex: none; width: 380px; height: 214px; border-radius: 16px; background: #1C1B21 center/cover; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+.tile.dim { filter: brightness(.45) saturate(.7); }
+.tile.hot { box-shadow: 0 0 0 5px var(--blue), 0 0 50px rgba(0,163,228,.7); }
+.badge { position: absolute; top: 12px; left: 12px; font: 700 24px -apple-system, "Helvetica Neue", sans-serif; background: var(--blue); color: #fff; padding: 3px 12px; border-radius: 8px; }
+.fade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(16,16,23,.2) 0%, rgba(16,16,23,.35) 35%, rgba(16,16,23,.94) 62%, var(--ink) 80%); }
+.appicon { width: 150px; height: 150px; border-radius: 34px; box-shadow: 0 20px 60px rgba(0,0,0,.6), 0 0 80px rgba(0,163,228,.35); }
+
+/* 2 — the needle in the haystack */
+.grid { position: absolute; left: 70px; right: 70px; top: 850px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.grid .tile { width: auto; height: auto; aspect-ratio: 16/9; border-radius: 12px; }
+
+/* 3 — the GoPro */
+.gp { position: absolute; left: 110px; right: 110px; top: 740px; }
+.gp svg { width: 100%; overflow: visible; }
+
+/* 4 — the result */
+.win { position: absolute; left: 70px; right: 70px; top: 700px; border-radius: 26px; overflow: hidden; background: #1A1A1E; border: 2px solid rgba(255,255,255,.14); box-shadow: 0 40px 120px rgba(0,0,0,.7); }
+.win .bar { display: flex; align-items: center; gap: 14px; padding: 22px 26px; background: #26262B; }
+.win .bar i { width: 22px; height: 22px; border-radius: 50%; }
+.win .bar b { margin-left: 16px; font: 600 30px -apple-system, "Helvetica Neue", sans-serif; }
+.win .body { padding: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.win .file { text-align: center; font: 500 22px -apple-system, "Helvetica Neue", sans-serif; color: rgba(242,240,236,.85); }
+.win .file .tile { width: auto; height: auto; aspect-ratio: 16/9; margin-bottom: 12px; border: 4px solid #fff; border-radius: 10px; }
+.win .path { padding: 16px 30px 22px; font: 400 22px -apple-system, "Helvetica Neue", sans-serif; color: rgba(242,240,236,.55); border-top: 1px solid rgba(255,255,255,.08); }
+.pop { position: absolute; right: 90px; top: 1100px; width: 560px; padding: 34px; border-radius: 28px; background: rgba(22,22,26,.96); border: 2px solid rgba(255,255,255,.12); box-shadow: 0 30px 100px rgba(0,0,0,.8); }
+.pop .t { font: 700 40px -apple-system, "Helvetica Neue", sans-serif; }
+.pop .m { font-size: 26px; color: var(--muted); margin-top: 6px; }
+.pop .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+.pop .n { background: rgba(255,255,255,.06); border-radius: 18px; padding: 18px 22px; font-size: 26px; color: var(--muted); }
+.pop .n b { display: block; font-size: 62px; line-height: 1; color: var(--text); margin-bottom: 6px; }
+.pop .n.blue b { color: var(--blue); }
+.pop .go { background: var(--blue); color: #fff; text-align: center; font: 600 30px -apple-system, "Helvetica Neue", sans-serif; padding: 20px; border-radius: 16px; }
+
+/* 5 — the call */
+.chips { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 44px; }
+.chips span { font: 500 30px -apple-system, "Helvetica Neue", sans-serif; padding: 16px 26px; border-radius: 999px; background: rgba(255,255,255,.07); border: 2px solid rgba(255,255,255,.14); }
+.chips span b { color: var(--blue2); }
+.link { position: absolute; left: 0; right: 0; top: 1350px; text-align: center; }
+/* Left empty on purpose, between the hint and the bottom of the safe zone: that is where the link
+   sticker goes when the story is posted. */
+.chipline { font: 500 26px "JetBrains Mono", monospace; letter-spacing: .02em; color: rgba(242,240,236,.75); margin-top: 30px; }
+.chipline b { color: var(--blue2); }
+.link .hint { font: 600 38px Archivo, sans-serif; color: var(--text); }
+.link .arrow { color: var(--blue); }
+.link .url { font: 500 26px "JetBrains Mono", monospace; color: rgba(242,240,236,.7); margin-top: 14px; }
+.fan { position: absolute; left: 50%; top: 350px; width: 0; height: 0; }
+.fan .tile { position: absolute; width: 340px; height: 192px; left: -170px; top: 0; transform-origin: 50% 700px; border: 5px solid #fff; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
