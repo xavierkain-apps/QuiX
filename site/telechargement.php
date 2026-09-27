@@ -51,6 +51,7 @@ function page(string $titre, string $corps, string $langue): never
          '<title>', htmlspecialchars($titre, ENT_QUOTES), '</title>',
          '<link rel="icon" href="assets/favicon.png">',
          '<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">',
+         '<script defer data-domain="quix.xavier-kain.fr" src="https://plausible.io/js/script.js"></script><script>window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}</script>',
          '<link rel="stylesheet" href="assets/style.css"></head><body>',
          '<main class="wrap" style="max-width:640px;padding-top:96px;text-align:center">',
          '<img src="assets/icon-256.png" alt="QuiX" width="84" height="84" style="margin:0 auto 28px">',
@@ -124,5 +125,6 @@ page($mots['title'],
   . '<p class="note" style="margin-top:18px">' . $mots['manual'] . '<br><span class="mono">' . $lien . '</span></p>'
   . '<p class="note">' . $mots['mailed'] . '</p>'
   . '<p style="margin-top:36px"><a class="mono note" href="./">' . $mots['back'] . '</a></p>'
+  . '<script>plausible(\'Signup\',{props:{lang:' . json_encode($langue) . '}});</script>'
   . '<script>setTimeout(function(){location.href=' . json_encode(TELECHARGEMENT) . ';},1200);</script>',
     $langue);
