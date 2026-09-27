@@ -98,8 +98,8 @@ $corps = $langue === 'fr'
       . "\n\nDécompressez, glissez QuiX dans Applications, et branchez votre GoPro allumée.\n\nXavier"
     : "Hi " . $inscription['prenom'] . ",\n\nHere is QuiX:\n" . TELECHARGEMENT
       . "\n\nUnzip it, drag QuiX into Applications, and plug your GoPro in, switched on.\n\nXavier";
-@mail($email, sujet_mime($sujet), $corps,
-      "From: QuiX <no-reply@quix.xavier-kain.fr>\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8");
+// Sent from Xavier's own address when Gmail is configured — see _mail.php. Replies reach him.
+transport($email, $sujet, $corps, null, null);
 
 envoyer(
     DESTINATAIRE,

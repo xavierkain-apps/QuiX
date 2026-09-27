@@ -25,10 +25,32 @@ Everything else is written by hand:
 |---|---|
 | `telechargement.php` | the download form: validates, records the sign-up, emails the link, starts the download |
 | `retour/index.php` | the feedback form the app opens |
-| `_mail.php` | readable notification emails, shared by the two forms |
+| `_mail.php` | readable notification emails, shared by the two forms, sent through Gmail when configured |
+| `lib/phpmailer/` | PHPMailer (LGPL-2.1, version in `VERSION`), for authenticated SMTP; denied over HTTP |
 | `.htaccess` | HTTPS, the Sparkle feed redirect, security headers, the Let's Encrypt exception |
 | `assets/style.css` | styles of the two PHP pages |
 | `assets/thumbs/` | stills from real sessions, used by the hero wall, the library and the download fan |
+
+## Email
+
+Mail leaves through Gmail's SMTP, authenticated as `xavierkain.consulting@gmail.com`, when a file
+`mail.ini` sits **one level above the web root** on the host — beside the registers, out of HTTP
+reach and out of this repository:
+
+```ini
+smtp_user     = "xavierkain.consulting@gmail.com"
+smtp_password = "<Google app password>"
+from_name     = "Xavier — QuiX"
+```
+
+The messages are then real Gmail messages: they pass SPF, DKIM and DMARC and land in the inbox.
+Setting a `@gmail.com` sender on mail sent by the host itself would be spoofing and would go
+straight to spam. Without `mail.ini`, or if Gmail refuses, PHP's `mail()` is used and the failure
+is written to the PHP error log.
+
+The app password is created at https://myaccount.google.com/apppasswords (it requires 2-Step
+Verification on the account). Revoking it there stops Gmail sending at once; the site falls back
+to `mail()`.
 
 ## Deploying
 

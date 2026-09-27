@@ -7,9 +7,98 @@
 // the web root — so a database would add nothing at this volume, and a chat webhook would add a
 // third-party service and a secret to look after.
 //
+// How mail leaves the server. When mail.ini exists one level above the web root, messages are sent
+// through Gmail's SMTP, authenticated as Xavier's own address: they are genuine Gmail messages,
+// pass SPF, DKIM and DMARC for gmail.com, and appear in his Sent folder. Putting a @gmail.com From
+// on mail sent by the host instead would be spoofing, which is exactly what spam filters look for.
+// Without mail.ini — or if Gmail refuses — PHP's mail() is used, as before, so nothing is lost.
+//
+// mail.ini, outside the web root and never in the repository:
+//   smtp_user     = "xavierkain.consulting@gmail.com"
+//   smtp_password = "<Google app password, 16 letters>"
+//   from_name     = "Xavier — QuiX"
+//
 // The file is not meant to be reached over HTTP; .htaccess denies it. It only defines functions.
 
 declare(strict_types=1);
+
+const REGLAGES_MAIL = __DIR__ . '/../mail.ini';
+
+/** Gmail SMTP settings, or null when mail.ini is absent or incomplete. */
+function reglages_smtp(): ?array
+{
+    if (!is_readable(REGLAGES_MAIL)) return null;
+    $r = parse_ini_file(REGLAGES_MAIL) ?: [];
+    if (empty($r['smtp_user']) || empty($r['smtp_password'])) return null;
+    return [
+        'host'     => $r['smtp_host'] ?? 'smtp.gmail.com',
+        'port'     => (int) ($r['smtp_port'] ?? 587),
+        'user'     => $r['smtp_user'],
+        'password' => $r['smtp_password'],
+        'name'     => $r['from_name'] ?? 'QuiX',
+    ];
+}
+
+/**
+ * Sends one message: through Gmail when configured, through mail() otherwise.
+ * `$html` is optional; without it the message is plain text.
+ */
+function transport(string $a, string $sujet, string $texte, ?string $html, ?string $repondreA): bool
+{
+    $smtp = reglages_smtp();
+    if ($smtp) {
+        require_once __DIR__ . '/lib/phpmailer/Exception.php';
+        require_once __DIR__ . '/lib/phpmailer/PHPMailer.php';
+        require_once __DIR__ . '/lib/phpmailer/SMTP.php';
+        $m = new PHPMailer\PHPMailer\PHPMailer(true);
+        try {
+            $m->isSMTP();
+            $m->Host = $smtp['host'];
+            $m->Port = $smtp['port'];
+            $m->SMTPAuth = true;
+            $m->Username = $smtp['user'];
+            $m->Password = $smtp['password'];
+            $m->SMTPSecure = $smtp['port'] === 465
+                ? PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS
+                : PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $m->Timeout = 10;
+            $m->CharSet = 'UTF-8';
+            $m->setFrom($smtp['user'], $smtp['name']);
+            $m->addAddress($a);
+            if ($repondreA) $m->addReplyTo($repondreA);
+            $m->Subject = $sujet;
+            if ($html !== null) {
+                $m->isHTML(true);
+                $m->Body = $html;
+                $m->AltBody = $texte;
+            } else {
+                $m->Body = $texte;
+            }
+            return $m->send();
+        } catch (Throwable $e) {
+            // Gmail refused (wrong app password, quota…). Log it, and still try the old path:
+            // a message that may land in spam beats one that never leaves.
+            error_log('QuiX mail via Gmail failed: ' . $m->ErrorInfo);
+        }
+    }
+
+    $frontiere = 'quix-' . bin2hex(random_bytes(8));
+    $entetes = "From: QuiX <no-reply@quix.xavier-kain.fr>\r\n"
+             . ($repondreA ? "Reply-To: " . $repondreA . "\r\n" : '')
+             . "MIME-Version: 1.0\r\n";
+    if ($html === null) {
+        $entetes .= "Content-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: base64";
+        $corps = chunk_split(base64_encode($texte));
+    } else {
+        $entetes .= "Content-Type: multipart/alternative; boundary=\"$frontiere\"";
+        $corps = "--$frontiere\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
+               . chunk_split(base64_encode($texte))
+               . "--$frontiere\r\nContent-Type: text/html; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
+               . chunk_split(base64_encode($html))
+               . "--$frontiere--\r\n";
+    }
+    return @mail($a, sujet_mime($sujet), $corps, $entetes);
+}
 
 /** A subject line with accents and symbols, encoded so every client shows it as written. */
 function sujet_mime(string $texte): string
@@ -65,16 +154,5 @@ function envoyer(string $a, string $sujet, string $titre, string $message, array
     }
     $html .= '</div></div></body></html>';
 
-    $frontiere = 'quix-' . bin2hex(random_bytes(8));
-    $entetes = "From: QuiX <no-reply@quix.xavier-kain.fr>\r\n"
-             . ($repondreA ? "Reply-To: " . $repondreA . "\r\n" : '')
-             . "MIME-Version: 1.0\r\n"
-             . "Content-Type: multipart/alternative; boundary=\"$frontiere\"";
-    $corps = "--$frontiere\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
-           . chunk_split(base64_encode($texte))
-           . "--$frontiere\r\nContent-Type: text/html; charset=utf-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
-           . chunk_split(base64_encode($html))
-           . "--$frontiere--\r\n";
-
-    return @mail($a, sujet_mime($sujet), $corps, $entetes);
+    return transport($a, $sujet, $texte, $html, $repondreA);
 }
