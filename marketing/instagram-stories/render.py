@@ -19,6 +19,11 @@ ICON = "../../site/assets/icon-1024.png"
 
 COPY = {
     "fr": {
+        "s0_kicker": "Il y a quelques jours, je vous ai demandé",
+        "s0_h1": '<span class="count">41</span> d\'entre vous<br><span class="hl">ont dit oui.</span>',
+        "s0_yes": "Yes please !!", "s0_no": "Not really …", "s0_yes_n": "41 votes", "s0_no_n": "1 vote",
+        "s0_lede": "Alors je l'ai fait. C'est gratuit, et c'est pour vous.",
+        "s0_size": 116,
         "s1_h1": 'Tes meilleurs shots,<br><span class="hl">déjà triés.</span>',
         "s1_lede": "L'app gratuite qui trie tes rushs GoPro, toute seule, sur ton Mac.",
         "s2_kicker": "Le vrai problème",
@@ -42,6 +47,11 @@ COPY = {
         "s1_size": 112, "s3_size": 124,
     },
     "en": {
+        "s0_kicker": "A few days ago, I asked you",
+        "s0_h1": '<span class="count">41</span> of you<br><span class="hl">said yes.</span>',
+        "s0_yes": "Yes please !!", "s0_no": "Not really …", "s0_yes_n": "41 votes", "s0_no_n": "1 vote",
+        "s0_lede": "So I built it. It's free, and it's yours.",
+        "s0_size": 128,
         "s1_h1": 'Skip the rushes.<br><span class="hl">Keep the moments.</span>',
         "s1_lede": "The free app that sorts your GoPro footage on your Mac, all by itself.",
         "s2_kicker": "The real problem",
@@ -73,6 +83,34 @@ def tile(img, cls="", badge=False, style=""):
 
 HUD = lambda c: f'''<div class="vf"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></div>
 <div class="hud"><span class="rec">REC</span><span class="tc">{c["tc"]}</span></div>'''
+
+CROWD = "assets/crowd-{:02d}.png"
+
+
+def s0(c):
+    """The opening story: the poll Xavier ran before building the app.
+
+    The voters stay anonymous. Their avatars are blurred beyond recognition — colour only, no face,
+    no name — because Instagram shows the voter list to the poster alone, and none of them agreed
+    to appear in a promotion. The poll itself is Xavier's own story.
+    """
+    avatars = sorted(pathlib.Path(HERE / "assets").glob("crowd-*.png"))
+    order = [(i * 7) % len(avatars) for i in range(41)] if avatars else []
+    crowd = "".join(f'<i style="background-image:url(assets/{avatars[k].name})"></i>' for k in order)
+    return f'''<section class="story">{HUD(c)}
+<div class="content" style="top:330px">
+  <div class="kicker">{c["s0_kicker"]}</div>
+  <h1 style="font-size:{c["s0_size"]}px">{c["s0_h1"]}</h1>
+</div>
+<div class="poll"><img src="assets/poll.jpg" alt=""></div>
+<div class="bars">
+  <div class="bar yes"><span class="fill"></span><b>{c["s0_yes"]}</b><em>98%</em><small>{c["s0_yes_n"]}</small></div>
+  <div class="bar no"><span class="fill"></span><b>{c["s0_no"]}</b><em>2%</em><small>{c["s0_no_n"]}</small></div>
+</div>
+<div class="crowd">{crowd}</div>
+<div class="content" style="top:1420px"><p class="lede" style="margin:0; font-size:38px; max-width:26ch">{c["s0_lede"]}</p></div>
+</section>'''
+
 
 def s1(c):
     rows = [["k-sea","h11","wing","h7","para"], ["h4","h1","k-beach","h9","k-water"], ["h5","flare","h10","k-jump","h3"], ["h8","h2","k-sea","wing","h11"]]
@@ -180,7 +218,7 @@ def page(lang):
     return f'''<!DOCTYPE html><html lang="{lang}"><head><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="stories.css"></head><body>
-{s1(c)}{s2(c)}{s3(c)}{s4(c)}{s5(c)}
+{s0(c)}{s1(c)}{s2(c)}{s3(c)}{s4(c)}{s5(c)}
 </body></html>'''
 
 def main():
@@ -194,10 +232,11 @@ def main():
             tab.goto(path.as_uri(), wait_until="networkidle")
             tab.evaluate("document.fonts.ready")
             tab.wait_for_timeout(600)
-            for i, story in enumerate(tab.locator(".story").all(), 1):
+            # Story 0 is the poll that opens the series; 1 to 5 follow.
+            for i, story in enumerate(tab.locator(".story").all(), 0):
                 story.screenshot(path=str(OUT / f"quix-story-{lang}-{i}.png"))
             tab.close()
-            print(f"{lang}: 5 stories → {OUT.relative_to(HERE.parent.parent)}/")
+            print(f"{lang}: 6 stories → {OUT.relative_to(HERE.parent.parent)}/")
         browser.close()
 
 

@@ -71,3 +71,12 @@
 .link { animation: m-fade .6s 2.3s ease both; }
 .link .arrow { display: inline-block; animation: m-bounce .9s 2.8s ease-in-out infinite; }
 @keyframes m-bounce { 50% { transform: translateY(12px); } }
+
+/* 0 — the poll: the card lands, the count climbs to 41, the bar fills, the crowd arrives. */
+.s0 .poll { animation: m-card .8s .5s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes m-card { from { opacity: 0; transform: rotate(-14deg) translateY(140px) scale(.9); } to { opacity: 1; transform: rotate(-4deg); } }
+.s0 .bar { animation: m-fade .45s 1s ease both; }
+.s0 .bar.no { animation-delay: 1.15s; }
+.s0 .bar .fill { animation: m-play .9s 1.25s cubic-bezier(.2,.8,.2,1) both; }
+.s0 .crowd i { animation: m-badge .35s cubic-bezier(.3,1.6,.5,1) both; }
+.s0 .lede { animation-delay: 3.1s; }

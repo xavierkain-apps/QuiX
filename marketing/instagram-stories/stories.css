@@ -79,3 +79,20 @@ h1 .hl { display: inline-block; background: var(--blue); color: #0B0B10; padding
 .link .url { font: 500 26px "JetBrains Mono", monospace; color: rgba(242,240,236,.7); margin-top: 14px; }
 .fan { position: absolute; left: 50%; top: 350px; width: 0; height: 0; }
 .fan .tile { position: absolute; width: 340px; height: 192px; left: -170px; top: 0; transform-origin: 50% 700px; border: 5px solid #fff; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+
+/* 0 — the poll that came first */
+.poll { position: absolute; left: 80px; top: 690px; width: 390px; transform: rotate(-4deg); border-radius: 28px; overflow: hidden;
+        box-shadow: 0 30px 90px rgba(0,0,0,.7), 0 0 0 3px rgba(255,255,255,.12), 0 0 70px rgba(0,163,228,.25); }
+.poll img { display: block; width: 100%; }
+.bars { position: absolute; left: 530px; right: 80px; top: 710px; display: flex; flex-direction: column; gap: 16px; }
+.bar { position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr auto; align-items: center; row-gap: 2px;
+       padding: 18px 24px; border-radius: 20px; background: rgba(255,255,255,.07); border: 2px solid rgba(255,255,255,.12); }
+.bar .fill { position: absolute; inset: 0; right: 2%; transform-origin: left center; background: var(--blue); }
+.bar.no .fill { right: 98%; background: rgba(255,255,255,.3); }
+.bar b, .bar em, .bar small { position: relative; }
+.bar b { font: 700 32px -apple-system, "Helvetica Neue", sans-serif; }
+.bar em { font: 800 50px Archivo, sans-serif; font-style: normal; font-stretch: 88%; }
+.bar small { grid-column: 1 / -1; font: 500 22px "JetBrains Mono", monospace; opacity: .8; }
+.bar.yes b, .bar.yes em, .bar.yes small { color: #0B0B10; }
+.crowd { position: absolute; left: 530px; right: 80px; top: 1010px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.crowd i { display: block; aspect-ratio: 1; border-radius: 50%; background: center/cover; box-shadow: 0 0 0 2px rgba(16,16,23,.9), 0 0 0 4px rgba(0,163,228,.45); }

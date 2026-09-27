@@ -8,7 +8,8 @@ and identical on every run. ffmpeg assembles the frames into H.264.
 
     python3 marketing/instagram-stories/render_video.py
 
-writes out/quix-story-en-<1…5>.mp4, one per story, and out/quix-stories-en.mp4, the five joined.
+writes out/quix-story-en-<0…5>.mp4, one per story — 0 is the poll that opens the series — and
+out/quix-stories-en.mp4, the six joined.
 """
 import pathlib, re, shutil, subprocess, tempfile
 from playwright.sync_api import sync_playwright
@@ -23,6 +24,16 @@ LANG = "en"
 def with_motion(i, html):
     """Hooks for motion.css: classes and per-element delays on the still markup."""
     html = html.replace('<section class="story">', f'<section class="story s{i}">', 1)
+
+    if i == 0:  # the crowd arrives one voter at a time, while the count climbs
+        n = 0
+        def bubble(m):
+            nonlocal n
+            d = 1.5 + n * 0.035
+            n += 1
+            return f'<i style="animation-delay:{d:.3f}s;{m.group(1)}"></i>'
+        html = re.sub(r'<i style="([^"]*background-image[^"]*)"></i>', bubble, html)
+        assert n == 41, f"story 0: {n} voters hooked instead of 41"
 
     if i == 2:  # the grid fills in order; the three moments light up one after another
         n, lit = 0, 0
@@ -76,6 +87,11 @@ window.setTime = (t) => {{
   const f = base + Math.round(t * 30), p = (n) => String(n).padStart(2, "0");
   const tc = document.querySelector(".hud .tc");
   if (tc) tc.textContent = "00:" + p(Math.floor(f / 1800) % 60) + ":" + p(Math.floor(f / 30) % 60) + ":" + p(f % 30);
+  const count = document.querySelector(".count");
+  if (count) {{
+    const k = Math.min(1, Math.max(0, (t - 0.5) / 1.4));
+    count.textContent = String(Math.round(41 * (1 - Math.pow(1 - k, 3))));
+  }}
   document.querySelectorAll(".pop .n b").forEach(b => {{
     b.textContent = String(Math.max(0, Math.min(3, Math.floor((t - 2.6) / 0.2) + 1)));
   }});
@@ -86,11 +102,11 @@ window.setTime = (t) => {{
 def main():
     OUT.mkdir(exist_ok=True)
     c = render.COPY[LANG]
-    builders = [render.s1, render.s2, render.s3, render.s4, render.s5]
+    builders = [render.s0, render.s1, render.s2, render.s3, render.s4, render.s5]
     clips = []
     with sync_playwright() as p:
         browser = p.chromium.launch(args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"])
-        for i, build in enumerate(builders, 1):
+        for i, build in enumerate(builders, 0):
             path = HERE / f"stories-video-{i}.html"
             path.write_text(page(i, with_motion(i, build(c))), encoding="utf-8")
             tab = browser.new_page(viewport={"width": 1080, "height": 1920}, device_scale_factor=1)
@@ -122,7 +138,7 @@ def main():
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(listing),
                     "-c", "copy", "-movflags", "+faststart", str(joined)], check=True, cwd=OUT)
     listing.unlink()
-    print(f"all five: {joined.name} ({joined.stat().st_size / 1e6:.1f} MB)")
+    print(f"all six: {joined.name} ({joined.stat().st_size / 1e6:.1f} MB)")
 
 
 if __name__ == "__main__":

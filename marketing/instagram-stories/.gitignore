@@ -1,4 +1,5 @@
 out/
+assets/
 stories-*.html
 preview-*.html
 __pycache__/
