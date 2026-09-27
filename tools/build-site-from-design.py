@@ -136,7 +136,7 @@ page = f"""<!DOCTYPE html>
 <link href="{fonts}" rel="stylesheet">
 <link rel="stylesheet" href="assets/site.css">
 <!-- Plausible: cookieless visit counts, no personal data. See docs/STATS.md. -->
-<script defer data-domain="quix.xavier-kain.fr" src="https://plausible.io/js/script.js"></script>
+<script defer data-domain="quix.xavier-kain.fr" src="https://analytics.xavierkain.fr/js/script.js"></script>
 <script>window.plausible=window.plausible||function(){{(window.plausible.q=window.plausible.q||[]).push(arguments)}}</script>
 </head>
 <body>

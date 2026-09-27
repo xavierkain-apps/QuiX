@@ -23,7 +23,7 @@ RewriteRule ^appcast\.xml$ https://github.com/xavierkain-apps/QuiX/releases/late
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set X-Frame-Options "DENY"
   # La page ne charge que ses propres fichiers, plus les polices Google. Aucun traceur.
-  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://plausible.io; connect-src 'self' https://plausible.io; form-action 'self'; frame-ancestors 'none'; base-uri 'self'"
+  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://analytics.xavierkain.fr; connect-src 'self' https://analytics.xavierkain.fr; form-action 'self'; frame-ancestors 'none'; base-uri 'self'"
 </IfModule>
 
 # Les registres d'inscriptions et de retours vivent hors de la racine web. Cette règle est une

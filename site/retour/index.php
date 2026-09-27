@@ -84,7 +84,7 @@ function page(string $titre, string $corps, string $langue): never
          '<title>', htmlspecialchars($titre, ENT_QUOTES), '</title>',
          '<link rel="icon" href="../assets/favicon.png">',
          '<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">',
-         '<script defer data-domain="quix.xavier-kain.fr" src="https://plausible.io/js/script.js"></script><script>window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}</script>',
+         '<script defer data-domain="quix.xavier-kain.fr" src="https://analytics.xavierkain.fr/js/script.js"></script><script>window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}</script>',
          '<link rel="stylesheet" href="../assets/style.css"></head><body>',
          '<main class="wrap" style="max-width:640px;padding-top:80px;padding-bottom:80px">',
          '<a href="../"><img src="../assets/icon-256.png" alt="QuiX" width="64" height="64" style="margin:0 auto 26px"></a>',
