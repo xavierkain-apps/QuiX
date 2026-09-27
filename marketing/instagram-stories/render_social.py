@@ -16,8 +16,8 @@ format leaves free:
   x 40…904 and clear of both.
 - A carousel slide is 4:5. The readable band of a story (y 200…1580) is scaled to fill its height.
 
-The Reel tells the story in the order that holds attention on a feed of strangers — the problem
-first, then the gesture, the result, the line, the call — at double speed, rendered natively at
+The Reel follows the stories in their own order — the line "skip the rushes, keep the moments"
+first, then the problem, the gesture, the result, the call — at double speed, rendered natively at
 that speed rather than accelerated afterwards.
 """
 import pathlib, shutil, subprocess, tempfile
@@ -32,12 +32,11 @@ C["link_hint"] = "Link in bio"          # links in a Reel caption are not clicka
 REEL = {"w": 1080, "h": 1920, "scale": 0.8, "x": 40, "y": 110}
 POST = {"w": 1080, "h": 1350, "scale": 1350 / 1380, "x": 12, "y": round(-200 * 1350 / 1380)}
 
-# Story number → builder. The Reel order: problem, gesture, result, line, call.
+# Story number → builder. The Reel order: line, problem, gesture, result, call.
 BUILD = {1: render.s1, 2: render.s2, 3: render.s3, 4: render.s4, 5: render.s5}
-# Story 2 starts once its headline is whole: the first frame is what a scrolling feed shows, and
-# before 1.6 s the marker has not yet revealed "3 moments" — the line read "3 hours of footage.
-# That matter." The three moments still light up after the cut.
-REEL_ORDER = [(2, 1.6), (3, 0.0), (4, 0.0), (1, 0.0), (5, 0.0)]   # (story, start offset in s)
+# Story 1 starts once its headline is whole: the first frame is what a scrolling feed shows, and
+# before 2 s the wall of clips is still on its own, with no words over it.
+REEL_ORDER = [(1, 2.0), (2, 0.0), (3, 0.0), (4, 0.0), (5, 0.0)]   # (story, start offset in s)
 REEL_SPEED, SCENE = 2.0, 6.0
 
 
