@@ -42,3 +42,14 @@ without its card and its crowd.
 
 The voters stay anonymous on purpose: Instagram shows the voter list to the poster alone. Name
 someone only with their agreement.
+
+## Reel and carousel
+
+```sh
+python3 marketing/instagram-stories/render_social.py
+```
+
+writes the Reel (`out/quix-reel-en.mp4`, 1080 × 1920, ~14 s, and its cover) and the carousel
+(`out/quix-carousel-en-<1…5>.png`, 1080 × 1350). Same visuals, scaled as a whole into the part of
+each format Instagram leaves free — see the docstring. The Reel opens on the problem and starts
+once the first headline is whole, because its first frame is what a scrolling feed shows.

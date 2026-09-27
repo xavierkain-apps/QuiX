@@ -31,7 +31,7 @@ COPY = {
         "s2_lede": "Les retrouver, c'est ça qui prend du temps. Pas de les filmer.",
         "s3_kicker": "Pendant que tu filmes",
         "s3_h1": 'Un appui.<br><span class="hl">Un highlight.</span>',
-        "s3_lede": "Un appui court sur le bouton du côté, et l'instant est écrit dans la vidéo. Ou dis « GoPro, HighLight ».",
+        "s3_lede": "Un appui court sur le bouton du côté, et l'instant est écrit dans la vidéo.",
         "gp_shutter": "Déclencheur", "gp_shutter2": "lance l'enregistrement",
         "gp_side": "Power / Mode", "gp_side2": "appui court", "gp_side3": "= HighLight",
         "gp_clip": "Ta vidéo", "gp_mark": "HighLight",
@@ -59,7 +59,7 @@ COPY = {
         "s2_lede": "Finding them is what takes time. Not filming them.",
         "s3_kicker": "While you film",
         "s3_h1": 'One press.<br><span class="hl">One highlight.</span>',
-        "s3_lede": "A short press on the side button, and the moment is written into the video. Or say “GoPro, HighLight”.",
+        "s3_lede": "A short press on the side button, and the moment is written into the video.",
         "gp_shutter": "Shutter", "gp_shutter2": "starts recording",
         "gp_side": "Power / Mode", "gp_side2": "short press", "gp_side3": "= HighLight",
         "gp_clip": "Your clip", "gp_mark": "HighLight",
@@ -143,11 +143,11 @@ def s2(c):
 def gopro(c):
     return f'''<svg viewBox="0 0 960 700">
   <defs><radialGradient id="halo"><stop offset="0" stop-color="#00A3E4" stop-opacity=".55"/><stop offset="1" stop-color="#00A3E4" stop-opacity="0"/></radialGradient></defs>
-  <text x="380" y="40" fill="#F2F0EC" font-size="36" font-weight="700" text-anchor="middle" font-family="Archivo">{c["gp_shutter"]}</text>
-  <text x="380" y="82" fill="rgba(242,240,236,.55)" font-size="26" text-anchor="middle" font-family="JetBrains Mono">{c["gp_shutter2"]}</text>
-  <path d="M380 96 V140" stroke="rgba(255,255,255,.35)" stroke-width="3" stroke-dasharray="6 8"/>
-  <rect x="330" y="132" width="100" height="26" rx="10" fill="#2B2B31" stroke="rgba(255,255,255,.2)" stroke-width="2"/>
-  <rect x="356" y="126" width="48" height="14" rx="7" fill="#E8453C"/>
+  <text x="257" y="40" fill="#F2F0EC" font-size="36" font-weight="700" text-anchor="middle" font-family="Archivo">{c["gp_shutter"]}</text>
+  <text x="257" y="82" fill="rgba(242,240,236,.55)" font-size="26" text-anchor="middle" font-family="JetBrains Mono">{c["gp_shutter2"]}</text>
+  <path d="M257 96 V140" stroke="rgba(255,255,255,.35)" stroke-width="3" stroke-dasharray="6 8"/>
+  <rect x="207" y="132" width="100" height="26" rx="10" fill="#2B2B31" stroke="rgba(255,255,255,.2)" stroke-width="2"/>
+  <rect x="233" y="126" width="48" height="14" rx="7" fill="#E8453C"/>
   <rect x="120" y="150" width="520" height="380" rx="52" fill="#1D1D22" stroke="rgba(255,255,255,.18)" stroke-width="3"/>
   <circle cx="652" cy="262" r="76" fill="url(#halo)"/>
   <circle cx="652" cy="262" r="48" fill="none" stroke="#00A3E4" stroke-width="3" stroke-opacity=".6"/>
