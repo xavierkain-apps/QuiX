@@ -8,8 +8,9 @@ and identical on every run. ffmpeg assembles the frames into H.264.
 
     python3 marketing/instagram-stories/render_video.py
 
-writes out/quix-story-en-<0…5>.mp4, one per story — 0 is the poll that opens the series — and
-out/quix-stories-en.mp4, the six joined.
+writes out/quix-story-en-<0…5>.mp4, one per story — 0 is the poll, posted on its own first — then
+out/quix-stories-en.mp4, the five app stories joined, and out/quix-stories-en-x2.mp4, the same at
+double speed.
 """
 import pathlib, re, shutil, subprocess, tempfile
 from playwright.sync_api import sync_playwright
@@ -132,14 +133,19 @@ def main():
             print(f"story {i}: {clip.name} ({clip.stat().st_size / 1e6:.1f} MB)")
         browser.close()
 
+    # The joined video holds the five app stories only: the poll (story 0) is posted on its own,
+    # before them. It also comes at double speed, which is how it reads best on Instagram.
     listing = OUT / "concat.txt"
-    listing.write_text("".join(f"file '{c.name}'\n" for c in clips))
+    listing.write_text("".join(f"file '{c.name}'\n" for c in clips if not c.name.endswith("-0.mp4")))
     joined = OUT / f"quix-stories-{LANG}.mp4"
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(listing),
                     "-c", "copy", "-movflags", "+faststart", str(joined)], check=True, cwd=OUT)
     listing.unlink()
-    print(f"all six: {joined.name} ({joined.stat().st_size / 1e6:.1f} MB)")
-
+    fast = OUT / f"quix-stories-{LANG}-x2.mp4"
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(joined), "-filter:v", "setpts=0.5*PTS",
+                    "-r", str(FPS), "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p",
+                    "-color_range", "tv", "-movflags", "+faststart", str(fast)], check=True)
+    print(f"the five app stories: {joined.name}, and at double speed {fast.name} ({fast.stat().st_size / 1e6:.1f} MB)")
 
 if __name__ == "__main__":
     main()
