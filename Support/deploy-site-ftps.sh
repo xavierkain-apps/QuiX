@@ -25,8 +25,10 @@ echo "Publishing $HERE/site/ to $SITE_FTP_HOST"
 
 # The account is chrooted to the document root, so the remote target is simply /.
 #
-# Three exclusions. `.well-known` holds the Let's Encrypt challenge, written by the host: deleting
-# it mid-issuance would fail the certificate. `.ftpquota` belongs to the FTP server. The `.jsonl`
+# Four exclusions. `.well-known` holds the Let's Encrypt challenge, written by the host: deleting
+# it mid-issuance would fail the certificate. `dl-*` folders are one-off shares uploaded by hand
+# (videos to download from a phone): a deploy must not wipe them — it once did, minutes after a
+# link was sent. They are removed by hand once used. `.ftpquota` belongs to the FTP server. The `.jsonl`
 # registers live above the document root and are out of reach from here, but the rule costs
 # nothing and survives someone moving them down.
 lftp <<LFTP
@@ -43,6 +45,7 @@ mirror --reverse --delete --parallel=4 --verbose \
   --exclude-glob .ftpquota \
   --exclude-glob *.md \
   --exclude '^\.well-known/' \
+  --exclude '^dl-' \
   "$HERE/site/" /
 bye
 LFTP

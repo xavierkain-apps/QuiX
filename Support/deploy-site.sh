@@ -25,6 +25,7 @@ rsync -az --delete --human-readable \
   --exclude "*.jsonl" \
   --exclude "*.md" \
   --exclude ".well-known" \
+  --exclude "dl-*/" \
   --chmod=D755,F644 \
   "$HERE/site/" "$TARGET:$REMOTE/"
 
