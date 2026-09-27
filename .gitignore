@@ -30,3 +30,10 @@ xcuserdata/
 # Registres du site, écrits par le serveur. Ne doivent jamais entrer dans le dépôt.
 quix-inscriptions.jsonl
 quix-retours.jsonl
+
+# The designer's working files. The site is generated from them by
+# tools/build-site-from-design.py and committed under site/; the export itself, its runtime and
+# its reference screenshots of the app stay out of the public repository.
+QuiX site motion design/
+uploads/
+.thumbnail

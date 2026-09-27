@@ -41,6 +41,7 @@ mirror --reverse --delete --parallel=4 --verbose \
   --exclude-glob .DS_Store \
   --exclude-glob *.jsonl \
   --exclude-glob .ftpquota \
+  --exclude-glob *.md \
   --exclude '^\.well-known/' \
   "$HERE/site/" /
 bye

@@ -23,6 +23,7 @@ echo "Publishing $HERE/site/ to $TARGET:$REMOTE"
 rsync -az --delete --human-readable \
   --exclude ".DS_Store" \
   --exclude "*.jsonl" \
+  --exclude "*.md" \
   --exclude ".well-known" \
   --chmod=D755,F644 \
   "$HERE/site/" "$TARGET:$REMOTE/"
