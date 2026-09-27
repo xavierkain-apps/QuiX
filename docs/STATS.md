@@ -4,7 +4,7 @@ Where each number comes from. None of them needs a cookie or collects anything p
 
 | What | Where | Notes |
 |---|---|---|
-| Site visits, referrers, countries | [Plausible](https://analytics.xavierkain.fr/quix.xavier-kain.fr) (self-hosted Community Edition) | Script in every page head; the CSP allows `analytics.xavierkain.fr`. |
+| Site visits, referrers, countries | [Plausible](https://analytics.xavierkain.fr/quix.xavier-kain.fr) (self-hosted Community Edition) | Site-specific script (`pa-….js`) in every page head; the CSP allows `analytics.xavierkain.fr`. |
 | Sign-ups before download | Plausible goal `Signup` (prop `lang`), and `~/quix.xavier-kain.fr/quix-inscriptions.jsonl` on the server | The register is the source of truth: Plausible misses visitors with blockers. |
 | Feedback sent | Plausible goal `Feedback` (prop `type`), and `~/quix-retours.jsonl` | |
 | Downloads of the app | `gh api repos/xavierkain-apps/QuiX/releases --jq '.[] \| "\(.tag_name) \(.assets[].download_count)"'` | Counts every fetch of `QuiX.zip`, test downloads and Sparkle updates included. |
