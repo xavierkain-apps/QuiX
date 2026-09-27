@@ -94,10 +94,12 @@ $inscription = [
 // n'arrive pas, personne n'est bloqué.
 // The subject is MIME-encoded now, so the French one can carry its accents again.
 $sujet = $langue === 'fr' ? 'Votre téléchargement QuiX' : 'Your QuiX download';
+// The field asks for the full name; the greeting uses its first word.
+$salut = explode(' ', $inscription['prenom'])[0];
 $corps = $langue === 'fr'
-    ? "Bonjour " . $inscription['prenom'] . ",\n\nVoici QuiX :\n" . TELECHARGEMENT
+    ? "Bonjour " . $salut . ",\n\nVoici QuiX :\n" . TELECHARGEMENT
       . "\n\nDécompressez, glissez QuiX dans Applications, et branchez votre GoPro allumée.\n\nXavier"
-    : "Hi " . $inscription['prenom'] . ",\n\nHere is QuiX:\n" . TELECHARGEMENT
+    : "Hi " . $salut . ",\n\nHere is QuiX:\n" . TELECHARGEMENT
       . "\n\nUnzip it, drag QuiX into Applications, and plug your GoPro in, switched on.\n\nXavier";
 // Sent from Xavier's own address when Gmail is configured — see _mail.php. Replies reach him.
 transport($email, $sujet, $corps, null, null);
@@ -108,7 +110,7 @@ envoyer(
     'Nouveau téléchargement',
     '',
     [
-        'Prénom'     => $inscription['prenom'],
+        'Nom'        => $inscription['prenom'],
         'E-mail'     => $email,
         'Nouveautés' => $inscription['nouvelles'] ? 'oui, veut être prévenu' : 'non',
         'Langue'     => $langue,

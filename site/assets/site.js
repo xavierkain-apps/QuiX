@@ -163,7 +163,7 @@ class QuixSite {
       "The menu bar, once an import is done": "La barre de menus, une fois l'import terminé",
       "Get QuiX. It's free.": "Obtenez QuiX. C'est gratuit.",
       "No price, no trial, no subscription, no ads. Just tell me where to send the link.": "Pas de prix, pas d'essai, pas d'abonnement, pas de pub. Dites-moi juste où envoyer le lien.",
-      "First name": "Prénom",
+      "Full name": "Nom complet",
       "Email": "E-mail",
       "Let me know when a new version is out. One email per release, nothing else, and you can stop whenever you like.": "Prévenez-moi quand une nouvelle version sort. Un e-mail par version, rien d'autre, et vous arrêtez quand vous voulez.",
       "Send me the free download": "Envoyez-moi le lien gratuit",
