@@ -1,2 +1,4 @@
 out/
 stories-*.html
+preview-*.html
+__pycache__/

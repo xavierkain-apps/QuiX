@@ -18,3 +18,15 @@ French version speaks *tu*, as Instagram does, where the site says *vous*.
 Everything that must be read sits between y = 240 and y = 1560: Instagram covers the top (progress
 bar, profile) and the bottom (reply bar). Story 5 leaves the band under "Get it here ↓" empty for
 the link sticker.
+
+## Video
+
+```sh
+python3 marketing/instagram-stories/render_video.py
+```
+
+writes the same five stories in English as video — 1080 × 1920, 30 fps, H.264, 6 s each
+(`out/quix-story-en-<1…5>.mp4`) — plus `out/quix-stories-en.mp4`, the five joined into one 30 s
+clip. The motion lives in `motion.css`; the renderer pauses every animation and sets it to the time
+of each frame before capturing it, so the result is smooth and identical on every run, whatever
+the machine's load. Takes about three minutes.

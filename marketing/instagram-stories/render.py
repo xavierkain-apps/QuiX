@@ -183,18 +183,23 @@ def page(lang):
 {s1(c)}{s2(c)}{s3(c)}{s4(c)}{s5(c)}
 </body></html>'''
 
-OUT.mkdir(exist_ok=True)
-with sync_playwright() as p:
-    browser = p.chromium.launch(args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"])
-    for lang in COPY:
-        path = HERE / f"stories-{lang}.html"
-        path.write_text(page(lang), encoding="utf-8")
-        tab = browser.new_page(viewport={"width": 1080, "height": 1920}, device_scale_factor=1)
-        tab.goto(path.as_uri(), wait_until="networkidle")
-        tab.evaluate("document.fonts.ready")
-        tab.wait_for_timeout(600)
-        for i, story in enumerate(tab.locator(".story").all(), 1):
-            story.screenshot(path=str(OUT / f"quix-story-{lang}-{i}.png"))
-        tab.close()
-        print(f"{lang}: 5 stories → {OUT.relative_to(HERE.parent.parent)}/")
-    browser.close()
+def main():
+    OUT.mkdir(exist_ok=True)
+    with sync_playwright() as p:
+        browser = p.chromium.launch(args=["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"])
+        for lang in COPY:
+            path = HERE / f"stories-{lang}.html"
+            path.write_text(page(lang), encoding="utf-8")
+            tab = browser.new_page(viewport={"width": 1080, "height": 1920}, device_scale_factor=1)
+            tab.goto(path.as_uri(), wait_until="networkidle")
+            tab.evaluate("document.fonts.ready")
+            tab.wait_for_timeout(600)
+            for i, story in enumerate(tab.locator(".story").all(), 1):
+                story.screenshot(path=str(OUT / f"quix-story-{lang}-{i}.png"))
+            tab.close()
+            print(f"{lang}: 5 stories → {OUT.relative_to(HERE.parent.parent)}/")
+        browser.close()
+
+
+if __name__ == "__main__":
+    main()

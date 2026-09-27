@@ -1,0 +1,73 @@
+/* Motion for the video stories. Each story lasts 6 s; the renderer pauses every animation and sets
+   its currentTime frame by frame, so everything here is deterministic — no timers, no randomness.
+   Names are prefixed m- to stay clear of the static stylesheet. */
+@property --k { syntax: "<number>"; inherits: true; initial-value: 1; }
+
+.story * { animation-fill-mode: both; }
+
+/* Common entrance: kicker, headline, the blue marker sweeping its line, then the lede. */
+.vf i { animation: m-corner .6s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes m-corner { from { opacity: 0; transform: scale(1.35); } to { opacity: 1; transform: none; } }
+.hud .rec::before { animation: m-blink 1s steps(1) infinite; }
+@keyframes m-blink { 0% { opacity: 1; } 50% { opacity: .15; } }
+.kicker { animation: m-rise .55s .15s cubic-bezier(.2,.8,.2,1) both; }
+.story h1 { animation: m-rise .7s .3s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes m-rise { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: none; } }
+.story h1 .hl { animation: m-marker .55s 1s cubic-bezier(.6,0,.2,1) both; }
+@keyframes m-marker { from { clip-path: inset(-20px 100% -20px -20px); } to { clip-path: inset(-20px -20px -20px -20px); } }
+.lede, .chipline { animation: m-fade .6s 1.5s ease both; }
+@keyframes m-fade { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+/* 1 — the wall drifts, the icon pops. */
+.wall .row { animation: m-drift 6s linear both; }
+.wall .row:nth-child(even) { animation-name: m-drift-back; }
+@keyframes m-drift { from { transform: translateX(0); } to { transform: translateX(-190px); } }
+@keyframes m-drift-back { from { transform: translateX(-190px); } to { transform: translateX(0); } }
+.wall .tile.hot { animation: m-glow 1.6s ease-in-out infinite; }
+@keyframes m-glow { 50% { box-shadow: 0 0 0 5px #5BBDEE, 0 0 80px rgba(0,163,228,.95); } }
+.s1 .appicon { animation: m-pop .6s .05s cubic-bezier(.3,1.5,.5,1) both; }
+@keyframes m-pop { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: none; } }
+
+/* 2 — the grid fills, then the three moments light up one by one. */
+.grid .tile { animation: m-tile .45s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes m-tile { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
+.grid .tile.hot { filter: brightness(.45) saturate(.7); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+                  animation: m-tile .45s cubic-bezier(.2,.8,.2,1) both, m-light .5s ease-out both; }
+.grid .tile.hot .badge { animation: m-badge .4s cubic-bezier(.3,1.6,.5,1) both; }
+@keyframes m-light { to { filter: none; box-shadow: 0 0 0 5px #00A3E4, 0 0 50px rgba(0,163,228,.7); } }
+@keyframes m-badge { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: none; } }
+
+/* 3 — the camera arrives, the playhead runs, the side button is pressed and the marker drops. */
+.gp { animation: m-rise .8s .7s cubic-bezier(.2,.8,.2,1) both; }
+.gp .rec { animation: m-blink 1s steps(1) infinite; }
+/* The marker sits at x = 420 on a 520-wide track starting at x = 120: 300 / 520 = 57.7 %. For the
+   playhead to be exactly there at the press (2.8 s) while running 4.6 s end to end, it starts at
+   2.8 − 0.577 × 4.6 = 0.15 s. */
+.gp .played { transform-box: fill-box; transform-origin: left center; animation: m-play 4.6s .15s linear both; }
+@keyframes m-play { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.gp .halo { transform-box: fill-box; transform-origin: center; animation: m-press 1s 2.8s ease-out both; }
+@keyframes m-press { 0% { opacity: 0; transform: scale(.4); } 25% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.8); } }
+.gp .button { transform-box: fill-box; transform-origin: center; animation: m-push .35s 2.8s ease-in-out both; }
+@keyframes m-push { 50% { transform: scaleX(.6); } }
+.gp .marker { animation: m-drop .5s 3.05s cubic-bezier(.3,1.6,.5,1) both; }
+@keyframes m-drop { from { opacity: 0; transform: translateY(-40px); } to { opacity: 1; transform: none; } }
+
+/* 4 — the Highlights folder opens, the files land, the popover slides in. */
+.win { animation: m-rise .7s .6s cubic-bezier(.2,.8,.2,1) both; }
+.win .file { animation: m-tile .45s cubic-bezier(.2,.8,.2,1) both; }
+.win .file:nth-child(1) { animation-delay: 1.3s; }
+.win .file:nth-child(2) { animation-delay: 1.5s; }
+.win .file:nth-child(3) { animation-delay: 1.7s; }
+.pop { animation: m-slide .6s 2.4s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes m-slide { from { opacity: 0; transform: translateX(160px); } to { opacity: 1; transform: none; } }
+.pop .go { animation: m-cta 1.2s 3.4s ease-in-out 2; }
+@keyframes m-cta { 50% { box-shadow: 0 0 0 10px rgba(0,163,228,.3); } }
+
+/* 5 — the fan opens, the icon pops, the arrow points at the link sticker. */
+.fan { --k: 0; animation: m-fan .9s .1s cubic-bezier(.2,.9,.3,1.2) both; }
+@keyframes m-fan { from { --k: 0; } to { --k: 1; } }
+.fan .tile { transform: rotate(calc(var(--a) * var(--k))) !important; }
+.s5 .appicon { animation: m-pop .6s .7s cubic-bezier(.3,1.5,.5,1) both; }
+.link { animation: m-fade .6s 2.3s ease both; }
+.link .arrow { display: inline-block; animation: m-bounce .9s 2.8s ease-in-out infinite; }
+@keyframes m-bounce { 50% { transform: translateY(12px); } }
