@@ -164,8 +164,7 @@ class QuixSite {
       "Get QuiX. It's free.": "Obtenez QuiX. C'est gratuit.",
       "No price, no trial, no subscription, no ads. Just tell me where to send the link.": "Pas de prix, pas d'essai, pas d'abonnement, pas de pub. Dites-moi juste où envoyer le lien.",
       "Full name": "Nom complet",
-      "Designed and built by": "Conçu et développé par",
-      "Xavier Kain, web & app developer": "Xavier Kain, développeur web et applications",
+      "Built by Xavier Kain, Web and macOS App Developer": "Développé par Xavier Kain, développeur web et applications macOS",
       "Email": "E-mail",
       "Let me know when a new version is out. One email per release, nothing else, and you can stop whenever you like.": "Prévenez-moi quand une nouvelle version sort. Un e-mail par version, rien d'autre, et vous arrêtez quand vous voulez.",
       "Send me the free download": "Envoyez-moi le lien gratuit",
@@ -208,9 +207,9 @@ class QuixSite {
       const k = fr.trim(), v = en ? fr : fr.replace(k, d[k]);  // page is English; translate for French
       if (n.nodeValue !== v) n.nodeValue = v;
     }
-    this.root.querySelectorAll('a[data-href-fr]').forEach(a => {
-      if (!a.dataset.hrefEn) a.dataset.hrefEn = a.getAttribute('href');
-      a.setAttribute('href', en ? a.dataset.hrefEn : a.dataset.hrefFr);
+    this.root.querySelectorAll('[data-title-fr]').forEach(a => {
+      if (!a.dataset.titleEn) a.dataset.titleEn = a.getAttribute('title');
+      a.setAttribute('title', en ? a.dataset.titleEn : a.dataset.titleFr);
     });
     document.documentElement.lang = this.lang;
     document.title = en ? 'QuiX — free GoPro importer for Mac that sorts your highlights' : 'QuiX — importeur GoPro gratuit pour Mac qui trie vos highlights';
