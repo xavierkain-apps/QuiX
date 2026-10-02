@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<!-- QuiX — 15 s motion piece, 1920 × 1080. Every frame is a pure function of time: R(t) sets every
+     property from t alone, so render.py can capture it frame by frame at any rate. -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root { --ink:#0C0C12; --text:#F2F0EC; --muted:rgba(242,240,236,.6); --blue:#00A3E4; --blue2:#5BBDEE; --line:rgba(255,255,255,.12); }
+* { box-sizing:border-box; margin:0; padding:0; }
+html, body { width:1920px; height:1080px; overflow:hidden; background:#000; }
+body { font-family:Archivo, sans-serif; color:var(--text); -webkit-font-smoothing:antialiased; }
+.mono { font-family:"JetBrains Mono", monospace; }
+#world { position:absolute; inset:0; overflow:hidden; background:var(--ink); }
+#bg { position:absolute; inset:-200px; }
+.scene { position:absolute; inset:0; visibility:hidden; }
+.abs { position:absolute; }
+h1, .h { font-weight:900; font-stretch:82%; text-transform:uppercase; letter-spacing:-.04em; line-height:.9; }
+.kicker { font:500 24px "JetBrains Mono", monospace; letter-spacing:.2em; text-transform:uppercase; color:var(--blue2); }
+.hl { position:relative; display:inline-block; isolation:isolate; padding:0 .12em .06em; margin-left:-.12em; }
+.hl::before { content:""; position:absolute; inset:.04em 0 0; background:var(--blue); border-radius:.1em; z-index:-1;
+  transform-origin:left center; transform:scaleX(var(--m,0)); box-shadow:0 0 70px rgba(0,163,228,calc(var(--m,0) * .6)); }
+.hl.on { color:#06070B; }
+.word { display:inline-block; }
+.tile { position:absolute; border-radius:10px; background:#1C1B21 center/cover; box-shadow:inset 0 0 0 1px rgba(255,255,255,.1); }
+.star { position:absolute; top:8px; left:8px; font:700 17px -apple-system, "Helvetica Neue", sans-serif; background:var(--blue); color:#fff; padding:2px 9px; border-radius:6px; }
+
+/* overlays */
+#flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; }
+#grain { position:absolute; inset:0; background:url(assets/grain.png); mix-blend-mode:overlay; opacity:.09; pointer-events:none; }
+#vig { position:absolute; inset:0; background:radial-gradient(130% 120% at 50% 50%, transparent 55%, rgba(0,0,0,.6) 100%); pointer-events:none; }
+#hud .c { position:absolute; width:54px; height:54px; border:0 solid rgba(242,240,236,.55); }
+#hud .tl { top:34px; left:34px; border-top-width:3px; border-left-width:3px; }
+#hud .tr { top:34px; right:34px; border-top-width:3px; border-right-width:3px; }
+#hud .bl { bottom:34px; left:34px; border-bottom-width:3px; border-left-width:3px; }
+#hud .br { bottom:34px; right:34px; border-bottom-width:3px; border-right-width:3px; }
+#hud .rec { position:absolute; top:50px; left:108px; font:500 20px "JetBrains Mono", monospace; letter-spacing:.16em; color:#FF5A4E; display:flex; gap:12px; align-items:center; }
+#hud .rec i { width:14px; height:14px; border-radius:50%; background:#FF4B3E; box-shadow:0 0 16px #FF4B3E; }
+#hud .tc { position:absolute; top:50px; right:108px; font:500 20px "JetBrains Mono", monospace; letter-spacing:.14em; color:rgba(242,240,236,.7); }
+
+/* A — 3 HOURS */
+#a3 { position:absolute; left:0; right:0; top:250px; text-align:center; white-space:nowrap; font-size:430px; font-weight:900; line-height:.9;
+  text-transform:uppercase; letter-spacing:-.04em; }
+#a3 span { display:inline-block; color:transparent; background:url(assets/collage.jpg) 0 0 / auto 640px; -webkit-background-clip:text; background-clip:text; }
+#aOf { position:absolute; left:0; right:0; top:660px; text-align:center; font-size:128px; }
+#aOf .word { clip-path:inset(0 -20px 0 -20px); }
+
+/* B — the wall */
+#wallCam { position:absolute; inset:0; perspective:1100px; perspective-origin:50% 42%; }
+#plane { position:absolute; left:50%; top:50%; width:0; height:0; transform-style:preserve-3d; }
+.row { position:absolute; left:0; top:0; height:0; transform-style:preserve-3d; }
+#scan { position:absolute; top:-100px; bottom:-100px; width:8px; background:var(--blue); box-shadow:0 0 40px 12px rgba(0,163,228,.8), 0 0 140px 50px rgba(0,163,228,.35); }
+#bShade { position:absolute; inset:0; background:linear-gradient(180deg, transparent 45%, rgba(8,8,12,.85) 78%); }
+#bText { position:absolute; left:120px; bottom:120px; font-size:132px; white-space:nowrap; }
+
+/* C — the gesture */
+#gp { position:absolute; left:110px; top:200px; width:900px; transform-style:preserve-3d; }
+#gp svg { width:100%; overflow:visible; }
+#cText { position:absolute; left:1060px; top:330px; }
+#cText .h { font-size:118px; white-space:nowrap; }
+#rings { position:absolute; inset:0; overflow:visible; }
+
+/* D — the app */
+#dHead { position:absolute; left:150px; top:120px; font-size:104px; white-space:nowrap; }
+#win { position:absolute; left:150px; top:270px; width:1100px; height:690px; border-radius:18px; background:#1C1B21; border:1px solid rgba(255,255,255,.13);
+  box-shadow:0 60px 140px rgba(0,0,0,.7), 0 0 0 1px rgba(0,0,0,.4); overflow:hidden; font-family:-apple-system, "Helvetica Neue", Archivo, sans-serif; }
+#win .bar { height:52px; display:flex; align-items:center; padding:0 20px; background:#232229; border-bottom:1px solid rgba(255,255,255,.07); }
+#win .bar i { width:13px; height:13px; border-radius:50%; margin-right:8px; }
+#win .seg { margin:0 auto; display:flex; background:rgba(255,255,255,.06); border-radius:8px; padding:3px; font-size:14px; font-weight:600; }
+#win .seg span { padding:5px 18px; border-radius:6px; color:rgba(242,240,236,.55); }
+#win .seg span.on { background:rgba(255,255,255,.14); color:var(--text); }
+#win .cards { display:flex; align-items:center; gap:22px; padding:26px 26px 0; }
+#win .card { flex:1; height:118px; border-radius:12px; background:#26252C; border:1px solid rgba(255,255,255,.07); padding:16px 20px; }
+#win .card .k { font:500 11px "JetBrains Mono", monospace; letter-spacing:.16em; color:rgba(242,240,236,.45); }
+#win .card .t { font-size:22px; font-weight:700; margin:6px 0 4px; }
+#win .card .s { font-size:14px; color:rgba(242,240,236,.6); line-height:1.5; }
+#win .arrow { width:46px; height:46px; border-radius:50%; background:var(--blue); display:grid; place-items:center; color:#fff; font-size:22px; font-weight:700; box-shadow:0 0 30px rgba(0,163,228,.5); }
+#win .prog { margin:22px 26px 0; display:flex; align-items:center; gap:16px; }
+#win .track { flex:1; height:8px; border-radius:4px; background:rgba(255,255,255,.08); overflow:hidden; }
+#win .fill { height:100%; width:0; background:var(--blue); border-radius:4px; box-shadow:0 0 14px rgba(0,163,228,.8); }
+#win .pl { font:500 13px "JetBrains Mono", monospace; color:rgba(242,240,236,.6); width:190px; text-align:right; }
+#win .thead, #win .r { display:grid; grid-template-columns:96px 1fr 120px 120px 170px; align-items:center; padding:0 26px; }
+#win .thead { margin-top:22px; height:30px; font:500 11px "JetBrains Mono", monospace; letter-spacing:.14em; color:rgba(242,240,236,.4); border-bottom:1px solid rgba(255,255,255,.07); }
+#win .r { height:57px; border-bottom:1px solid rgba(255,255,255,.05); font-size:15px; }
+#win .r .th { width:72px; height:40px; border-radius:6px; background:center/cover; }
+#win .r .nm { font:500 16px "JetBrains Mono", monospace; }
+#win .r .sz { color:rgba(242,240,236,.55); font-size:14px; }
+#win .r .tg b { font:700 12px -apple-system, sans-serif; background:var(--blue); color:#fff; padding:3px 8px; border-radius:5px; }
+#win .r .st { font:500 13px "JetBrains Mono", monospace; color:rgba(242,240,236,.4); }
+.folder { position:absolute; left:1330px; width:450px; height:270px; border-radius:20px; background:#17161C; border:1px solid rgba(255,255,255,.1); padding:26px 30px;
+  box-shadow:0 30px 80px rgba(0,0,0,.5); }
+.folder svg { width:84px; }
+.folder .n { position:absolute; right:30px; top:14px; font-size:120px; font-weight:900; font-stretch:80%; }
+.folder .l { font-size:34px; font-weight:800; font-stretch:88%; margin-top:10px; text-transform:uppercase; letter-spacing:-.02em; }
+.folder .p { font:500 15px "JetBrains Mono", monospace; color:rgba(242,240,236,.45); margin-top:6px; }
+#fHL { top:300px; } #fCL { top:620px; }
+#fHL .n { color:var(--blue); }
+.fly { position:absolute; width:72px; height:40px; border-radius:6px; background:center/cover; box-shadow:0 10px 30px rgba(0,0,0,.6); }
+#cable { position:absolute; inset:0; overflow:visible; }
+
+/* E — sorting is free */
+#eHead { position:absolute; left:160px; top:150px; }
+#eHead .h { font-size:130px; margin-top:18px; }
+#ebar { position:absolute; left:160px; top:520px; width:1600px; height:110px; border-radius:14px; background:#17161C; border:1px solid rgba(255,255,255,.12); overflow:hidden; }
+#ebar .tex { position:absolute; inset:0; background:repeating-linear-gradient(90deg, rgba(255,255,255,.07) 0 2px, transparent 2px 11px); }
+#ebar .mdat { position:absolute; left:0; right:0; top:38px; text-align:center; font:500 24px "JetBrains Mono", monospace; letter-spacing:.3em; color:rgba(242,240,236,.28); }
+#ebar .ftyp { position:absolute; left:0; top:0; bottom:0; width:16px; background:rgba(242,240,236,.25); }
+#ebar .moov { position:absolute; right:0; top:0; bottom:0; width:30px; background:rgba(242,240,236,.25); }
+.elab { position:absolute; top:440px; font:500 24px "JetBrains Mono", monospace; color:rgba(242,240,236,.7); }
+#head { position:absolute; top:0; left:0; width:0; height:0; }
+#head svg { position:absolute; left:-16px; top:-30px; width:32px; overflow:visible; }
+#arcs { position:absolute; inset:0; overflow:visible; }
+#callout { position:absolute; left:1180px; top:700px; width:580px; height:250px; border-radius:18px; background:#17161C; border:2px solid var(--blue); padding:26px 30px;
+  box-shadow:0 0 60px rgba(0,163,228,.35); }
+#callout .path { font:500 24px "JetBrains Mono", monospace; color:var(--blue2); }
+#callout .big { white-space:nowrap; font-size:68px; font-weight:900; font-stretch:82%; text-transform:uppercase; letter-spacing:-.03em; margin-top:22px; display:flex; gap:22px; align-items:center; }
+#callout .big b { color:var(--blue); font-size:56px; display:inline-block; }
+#stars { display:inline-flex; gap:10px; }
+#count { position:absolute; left:160px; top:700px; }
+#count .k { font:500 22px "JetBrains Mono", monospace; letter-spacing:.2em; color:rgba(242,240,236,.5); }
+#count .v { font-size:190px; font-weight:900; font-stretch:78%; letter-spacing:-.04em; line-height:.95; }
+#count .v small { font-size:64px; color:rgba(242,240,236,.45); font-stretch:90%; margin-left:22px; letter-spacing:-.02em; }
+#count .s { font:500 22px "JetBrains Mono", monospace; color:var(--blue2); letter-spacing:.06em; margin-top:8px; }
+#bridge { position:absolute; background:var(--blue); border-radius:6px; box-shadow:0 0 30px rgba(0,163,228,.8); }
+
+/* F — menu bar */
+#wall2 { position:absolute; inset:-40px; background:url(/site/assets/thumbs/wing.jpg) center/cover; filter:blur(44px) brightness(.2) saturate(1.1); }
+#mbar { position:absolute; left:0; right:0; top:0; height:42px; background:rgba(28,28,34,.82); border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center;
+  padding:0 22px; font:500 16px -apple-system, "Helvetica Neue", sans-serif; color:rgba(242,240,236,.9); gap:26px; }
+#mbar b { font-weight:700; }
+#mbar .right { margin-left:auto; display:flex; gap:22px; align-items:center; }
+#mbIcon { width:30px; height:24px; border-radius:6px; display:grid; place-items:center; }
+#pop { position:absolute; left:1270px; top:56px; width:500px; border-radius:18px; background:rgba(30,30,36,.97); border:1px solid rgba(255,255,255,.13); padding:26px;
+  box-shadow:0 40px 100px rgba(0,0,0,.7); font-family:-apple-system, "Helvetica Neue", Archivo, sans-serif; transform-origin:300px -10px; }
+#pop .t { font-size:26px; font-weight:700; }
+#pop .m { font-size:16px; color:rgba(242,240,236,.55); margin-top:6px; }
+#pop .tiles { display:flex; gap:14px; margin-top:22px; }
+#pop .tiles div { flex:1; border-radius:14px; background:rgba(255,255,255,.06); padding:16px 18px; font-size:16px; color:rgba(242,240,236,.6); }
+#pop .tiles b { display:block; font-size:44px; color:var(--text); font-weight:700; }
+#pop .tiles .bl b { color:var(--blue); }
+#pop .go { margin-top:20px; height:52px; border-radius:12px; background:var(--blue); display:grid; place-items:center; font-size:18px; font-weight:600; color:#fff; position:relative; overflow:hidden; }
+#pop .go i { position:absolute; inset:0; background:#fff; opacity:0; }
+#pop .er { margin-top:12px; height:48px; border-radius:12px; border:1px solid rgba(255,255,255,.15); display:grid; place-items:center; font-size:16px; }
+#pop .nt { margin-top:14px; font-size:13px; color:rgba(242,240,236,.4); }
+#fHead { position:absolute; left:140px; top:360px; }
+#fHead .h { font-size:150px; margin-top:22px; }
+#cursor { position:absolute; width:38px; filter:drop-shadow(0 6px 12px rgba(0,0,0,.7)); transform-origin:5px 4px; }
+#finder { position:absolute; left:880px; top:420px; width:820px; height:470px; border-radius:16px; background:#1E1D23; border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 50px 130px rgba(0,0,0,.75); overflow:hidden; font-family:-apple-system, "Helvetica Neue", sans-serif; }
+#finder .bar { height:50px; display:flex; align-items:center; padding:0 18px; background:#26252B; font-size:16px; font-weight:700; }
+#finder .bar i { width:12px; height:12px; border-radius:50%; margin-right:8px; }
+#finder .side { position:absolute; left:0; top:50px; bottom:40px; width:190px; background:#1A191E; padding:18px 14px; font-size:14px; color:rgba(242,240,236,.65); line-height:2.1; }
+#finder .side .sel { background:rgba(255,255,255,.1); border-radius:6px; padding-left:8px; margin-left:-8px; color:var(--text); }
+#finder .grid { position:absolute; left:220px; right:24px; top:84px; display:flex; gap:22px; }
+#finder .fi { flex:1; text-align:center; font-size:14px; color:rgba(242,240,236,.85); }
+#finder .fi .tile { position:relative; aspect-ratio:16/9; border:3px solid #fff; margin-bottom:10px; }
+#finder .path { position:absolute; left:190px; right:0; bottom:0; height:40px; border-top:1px solid rgba(255,255,255,.07); font-size:13px; color:rgba(242,240,236,.5); display:flex; align-items:center; padding-left:22px; }
+
+/* G — outro */
+#fan { position:absolute; left:960px; top:120px; width:0; height:0; }
+#fan .tile { width:380px; height:214px; left:-190px; top:0; border:4px solid #fff; box-shadow:0 30px 70px rgba(0,0,0,.6); }
+#icon { position:absolute; z-index:5; left:875px; top:300px; width:170px; height:170px; border-radius:38px; box-shadow:0 30px 70px rgba(0,0,0,.6), 0 0 90px rgba(0,163,228,.45); }
+#gText { position:absolute; left:0; right:0; top:520px; text-align:center; font-size:136px; }
+#gFoot { position:absolute; left:0; right:0; top:850px; text-align:center; }
+#gFoot .chips { font:500 26px "JetBrains Mono", monospace; letter-spacing:.12em; color:rgba(242,240,236,.75); }
+#gFoot .url { margin-top:20px; font:700 46px "JetBrains Mono", monospace; color:var(--blue2); }
+
+/* ───── 9:16 Reel layout (1080 × 1920). Instagram covers the top ~220 px and the bottom ~380 px,
+   and its buttons the right ~130 px from y 1000: everything to read sits inside that frame. */
+.v, .v body { width:1080px; height:1920px; }
+.v #hud .rec, .v #hud .tc { top:250px; }
+.v #hud .rec { left:96px; } .v #hud .tc { right:96px; }
+.v #hud .tl, .v #hud .tr { top:230px; } .v #hud .bl, .v #hud .br { bottom:400px; }
+.v #a3 { top:660px; font-size:262px; }
+.v #a3 span { background-size:auto 420px; }
+.v #aOf { top:930px; font-size:112px; }
+.v #wallCam { perspective-origin:50% 40%; }
+.v #bText { left:70px; bottom:auto; top:1180px; font-size:124px; white-space:normal; width:940px; }
+.v #gp { left:60px; top:420px; width:960px; }
+.v #cText { left:80px; top:1150px; }
+.v #cText .h { font-size:122px; }
+.v #dHead { left:70px; top:310px; font-size:112px; white-space:normal; width:940px; }
+.v #win { left:45px; top:610px; zoom:.9; }
+.v .folder { width:470px; height:240px; top:1210px; padding:22px 26px; }
+.v .folder .n { font-size:104px; }
+.v #fHL { left:45px; top:1260px; } .v #fCL { left:565px; top:1260px; }
+.v #eHead { left:70px; top:330px; } .v #eHead .h { font-size:126px; }
+.v #ebar { left:70px; top:820px; width:940px; }
+.v .elab { top:760px; }
+.v #eL1 { left:70px !important; } .v #eL2 { right:70px !important; }
+.v #count { left:70px; top:990px; }
+.v #callout { left:70px; top:1300px; width:940px; height:220px; }
+.v #mbar { gap:20px; font-size:15px; }
+.v #mbar span:nth-child(n+5):not(.right span) { display:none; }
+.v #pop { left:520px; top:52px; width:500px; }
+.v #fHead { left:70px; top:620px; }
+.v #fHead .h { font-size:150px; }
+.v #finder { left:50px; top:1010px; width:980px; height:500px; }
+.v #fan { left:540px; top:420px; }
+.v #icon { left:455px; top:610px; }
+.v #gText { top:870px; font-size:90px; }
+.v #gFoot { top:1220px; }
+.v #gFoot .chips { font-size:24px; }
+</style></head>
+<body>
+<div id="world">
+  <div id="bg"></div>
+
+  <!-- A -->
+  <section class="scene" id="sA">
+    <div id="a3"><span class="ch">3</span><span class="ch">&nbsp;</span><span class="ch">H</span><span class="ch">O</span><span class="ch">U</span><span class="ch">R</span><span class="ch">S</span></div>
+    <div id="aOf" class="h"><span class="word">of</span> <span class="word">footage.</span></div>
+  </section>
+
+  <!-- B -->
+  <section class="scene" id="sB">
+    <div id="wallCam"><div id="plane"></div></div>
+    <div id="scan"></div>
+    <div id="bShade"></div>
+    <div id="bText" class="h"><span class="word"><span class="hl" id="bHl">3 moments</span></span> <span class="word">that</span> <span class="word">matter.</span></div>
+  </section>
+
+  <!-- C -->
+  <section class="scene" id="sC">
+    <div id="gpWrap" style="position:absolute; inset:0; perspective:1400px;"><div id="gp"></div></div>
+    <svg id="rings" viewBox="0 0 1920 1080"></svg>
+    <div id="cText"><div class="kicker" id="cK">While you film</div>
+      <div class="h" style="margin-top:22px"><div class="word" id="c1">One press.</div><br><div class="word" id="c2"><span class="hl" id="cHl">One highlight.</span></div></div></div>
+  </section>
+
+  <!-- D -->
+  <section class="scene" id="sD">
+    <svg id="cable" viewBox="0 0 1920 1080"><path id="cab" d="M -60 520 C 60 520, 70 398, 150 398" fill="none" stroke="#34333B" stroke-width="12" stroke-linecap="round"/>
+      <path id="cabGlow" d="M -60 520 C 60 520, 70 398, 150 398" fill="none" stroke="#5BBDEE" stroke-width="5" stroke-linecap="round"/></svg>
+    <div id="dHead" class="h"><span class="word" id="d1">Plug in.</span> <span class="word" id="d2"><span class="hl" id="dHl">It's sorted.</span></span></div>
+    <div id="win">
+      <div class="bar"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i>
+        <div class="seg"><span class="on">Transfer</span><span>Library</span><span>Settings</span></div><div style="width:80px"></div></div>
+      <div class="cards">
+        <div class="card"><div class="k">SOURCE</div><div class="t">GOPRO</div><div class="s">HERO12 Black · USB-C<br>6 takes — 720.2 MB — <span style="color:var(--blue2)">3 tagged ★</span></div></div>
+        <div class="arrow">→</div>
+        <div class="card"><div class="k">DESTINATION</div><div class="t">2026-10-02</div><div class="s">Highlights · Clips<br>~/Movies/GoPro</div></div>
+      </div>
+      <div class="prog"><div class="track"><div class="fill" id="fill"></div></div><div class="pl" id="pl">0.0 MB of 720.2 MB</div></div>
+      <div class="thead"><span></span><span>FILE</span><span>SIZE</span><span>TAG</span><span>VERIFICATION</span></div>
+      <div id="rows"></div>
+    </div>
+    <div class="folder" id="fHL"><svg viewBox="0 0 84 64"><path d="M4 10 Q4 4 10 4 H30 L38 12 H74 Q80 12 80 18 V56 Q80 60 76 60 H8 Q4 60 4 56 Z" fill="#00A3E4"/></svg>
+      <div class="n" id="nHL">0</div><div class="l">Highlights</div><div class="p">the takes you marked</div></div>
+    <div class="folder" id="fCL"><svg viewBox="0 0 84 64"><path d="M4 10 Q4 4 10 4 H30 L38 12 H74 Q80 12 80 18 V56 Q80 60 76 60 H8 Q4 60 4 56 Z" fill="#5A5963"/></svg>
+      <div class="n" id="nCL">0</div><div class="l">Clips</div><div class="p">the rest of the session</div></div>
+    <div id="flies"></div>
+  </section>
+
+  <!-- E -->
+  <section class="scene" id="sE">
+    <div id="eHead"><div class="kicker" id="eK">Why it's instant</div><div class="h"><span class="word" id="e1">Sorting</span> <span class="word" id="e2">is</span> <span class="word" id="e3"><span class="hl" id="eHl">free.</span></span></div></div>
+    <div class="elab" id="eL1" style="left:160px">GX010042.MP4</div>
+    <div class="elab" id="eL2" style="right:160px">4.0 GB</div>
+    <div id="ebar"><div class="tex" id="etex"></div><div class="mdat">the video itself</div><div class="ftyp" id="ftyp"></div><div class="moov" id="moov"></div></div>
+    <svg id="arcs" viewBox="0 0 1920 1080"></svg>
+    <div id="head"><svg viewBox="0 0 32 40"><path d="M2 2 H30 L16 22 Z" fill="#00A3E4"/><rect x="15" y="22" width="2" height="150" fill="#00A3E4"/></svg></div>
+    <div id="count"><div class="k">Read to sort it</div><div class="v"><span id="kb">0</span> KB<small>of 4 GB</small></div><div class="s">3 seeks · decided before copying</div></div>
+    <div id="callout"><div class="path">moov › udta › HMMT</div><div class="big"><span id="stars"><b>★</b> <b>★</b> <b>★</b></span> 3 HighLights</div></div>
+  </section>
+
+  <!-- F -->
+  <section class="scene" id="sF">
+    <div id="wall2"></div>
+    <div id="mbar"><b>Finder</b><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>
+      <div class="right"><span id="mbIcon"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="8.5" fill="none" stroke="#F2F0EC" stroke-width="2"/><path d="M11 6.5 V14 M7.8 11 L11 14.2 L14.2 11" fill="none" stroke="#F2F0EC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span>Fri 2 Oct&nbsp;&nbsp;10:42</span></div></div>
+    <div id="fHead"><div class="kicker" id="fK">In your menu bar</div><div class="h"><div class="word" id="f1">Go make</div><br><div class="word" id="f2"><span class="hl" id="fHl">a coffee.</span></div></div></div>
+    <div id="pop"><div class="t">Import finished</div><div class="m">6 files — 720.2 MB — verified</div>
+      <div class="tiles"><div class="bl"><b id="pHL">0</b>Highlights</div><div><b id="pCL">0</b>Clips</div></div>
+      <div class="go" id="go"><i id="goFlash"></i>Open highlights</div><div class="er">Erase the clips on the GoPro…</div><div class="nt">The card was not modified.</div></div>
+    <div id="finder"><div class="bar"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i><span style="margin-left:14px">Highlights</span></div>
+      <div class="side">Favourites<br>AirDrop<br>Recents<br>Applications<br><div class="sel">Movies</div>Downloads</div>
+      <div class="grid" id="fgrid"></div>
+      <div class="path">Movies › GoPro › 2026-10-02 › Highlights</div></div>
+    <svg id="cursor" viewBox="0 0 24 24"><path d="M4 3 L4 20 L8.5 15.8 L11.6 22 L14.4 20.7 L11.4 14.6 L17.6 14.4 Z" fill="#fff" stroke="#000" stroke-width="1.3" stroke-linejoin="round"/></svg>
+  </section>
+
+  <!-- G -->
+  <section class="scene" id="sG">
+    <svg id="rings2" viewBox="0 0 1920 1080" style="position:absolute; inset:0; overflow:visible"></svg>
+    <div id="fan"></div>
+    <img id="icon" src="/site/assets/icon-1024.png" alt="">
+    <div id="gText" class="h"><div class="word" id="g1">Skip the rushes.</div><br><div class="word" id="g2"><span class="hl" id="gHl">Keep the moments.</span></div></div>
+    <div id="gFoot"><div class="chips" id="gC">FREE · NO ACCOUNT · NO ADS · FOR MAC</div><div class="url" id="gU">quix.xavier-kain.fr</div></div>
+  </section>
+
+  <div id="hud"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i>
+    <div class="rec"><i id="dot"></i>REC</div><div class="tc" id="tc">00:00:00:00</div></div>
+</div>
+<div id="flash"></div>
+<div id="grain"></div>
+<div id="vig"></div>
+
+<script>
+// ───────────────────────── format: ?fmt=v is the 1080 × 1920 Reel layout (CSS under .v)
+const V = /fmt=v/.test(location.search), W = V ? 1080 : 1920, H = V ? 1920 : 1080;
+if (V) document.documentElement.classList.add('v');
+document.querySelectorAll('svg[viewBox="0 0 1920 1080"]').forEach(s => s.setAttribute('viewBox', `0 0 ${W} ${H}`));
+// ───────────────────────── helpers
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const cl = v => v < 0 ? 0 : v > 1 ? 1 : v;
+const seg = (t, a, b) => cl((t - a) / (b - a));
+const lerp = (a, b, k) => a + (b - a) * k;
+const E = {
+  out3: x => 1 - Math.pow(1 - x, 3),
+  outExpo: x => x >= 1 ? 1 : 1 - Math.pow(2, -10 * x),
+  inExpo: x => x <= 0 ? 0 : Math.pow(2, 10 * x - 10),
+  in3: x => x * x * x,
+  io3: x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2,
+  back: x => { const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); },
+  elastic: x => x <= 0 ? 0 : x >= 1 ? 1 : Math.pow(2, -10 * x) * Math.sin((x * 10 - .75) * (2 * Math.PI) / 3) + 1,
+};
+function S(el, o) {           // set opacity / transform / filter in one place
+  if (typeof el === 'string') el = $(el);
+  if (!el) return;
+  if (o.o !== undefined) el.style.opacity = o.o;
+  if (o.tf !== undefined) el.style.transform = o.tf;
+  if (o.f !== undefined) el.style.filter = o.f;
+}
+// A word that slams in: scale down from big, blurred, then settles.
+function slam(el, t, t0, d = .32, from = 1.6) {
+  const k = seg(t, t0, t0 + d), e = E.outExpo(k);
+  S(el, { o: cl(k * 4), tf: `scale(${lerp(from, 1, e)})`, f: `blur(${(1 - e) * 14}px)` });
+}
+function rise(el, t, t0, dist = 70, d = .5) {
+  const e = E.outExpo(seg(t, t0, t0 + d));
+  S(el, { o: cl(seg(t, t0, t0 + d) * 3), tf: `translateY(${(1 - e) * dist}px)` });
+}
+function marker(el, t, t0, d = .32) {
+  const k = E.io3(seg(t, t0, t0 + d));
+  el.style.setProperty('--m', k); el.classList.toggle('on', k > .55);
+}
+function show(id, t, a, b) { $(id).style.visibility = t >= a && t < b ? 'visible' : 'hidden'; }
+
+// ───────────────────────── build
+const TH = n => `/site/assets/thumbs/${n}.jpg`;
+const POOL = ["h4","k-water","h8","h5","h10","h7","k-beach","h9","h3","flare","h11","para","k-sea","wing","h6","h1","k-jump","h2"];
+const WALL_ROWS = 7, WALL_COLS = 12, TW = 300, THh = 169, G = 20;
+const HOT = { "3,5": "k-jump", "3,7": "h1", "4,6": "h2" };     // row,col of the three moments, near the centre
+const HOT_ORDER = ["3,5", "3,7", "4,6"];
+{
+  const plane = $('#plane');
+  for (let r = 0; r < WALL_ROWS; r++) {
+    const row = document.createElement('div'); row.className = 'row';
+    row.style.top = ((r - WALL_ROWS / 2) * (THh + G)) + 'px';
+    for (let c = 0; c < WALL_COLS; c++) {
+      const key = r + ',' + c, d = document.createElement('div');
+      d.className = 'tile'; d.dataset.key = key;
+      d.style.cssText += `left:${(c - WALL_COLS / 2) * (TW + G)}px; top:0; width:${TW}px; height:${THh}px; background-image:url(${TH(HOT[key] || POOL[(r * 5 + c * 7) % 15])})`;
+      if (HOT[key]) d.innerHTML = '<b class="star">★ 1</b>';
+      row.appendChild(d);
+    }
+    plane.appendChild(row);
+  }
+}
+$('#gp').innerHTML = `__GOPRO__`;
+const FILES = [["GX010042.MP4","h1",1],["GX010043.MP4","h8",0],["GX010044.MP4","k-jump",1],["GX010045.MP4","k-water",0],["GX010046.MP4","h2",1],["GX010047.MP4","h5",0]];
+$('#rows').innerHTML = FILES.map(([n, th, tag]) => `<div class="r"><div class="th" style="background-image:url(${TH(th)})"></div><div class="nm">${n}</div><div class="sz">120 MB</div><div class="tg">${tag ? '<b>★ 1</b>' : ''}</div><div class="st">pending</div></div>`).join('');
+$('#flies').innerHTML = FILES.map(([n, th]) => `<div class="fly" style="background-image:url(${TH(th)}); opacity:0"></div>`).join('');
+$('#fgrid').innerHTML = FILES.filter(f => f[2]).map(([n, th]) => `<div class="fi"><div class="tile" style="background-image:url(${TH(th)})"></div>${n}</div>`).join('');
+$('#fan').innerHTML = ["h1", "k-jump", "h2"].map(th => `<div class="tile" style="background-image:url(${TH(th)})"></div>`).join('');
+// shockwave rings
+for (const id of ['#rings', '#rings2']) $(id).innerHTML = [0, 1, 2].map(() => '<circle cx="0" cy="0" r="0" fill="none" stroke="#00A3E4"/>').join('');
+// seek arcs
+$('#arcs').innerHTML = [0, 1].map(() => '<path fill="none" stroke="#5BBDEE" stroke-width="3" stroke-dasharray="8 10"/>').join('') +
+  '<path id="co1" fill="none" stroke="#00A3E4" stroke-width="2"/><path id="co2" fill="none" stroke="#00A3E4" stroke-width="2"/>';
+
+// ───────────────────────── timeline (seconds; 120 BPM, beats every .5 s)
+const SCENES = { sA: [0, 3.0], sB: [2.45, 4.5], sC: [4.5, 6.75], sD: [6.3, 8.62], sE: [8.3, 10.75], sF: [10.3, 12.7], sG: [12.35, 15.01] };
+const IMPACTS = [[.5, 16, .14], [4.5, 10, .75], [5.5, 9, .16], [12.5, 14, .3]];   // time, shake px, flash
+
+function cam(t) {
+  let x = 0, y = 0, s = 1;
+  for (const [ti, A] of IMPACTS) {
+    if (t < ti) continue;
+    const d = t - ti, k = Math.exp(-d / .11);
+    x += A * k * Math.sin(2 * Math.PI * 23 * d); y += A * .7 * k * Math.cos(2 * Math.PI * 19 * d); s += .028 * Math.exp(-d / .16) * (A / 12);
+  }
+  return { x, y, s };
+}
+
+window.R = function (t) {
+  for (const id in SCENES) show('#' + id, t, ...SCENES[id]);
+  // world camera: shake + punch on the impacts
+  const c = cam(t);
+  $('#world').style.transform = `translate(${c.x}px, ${c.y}px) scale(${c.s})`;
+  // flash
+  let fl = 0, flc = '#fff';
+  for (const [ti, , A] of IMPACTS) if (t >= ti) fl = Math.max(fl, A * Math.exp(-(t - ti) / .09));
+  if (t >= 4.3 && t < 4.5) { fl = Math.max(fl, .9 * E.in3(seg(t, 4.3, 4.5))); }
+  if (t >= 4.38 && t < 4.75) flc = '#BFEBFF';
+  $('#flash').style.opacity = fl; $('#flash').style.background = flc;
+  // grain: a new offset every frame, deterministic
+  const fr = Math.floor(t * 60);
+  $('#grain').style.backgroundPosition = `${(fr * 73) % 256}px ${(fr * 151) % 256}px`;
+  // background glow drifts
+  const gx = 50 + 18 * Math.sin(t * .7), gy = 45 + 10 * Math.cos(t * .5);
+  $('#bg').style.background = `radial-gradient(1100px 800px at ${gx}% ${gy}%, rgba(0,163,228,${t < 12.4 ? .14 : .22}), transparent 70%), var(--ink)`;
+  // HUD
+  const hk = seg(t, .0, .2) * (1 - seg(t, 10.35, 10.55));
+  $('#hud').style.opacity = hk;
+  $('#dot').style.opacity = (t % 1) < .5 ? 1 : .2;
+  const secs = t < 2.8 ? 10800 * E.io3(seg(t, .05, 2.6)) + 14 * seg(t, 2.6, 2.8) : 10814 + (t - 2.8);
+  const ff = Math.floor(t * 30) % 30;
+  $('#tc').textContent = [Math.floor(secs / 3600), Math.floor(secs / 60) % 60, Math.floor(secs) % 60, ff].map(v => String(v).padStart(2, '0')).join(':');
+
+  if ($('#bridge')) $('#bridge').style.display = 'none';   // D() shows it only during its own transition
+  A(t); B(t); C_(t); D(t); E_(t); F(t); G_(t);
+};
+
+// ───────────────────────── A · 0 – 3.0 : 3 HOURS OF FOOTAGE
+function A(t) {
+  const ch = $$('#a3 .ch');
+  // the 3 falls from the camera and lands on the first beat
+  const k3 = seg(t, 0, .5), e3 = E.in3(k3);
+  // it starts huge in the middle of the frame and falls into its place in the line
+  const a3 = $('#a3'), dx = W / 2 - (a3.offsetLeft + ch[0].offsetLeft + ch[0].offsetWidth / 2), dy = H / 2 - (a3.offsetTop + ch[0].offsetTop + ch[0].offsetHeight / 2);
+  S(ch[0], { o: cl(k3 * 5), tf: `translate(${(1 - e3) * dx}px, ${(1 - e3) * dy}px) scale(${lerp(4.2, 1, e3)})`, f: `blur(${(1 - e3) * 26}px)` });
+  // HOURS bursts out from behind it, each letter squeezing to width
+  for (let i = 2; i < ch.length; i++) {
+    const k = seg(t, .5 + (i - 2) * .05, .82 + (i - 2) * .05), e = E.outExpo(k);
+    S(ch[i], { o: cl(k * 6), tf: `translateX(${(1 - e) * -(i * 120)}px) scaleX(${lerp(.3, 1, e)})` });
+    ch[i].style.fontStretch = lerp(125, 82, e) + '%';
+  }
+  ch[0].style.fontStretch = '82%';
+  // the footage runs inside the letters
+  const px = -t * 1100 - 400;
+  ch.forEach(c => c.style.backgroundPosition = `${px - c.offsetLeft}px ${-120 + 30 * Math.sin(t * 2)}px`);
+  // of footage — rises from a mask on the beat
+  $$('#aOf .word').forEach((w, i) => {
+    const e = E.outExpo(seg(t, 1.5 + i * .1, 1.95 + i * .1));
+    S(w, { o: e > 0 ? 1 : 0, tf: `translateY(${(1 - e) * 140}px)` });
+    w.style.clipPath = `inset(0 -20px ${0}px -20px)`;
+  });
+  // exit: the line rushes at the camera and the wall takes over
+  const x = E.inExpo(seg(t, 2.45, 2.95));
+  S('#a3', { tf: `scale(${1 + x * 7})`, o: 1 - seg(t, 2.6, 2.9), f: `blur(${x * 18}px)` });
+  S('#aOf', { tf: `translateY(${x * 260}px) scale(${1 + x * 2})`, o: 1 - seg(t, 2.45, 2.75) });
+}
+
+// ───────────────────────── B · 2.45 – 4.62 : the wall, the scan, three moments, the dive
+function B(t) {
+  if (t < 2.4 || t > 4.65) return;
+  const fly = E.outExpo(seg(t, 2.5, 3.1));
+  const dive = E.inExpo(seg(t, 4.12, 4.5));
+  const z = lerp(-3400, 0, fly) + dive * 980;
+  $('#plane').style.transform = `translate3d(0, 0, ${z}px) rotateX(${lerp(64, 50, fly) - dive * 30}deg) rotateZ(${lerp(-24, -12, fly) + dive * 12}deg)`;
+  // rows race, then brake to a stop on the beat at 3.5
+  const travel = 2600 * E.out3(seg(t, 2.45, 3.5));
+  $$('#plane .row').forEach((r, i) => r.style.transform = `translateX(${(i % 2 ? 1 : -1) * (travel - 2600)}px)`);
+  // desaturate everything but the three moments; the scan sweeps; the three light on 3.5 / 3.75 / 4.0
+  const dim = seg(t, 3.15, 3.45);
+  $$('#plane .tile').forEach(el => {
+    const h = HOT_ORDER.indexOf(el.dataset.key);
+    const lit = h < 0 ? 0 : E.outExpo(seg(t, 3.5 + h * .25, 3.72 + h * .25));
+    const pop = h < 0 ? 0 : Math.sin(Math.PI * seg(t, 3.5 + h * .25, 3.8 + h * .25));
+    const d = dim * (1 - lit);
+    el.style.filter = `grayscale(${d * .9}) brightness(${1 - .62 * d + .15 * lit})`;
+    el.style.transform = `translateZ(${lit * 70 + pop * 30}px) scale(${1 + lit * .08 + pop * .08})`;
+    el.style.boxShadow = lit ? `0 0 0 ${6 * lit}px #00A3E4, 0 0 ${80 * lit}px rgba(0,163,228,${.9 * lit})` : 'inset 0 0 0 1px rgba(255,255,255,.1)';
+    const st = el.querySelector('.star');
+    if (st) { const b = E.back(seg(t, 3.55 + h * .25, 3.85 + h * .25)); st.style.transform = `scale(${Math.max(0, b)})`; st.style.opacity = cl(b * 3); }
+  });
+  const sx = lerp(-200, 2120, E.io3(seg(t, 3.12, 3.62)));
+  S('#scan', { o: seg(t, 3.1, 3.18) * (1 - seg(t, 3.55, 3.65)), tf: `translateX(${sx}px) skewX(-12deg)` });
+  S('#bShade', { o: seg(t, 3.3, 3.6) * (1 - dive) });
+  // the line
+  const w = $$('#bText .word');
+  slam(w[0], t, 3.45, .3, 1.5); slam(w[1], t, 3.62, .28, 1.4); slam(w[2], t, 3.72, .28, 1.4);
+  marker($('#bHl'), t, 3.62);
+  S('#bText', { tf: `scale(${1 + dive * .4})`, o: 1 - seg(t, 4.2, 4.38) });
+  S('#wallCam', { f: `brightness(${1 + dive * 1.6}) blur(${dive * 6}px)` });
+}
+
+// ───────────────────────── C · 4.5 – 6.75 : one press, one highlight
+const GPpos = () => { const g = $('#gp'); return { x: g.offsetLeft, y: g.offsetTop, s: g.offsetWidth / 960 }; };   // the SVG's placement
+function C_(t) {
+  if (t < 4.45 || t > 6.8) return;
+  const k = seg(t, 4.5, 5.0), e = E.back(k);
+  S('#gp', { o: cl(k * 4), tf: `rotateY(${(1 - E.outExpo(k)) * 80}deg) rotateZ(${(1 - e) * -8}deg) scale(${lerp(.6, 1, e)})` });
+  rise($('#cK'), t, 4.6, 40); slam($('#c1'), t, 4.7, .3, 1.5); slam($('#c2'), t, 5.5, .3, 1.6);
+  marker($('#cHl'), t, 5.62);
+  // playhead: reaches the marker (57.7 %) exactly at the press, 5.5 s
+  const ph = seg(t, 4.62, 4.62 + .88 / .577);
+  $('#played').setAttribute('width', (520 * ph).toFixed(1));
+  $('#gptime').textContent = '00:' + String(Math.floor(ph * 42)).padStart(2, '0');
+  const pr = seg(t, 5.5, 5.8);
+  $('#button').style.transform = `scaleX(${1 - .5 * Math.sin(Math.PI * pr)})`;
+  const hk = seg(t, 5.5, 6.3);
+  $('#halo').style.opacity = hk <= 0 ? 0 : hk < .2 ? hk / .2 : 1 - (hk - .2) / .8;
+  $('#halo').style.transform = `scale(${.4 + 1.6 * E.out3(hk)})`;
+  const mk = E.back(seg(t, 5.58, 5.92));
+  $('#marker').style.opacity = cl(mk * 2); $('#marker').style.transform = `translateY(${(1 - mk) * -60}px) scale(${lerp(.4, 1, cl(mk))})`;
+  // shockwave from the side button
+  const GP = GPpos(), cx = GP.x + 652 * GP.s, cy = GP.y + 262 * GP.s;
+  $$('#rings circle').forEach((r, i) => {
+    const q = seg(t, 5.5 + i * .09, 6.3 + i * .09), e = E.out3(q);
+    r.setAttribute('cx', cx); r.setAttribute('cy', cy); r.setAttribute('r', e * (700 + i * 260));
+    r.setAttribute('stroke-width', lerp(10, 1, e)); r.setAttribute('opacity', q > 0 && q < 1 ? (1 - q) * .9 : 0);
+  });
+  // whip pan out to the left
+  const wp = E.inExpo(seg(t, 6.35, 6.7));
+  $('#sC').style.transform = `translateX(${-wp * W * 1.2}px)`;
+  $('#sC').style.filter = `blur(${wp * 10}px)`;
+}
+
+// ───────────────────────── D · 6.3 – 8.62 : plug in, it's sorted
+function D(t) {
+  if (t < 6.25 || t > 8.65) return;
+  const win_ = E.outExpo(seg(t, 6.38, 6.95));
+  $('#sD').style.transform = `translateX(${(1 - E.outExpo(seg(t, 6.55, 7.0))) * W * 1.2}px)`;
+  $('#sD').style.filter = `blur(${(1 - seg(t, 6.55, 6.85)) * 10}px)`;
+  S('#win', { tf: `perspective(1600px) rotateX(${(1 - win_) * 16}deg) rotateY(${(1 - win_) * -18}deg) scale(${lerp(.9, 1, win_)})` });
+  slam($('#d1'), t, 6.55, .3, 1.5); slam($('#d2'), t, 7.5, .3, 1.5); marker($('#dHl'), t, 7.62);
+  // cable draws in, then data pulses run along it — from off-frame into the source card
+  {
+    const ww = $('#world').getBoundingClientRect(), wr = $('#win').getBoundingClientRect(), cr = $('#win .card').getBoundingClientRect();
+    const x = wr.left - ww.left, y = cr.top - ww.top + cr.height / 2, d = `M -60 ${y + 130} C 40 ${y + 130}, ${x - 90} ${y}, ${x} ${y}`;
+    $('#cab').setAttribute('d', d); $('#cabGlow').setAttribute('d', d);
+  }
+  const cab = $('#cab'), L = cab.getTotalLength();
+  cab.style.strokeDasharray = L; cab.style.strokeDashoffset = L * (1 - E.out3(seg(t, 6.5, 6.85)));
+  const g = $('#cabGlow'); g.style.strokeDasharray = `40 ${L}`;
+  g.style.strokeDashoffset = -((t - 6.8) * 900 % (L + 40)) + 40; g.style.opacity = seg(t, 6.8, 6.9) * (1 - seg(t, 8.2, 8.4));
+  // rows cascade in, then copy and verify one by one
+  const rows = $$('#rows .r'), flies = $$('#flies .fly');
+  const total = 720.2;
+  let done = 0, hl = 0, clc = 0;
+  rows.forEach((r, i) => {
+    rise(r, t, 6.7 + i * .045, 30, .4);
+    const c0 = 6.92 + i * .15, c1 = c0 + .15;
+    const st = r.querySelector('.st');
+    if (t < c0) { st.textContent = 'pending'; st.style.color = 'rgba(242,240,236,.4)'; }
+    else if (t < c1) { st.textContent = 'copying ' + Math.floor(seg(t, c0, c1) * 100) + '%'; st.style.color = '#5BBDEE'; }
+    else { st.textContent = '✓ verified'; st.style.color = '#4CD08A'; }
+    done += 120.03 * seg(t, c0, c1);
+    // the thumbnail flies to its folder
+    const tag = FILES[i][2], fo = $(tag ? '#fHL' : '#fCL');
+    const a = r.querySelector('.th').getBoundingClientRect(), b = fo.getBoundingClientRect(), w = $('#world').getBoundingClientRect();
+    const q = seg(t, c1, c1 + .3), e = E.io3(q);
+    const tx = b.left + 150 + (tag ? hl : clc) * 26 - w.left, ty = b.top + 120 - w.top;
+    const sx = a.left - w.left, sy = a.top - w.top;
+    const x = lerp(sx, tx, e), y = lerp(sy, ty, e) - Math.sin(Math.PI * e) * 160;
+    const f = flies[i];
+    f.style.left = x + 'px'; f.style.top = y + 'px';
+    f.style.opacity = q > 0 && q < 1 ? 1 : 0;
+    f.style.transform = `scale(${1 + Math.sin(Math.PI * e) * .8}) rotate(${Math.sin(Math.PI * e) * (tag ? -14 : 14)}deg)`;
+    if (q >= 1) { if (tag) hl++; else clc++; }
+  });
+  $('#fill').style.width = (done / total * 100) + '%';
+  $('#pl').textContent = done.toFixed(1) + ' MB of 720.2 MB';
+  $('#nHL').textContent = hl; $('#nCL').textContent = clc;
+  // folders arrive, and bounce when a clip lands
+  ['#fHL', '#fCL'].forEach((id, j) => {
+    const k = E.back(seg(t, 6.75 + j * .08, 7.15 + j * .08));
+    let bump = 0;
+    FILES.forEach((f, i) => { if (!!f[2] === (j === 0)) { const c1 = 7.07 + i * .15 + .3; bump += Math.sin(Math.PI * seg(t, c1, c1 + .18)) * .06; } });
+    S(id, { o: cl(k * 3), tf: `translateX(${(1 - cl(k)) * 200}px) scale(${1 + bump})` });
+  });
+  // the progress bar becomes the 4 GB file of the next scene
+  const br = E.io3(seg(t, 8.28, 8.62));
+  const fr = $('#fill').getBoundingClientRect(), w = $('#world').getBoundingClientRect();
+  const B_ = $('#bridge') || (() => { const d = document.createElement('div'); d.id = 'bridge'; $('#world').appendChild(d); return d; })();
+  if (t >= 8.28 && t < 8.7) {
+    B_.style.display = 'block';
+    const eb = $('#ebar');
+    B_.style.left = lerp(fr.left - w.left, eb.offsetLeft, br) + 'px'; B_.style.top = lerp(fr.top - w.top, eb.offsetTop, br) + 'px';
+    B_.style.width = lerp(fr.width, eb.offsetWidth, br) + 'px'; B_.style.height = lerp(8, eb.offsetHeight, br) + 'px';
+    B_.style.opacity = 1 - seg(t, 8.55, 8.7);
+  } else B_.style.display = 'none';
+  const out = seg(t, 8.28, 8.5);
+  ['#win', '#fHL', '#fCL', '#dHead', '#cable'].forEach(id => { $(id).style.opacity = (id === '#fHL' || id === '#fCL') ? Math.min(+$(id).style.opacity, 1 - out) : 1 - out; });
+}
+
+// ───────────────────────── E · 8.3 – 10.75 : sorting is free (3 seeks, 34 KB)
+function E_(t) {
+  if (t < 8.25 || t > 10.8) return;
+  const bar = seg(t, 8.5, 8.62);
+  S('#ebar', { o: bar > 0 ? 1 : 0 });
+  $('#etex').style.backgroundPosition = `${-t * 60}px 0`;
+  rise($('#eK'), t, 8.55, 40); slam($('#e1'), t, 8.6, .3, 1.5); slam($('#e2'), t, 8.72, .26, 1.4); slam($('#e3'), t, 8.82, .26, 1.4);
+  marker($('#eHl'), t, 9.0);
+  rise($('#eL1'), t, 8.6, 20, .4); rise($('#eL2'), t, 8.65, 20, .4);
+  // the read head: three seeks on the beats 9.0, 9.25, 9.5
+  const eb = $('#ebar'), X0 = eb.offsetLeft + 8, X1 = eb.offsetLeft + eb.offsetWidth - 15, Y = eb.offsetTop - 15;
+  let hx = X0, hy = Y;
+  const j1 = E.outExpo(seg(t, 8.95, 9.1)), j2 = E.io3(seg(t, 9.12, 9.3)), j3 = E.back(seg(t, 9.42, 9.6));
+  hx = lerp(lerp(-40, X0, j1), X1, j2);
+  hy = Y - Math.sin(Math.PI * j2) * 120 + Math.sin(Math.PI * seg(t, 9.42, 9.6)) * -30;
+  S('#head', { o: seg(t, 8.9, 8.95) * (1 - seg(t, 10.3, 10.5)), tf: `translate(${hx}px, ${hy}px) scale(${1 + .3 * Math.sin(Math.PI * seg(t, 9.42, 9.6))})` });
+  const arcs = $$('#arcs path');
+  // arc of the long seek
+  arcs[0].setAttribute('d', `M ${X0} ${Y - 30} Q ${(X0 + X1) / 2} ${Y - 280} ${X1} ${Y - 30}`);
+  const al = arcs[0].getTotalLength(); arcs[0].style.strokeDasharray = `8 10`;
+  arcs[0].style.opacity = seg(t, 9.12, 9.2) * (1 - seg(t, 9.6, 9.9)) * .9;
+  arcs[0].style.clipPath = `inset(0 ${(1 - j2) * 100}% 0 0)`;
+  arcs[1].style.opacity = 0;
+  // the pieces light up: ftyp, then moov
+  $('#ftyp').style.background = seg(t, 9.0, 9.05) ? `rgba(0,163,228,${.9 - .5 * seg(t, 9.1, 9.4)})` : 'rgba(242,240,236,.25)';
+  const mv = seg(t, 9.28, 9.33);
+  $('#moov').style.background = mv ? '#00A3E4' : 'rgba(242,240,236,.25)';
+  $('#moov').style.boxShadow = mv ? `0 0 ${30 + 20 * Math.sin(t * 12)}px rgba(0,163,228,.9)` : 'none';
+  // callout grows out of moov
+  const co = E.outExpo(seg(t, 9.5, 9.85));
+  S('#callout', { o: cl(co * 3), tf: `translate(${(1 - co) * 260}px, ${(1 - co) * -150}px) scale(${lerp(.1, 1, co)})` });
+  $('#callout').style.transformOrigin = '100% 0';
+  const cb = $('#callout'), mx = X1 - 15, my = eb.offsetTop + eb.offsetHeight;
+  $('#co1').setAttribute('d', `M ${mx} ${my} L ${lerp(mx, cb.offsetLeft, co)} ${lerp(my, cb.offsetTop, co)}`);
+  $('#co2').setAttribute('d', `M ${mx + 30} ${my} L ${lerp(mx + 30, cb.offsetLeft + cb.offsetWidth, co)} ${lerp(my, cb.offsetTop, co)}`);
+  $('#co1').style.opacity = $('#co2').style.opacity = co > 0 ? .8 : 0;
+  $$('#stars b').forEach((b, i) => { const k = E.back(seg(t, 9.75 + i * .08, 10.0 + i * .08)); b.style.transform = `scale(${Math.max(0, k)}) rotate(${(1 - cl(k)) * -90}deg)`; b.style.opacity = cl(k * 3); });
+  // the counter climbs to 34 KB on the reads
+  const kb = 34 * E.out3(seg(t, 8.95, 9.6));
+  $('#kb').textContent = Math.round(kb);
+  rise($('#count'), t, 8.9, 50);
+  // exit: everything lifts away, the menu bar comes down
+  const x = E.inExpo(seg(t, 10.35, 10.7));
+  $('#sE').style.transform = `translateY(${-x * H * 1.1}px)`;
+  $('#sE').style.filter = `blur(${x * 8}px)`;
+}
+
+// ───────────────────────── F · 10.3 – 12.7 : in your menu bar, go make a coffee
+function F(t) {
+  if (t < 10.25 || t > 12.75) return;
+  const inn = E.outExpo(seg(t, 10.38, 10.8));
+  $('#sF').style.transform = `translateY(${(1 - inn) * H}px)`;
+  S('#mbar', { tf: `translateY(${(1 - E.outExpo(seg(t, 10.5, 10.75))) * -50}px)` });
+  rise($('#fK'), t, 10.55, 40); slam($('#f1'), t, 10.62, .3, 1.5); slam($('#f2'), t, 10.8, .3, 1.5); marker($('#fHl'), t, 10.98);
+  // the menu-bar icon flashes blue, the popover drops from it
+  const ic = Math.sin(Math.PI * seg(t, 10.7, 11.1));
+  $('#mbIcon').style.background = `rgba(0,163,228,${ic * .95})`;
+  const pk = seg(t, 10.82, 11.22), pe = E.back(pk);
+  const close = E.in3(seg(t, 11.62, 11.82));
+  S('#pop', { o: cl(pk * 4) * (1 - close), tf: `translateY(${(1 - pe) * -40}px) scale(${lerp(.82, 1, pe) * (1 - close * .1)})` });
+  $('#pHL').textContent = Math.round(3 * E.out3(seg(t, 11.0, 11.35)));
+  $('#pCL').textContent = Math.round(3 * E.out3(seg(t, 11.05, 11.4)));
+  // the cursor glides in and clicks Open highlights on the beat at 11.5
+  const go = $('#go').getBoundingClientRect(), w = $('#world').getBoundingClientRect();
+  const bx = go.left - w.left + go.width * .55, by = go.top - w.top + go.height * .55;
+  const cm = E.io3(seg(t, 11.0, 11.45));
+  const cx = lerp(W - 220, bx, cm), cy = lerp(H - 80, by, cm);
+  S('#cursor', { o: seg(t, 10.95, 11.05) * (1 - seg(t, 11.9, 12.05)), tf: `translate(${cx}px, ${cy}px) scale(${1 - .2 * Math.sin(Math.PI * seg(t, 11.47, 11.6))})` });
+  $('#cursor').style.left = '0px'; $('#cursor').style.top = '0px';
+  $('#goFlash').style.opacity = .5 * Math.sin(Math.PI * seg(t, 11.5, 11.7));
+  // the Highlights folder opens out of the button
+  const fk = E.outExpo(seg(t, 11.58, 12.0));
+  const fo = $('#finder');
+  fo.style.transformOrigin = `${bx - fo.offsetLeft}px ${by - fo.offsetTop}px`;
+  S(fo, { o: cl(fk * 4) * (1 - seg(t, 12.32, 12.5)), tf: `scale(${lerp(.05, 1, fk)})` });
+  // exit: the scene sinks back
+  const x = seg(t, 12.3, 12.6);
+  S('#fHead', { o: 1 - x }); S('#mbar', { o: 1 - x });
+  $('#wall2').style.opacity = 1 - x;
+}
+
+// ───────────────────────── G · 12.35 – 15 : the three moments, the icon, the line
+function G_(t) {
+  if (t < 12.3) return;
+  // the Finder's three thumbnails fly into a fan
+  const ft = $$('#fgrid .tile'), fan = $$('#fan .tile'), w = $('#world').getBoundingClientRect();
+  fan.forEach((el, i) => {
+    // flight: from the Finder thumbnail's centre to the fan's centre, scaled about the tile's centre;
+    // the fan rotation pivots on a point 1.2 tile-heights below it (translate, rotate, translate back)
+    const k = E.io3(seg(t, 12.32 + i * .04, 12.72 + i * .04)), fa = E.back(seg(t, 12.6, 13.0));
+    const fn = $('#fan');
+    let sx = 0, sy = 0, sw = 380;
+    if (ft[i]) { const r = ft[i].getBoundingClientRect(); sx = r.left - w.left + r.width / 2 - fn.offsetLeft; sy = r.top - w.top + r.height / 2 - (fn.offsetTop + 107); sw = r.width; }
+    const x = lerp(sx, 0, k), y = lerp(sy, 0, k), s = lerp(sw / 380, 1, k);
+    const ang = [-16, 0, 16][i] * fa, off = [-1, 0, 1][i] * 70 * fa, P = 257;
+    el.style.transformOrigin = '50% 50%';
+    S(el, { o: t > 12.32 ? 1 : 0, tf: `translate(${x + off}px, ${y}px) translate(0, ${P}px) rotate(${ang}deg) translate(0, ${-P}px) scale(${s})` });
+    el.style.zIndex = i === 1 ? 3 : 1;
+  });
+  // the icon lands on the downbeat with a shockwave
+  const ik = E.back(seg(t, 12.42, 12.72));
+  S('#icon', { o: cl(seg(t, 12.42, 12.5) * 5), tf: `scale(${Math.max(0, ik)}) rotate(${(1 - cl(ik)) * -25}deg)` });
+  $$('#rings2 circle').forEach((r, i) => {
+    const q = seg(t, 12.5 + i * .08, 13.3 + i * .08), e = E.out3(q);
+    const ic = $('#icon'); r.setAttribute('cx', ic.offsetLeft + 85); r.setAttribute('cy', ic.offsetTop + 85); r.setAttribute('r', e * (800 + i * 300));
+    r.setAttribute('stroke-width', lerp(12, 1, e)); r.setAttribute('opacity', q > 0 && q < 1 ? (1 - q) * .85 : 0);
+  });
+  // the line: each word squeezes to width as it lands
+  const g1 = $('#g1'), g2 = $('#g2');
+  slam(g1, t, 12.75, .32, 1.6); slam(g2, t, 12.98, .32, 1.6);
+  g1.style.fontStretch = lerp(125, 82, E.outExpo(seg(t, 12.75, 13.15))) + '%';
+  g2.style.fontStretch = lerp(125, 82, E.outExpo(seg(t, 12.98, 13.38))) + '%';
+  marker($('#gHl'), t, 13.15, .36);
+  rise($('#gC'), t, 13.4, 30); rise($('#gU'), t, 13.55, 30);
+}
+
+// ───────────────────────── ready
+window.READY = (async () => {
+  await document.fonts.ready;
+  const urls = new Set(['assets/collage.jpg', 'assets/grain.png', '/site/assets/icon-1024.png', '/site/assets/thumbs/wing.jpg']);
+  POOL.concat(Object.values(HOT), FILES.map(f => f[1])).forEach(n => urls.add(TH(n)));
+  await Promise.all([...urls].map(u => new Promise(r => { const i = new Image(); i.onload = i.onerror = r; i.src = u; })));
+  R(0);
+  return true;
+})();
+</script>
+</body></html>

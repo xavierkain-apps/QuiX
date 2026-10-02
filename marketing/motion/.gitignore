@@ -1,0 +1,7 @@
+out/
+frames/
+probe/
+assets/
+compose.html
+music.wav
+__pycache__/
