@@ -44,7 +44,7 @@ both live in `App/Localizable.xcstrings`. Two strings are deliberately *not* loc
 **Never add an attribution line to a commit** — no `Co-Authored-By`, no mention of the tool that
 wrote it. Xavier asked for this explicitly, for all of his projects.
 
-## The four things not to forget
+## The five things not to forget
 
 1. **Sorting is free.** HiLight tags live in `moov/udta/HMMT`, and in GoPro files `moov` sits at
    the **end**: three seeks and about 34 KB are enough to know where a clip goes. Do not copy
@@ -57,7 +57,12 @@ wrote it. Xavier asked for this explicitly, for all of his projects.
    camera has been found on the Mac at the right size, an alert asks for confirmation, and
    `CameraCleanup.erase` refuses on its own side any plan that is not verified. Nothing in
    detection or in the end of an import triggers it.
-4. **The camera over USB is not a disk.** It exposes no mass storage at all: it brings up a
+4. **A network that does not work is a filter, not a bug.** Before reading a line of networking
+   code: `log show --last 5m --info --predicate 'process CONTAINS[c] "TripMode"' | grep -i Block`.
+   On this Mac it has been the answer every time. macOS reports the path as *satisfied* and the
+   error as `-1005`, so it looks like a fault rather than a refusal — and `curl` works, because
+   Terminal is allowed and the app is not. See [docs/USB.md](docs/USB.md).
+5. **The camera over USB is not a disk.** It exposes no mass storage at all: it brings up a
    network interface and answers HTTP. Sorting stays free there because it honours `Range` —
    measured, not assumed. See [docs/USB.md](docs/USB.md).
 

@@ -169,6 +169,21 @@ ends, and `RemoteCopyTests` stands up a real HTTP server to prove it.
 
 ## When the camera is there and does not answer
 
+**Check the network filter first.** On the development Mac this has been the answer every single
+time, and the symptom never looks like a block:
+
+```sh
+log show --last 5m --info --predicate 'process CONTAINS[c] "TripMode"' | grep -i Block
+```
+
+A `New TCP … <-> …:8080 … Block` line names the cut flow, and the fix is in the filter, not in
+the code. A newly installed app — or one whose bundle identifier has just changed — is an unknown
+app to TripMode, Little Snitch or an antivirus, and they block those by default.
+
+**A working `curl` proves nothing.** Terminal is already allowed in the filter; the app is not.
+That one detail is what turns a two-minute diagnosis into an hour.
+
+
 Three things can make a plugged-in, switched-on camera look absent, and they are not the same:
 
 | What the app sees | What it means |
