@@ -60,11 +60,74 @@ public struct GoProCamera: Sendable, Equatable {
     /// knowing the serial *before* talking to the camera — we start from the local interfaces: the
     /// machine gets an address in the same `/24`, and the camera always sits at `.51`.
     public static func discover(timeout: TimeInterval = 2) -> GoProCamera? {
-        for candidate in candidateHosts() {
-            let camera = GoProCamera(host: candidate)
-            if (try? camera.info(timeout: timeout)) != nil { return camera }
-        }
+        if case .found(let camera, _) = probe(timeout: timeout) { return camera }
         return nil
+    }
+
+    /// What a search of the USB networks concluded.
+    public enum Probe {
+        /// A camera answered.
+        case found(GoProCamera, Info)
+        /// A camera network exists and macOS forbids talking to it — the "Local Network"
+        /// permission. The only outcome that asks the user for something.
+        case denied
+        /// No camera network, or nothing answering on one. `reason` is kept for the log: a
+        /// camera that is plugged in and silent is the hardest thing to diagnose afterwards,
+        /// and "no card" on screen says nothing about why.
+        case absent(reason: String?)
+    }
+
+    /// Looks for a camera, **probing every candidate at once**.
+    ///
+    /// Sequentially was a mistake. A personal hotspot opens a `172.20.10.0/28` network, nothing
+    /// answers at `.51`, and every poll spent the whole timeout there before so much as trying
+    /// the camera. The narrower filter in `candidateHosts()` rules that case out, but any other
+    /// stray subnet would cost the same — so the candidates are raced instead of queued.
+    public static func probe(timeout: TimeInterval = 2) -> Probe {
+        let hosts = candidateHosts()
+        guard !hosts.isEmpty else { return .absent(reason: nil) }
+
+        let outcomes = Outcomes()
+        let group = DispatchGroup()
+        let queue = DispatchQueue(label: "quix.probe", attributes: .concurrent)
+
+        for host in hosts {
+            group.enter()
+            queue.async {
+                defer { group.leave() }
+                let camera = GoProCamera(host: host)
+                do { outcomes.found(camera, try camera.info(timeout: timeout)) }
+                catch { outcomes.failed(host, error) }
+            }
+        }
+        group.wait()
+        return outcomes.verdict()
+    }
+
+    /// Collects what the parallel probes found. A class, because several queues write to it.
+    private final class Outcomes: @unchecked Sendable {
+        private let lock = NSLock()
+        private var success: (GoProCamera, Info)?
+        private var denied = false
+        private var reasons: [String] = []
+
+        func found(_ camera: GoProCamera, _ info: Info) {
+            lock.lock(); defer { lock.unlock() }
+            if success == nil { success = (camera, info) }
+        }
+
+        func failed(_ host: String, _ error: Error) {
+            lock.lock(); defer { lock.unlock() }
+            if LocalNetworkDenial.matches(error) { denied = true }
+            reasons.append("\(host): \(LocalNetworkDenial.summary(of: error))")
+        }
+
+        func verdict() -> Probe {
+            lock.lock(); defer { lock.unlock() }
+            if let success { return .found(success.0, success.1) }
+            if denied { return .denied }
+            return .absent(reason: reasons.isEmpty ? nil : reasons.joined(separator: " · "))
+        }
     }
 
     /// The `.51` addresses of the `172.x.y.0/24` subnets where the machine has an address.
@@ -93,9 +156,13 @@ public struct GoProCamera: Sendable, Equatable {
 
             let ip = String(cString: buffer)
             let parts = ip.split(separator: ".")
-            // The camera's USB network is in 172.2x.1yz.0/24; nothing else is swept.
-            guard parts.count == 4, parts[0] == "172", let second = Int(parts[1]),
-                  (20...29).contains(second) else { continue }
+            // The camera's USB network is `172.2X.1YZ.0/24` — the third octet always has three
+            // digits and starts with a 1, so 100 through 199. Checking it is not pedantry: an
+            // iPhone personal hotspot hands out `172.20.10.x`, which passes the first two octets
+            // and costs a full timeout on every single poll.
+            guard parts.count == 4, parts[0] == "172",
+                  let second = Int(parts[1]), (20...29).contains(second),
+                  let third = Int(parts[2]), (100...199).contains(third) else { continue }
 
             let candidate = "\(parts[0]).\(parts[1]).\(parts[2]).51"
             if candidate != ip, !hosts.contains(candidate) { hosts.append(candidate) }
@@ -175,8 +242,7 @@ public struct GoProCamera: Sendable, Equatable {
         guard let url = URL(string: baseURL.absoluteString + path) else {
             throw CameraError.malformedResponse
         }
-        var request = URLRequest(url: url)
-        request.timeoutInterval = timeout
+        let request = HTTP.request(url, timeout: timeout)
         let (data, response) = try HTTP.send(request)
         guard let http = response as? HTTPURLResponse else { throw CameraError.malformedResponse }
         guard (200...299).contains(http.statusCode) else { throw CameraError.badStatus(http.statusCode) }
@@ -206,6 +272,30 @@ enum HTTP {
     /// connection behind it, and the first download that followed asked for a second — which the
     /// camera refused. The symptom was disorienting: the first clip failed, the following ones went
     /// through, and a second import always succeeded.
+    /// A request the camera's server will not keep alive.
+    ///
+    /// **This is not a detail.** The camera closes a connection after a couple of seconds of
+    /// silence, but `URLSession` keeps it in its pool and reuses it on the next request. The
+    /// socket is already gone, so the task fails instantly with `-1005`, "network connection
+    /// lost" — on a path macOS reports as *satisfied*, which rules out the permission and leaves
+    /// nothing else to look at.
+    ///
+    /// The symptom is brutal: `curl` to the very same address answers in 30 ms, because it opens
+    /// a fresh connection every time, while QuiX fails on every poll and reports "no card" for a
+    /// camera that is plugged in, switched on, and holding fifty clips.
+    ///
+    /// `Connection: close` costs one TCP handshake per request. Over a USB cable that is nothing,
+    /// and this server would have closed the connection anyway.
+    static func request(_ url: URL, timeout: TimeInterval) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.timeoutInterval = timeout
+        request.setValue("close", forHTTPHeaderField: "Connection")
+        // The camera's answers are never worth caching: `media/list` changes with every clip
+        // filmed, and a stale catalogue would mean a missed import.
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        return request
+    }
+
     static let session: URLSession = {
         let configuration = URLSessionConfiguration.default
         configuration.httpMaximumConnectionsPerHost = 1
@@ -256,4 +346,51 @@ enum HTTP {
         }
         return try outcome.result.get()
     }
+}
+
+/// Telling a refused "Local Network" permission apart from a camera that is simply not there.
+///
+/// macOS does not give this its own error code, and the code it does give **has changed**. It was
+/// `-1009`, "the Internet connection appears to be offline", which says nothing true: neither the
+/// Internet nor an outage is involved. On macOS 26 the same refusal arrives as `-1005`, "network
+/// connection lost", after the connection has been allowed to start and then torn down.
+///
+/// Matching on the code was therefore wrong in a way that only showed much later: the app
+/// reported "no card" for a camera that was plugged in, switched on, and answering `curl` — the
+/// exact failure the permission screen exists to prevent.
+///
+/// What does not change is the path attached to the error. It names the reason in clear text,
+/// under a key Apple does not publish, which is why the code is read as a fallback rather than
+/// trusted alone.
+public enum LocalNetworkDenial {
+
+    public static func matches(_ error: Error) -> Bool {
+        let error = error as NSError
+        guard error.domain == NSURLErrorDomain else { return false }
+        if path(in: error)?.localizedCaseInsensitiveContains("local network") == true { return true }
+        // No path to read: `-1009` on a USB camera subnet can hardly mean anything else.
+        return error.code == NSURLErrorNotConnectedToInternet
+    }
+
+    /// One readable line for the log. Never shown to the user — the window says what to do, not
+    /// what the socket said.
+    public static func summary(of error: Error) -> String {
+        let error = error as NSError
+        if let path = path(in: error) { return "\(error.code) — \(path)" }
+        return "\(error.code)"
+    }
+
+    /// The network path macOS attached to the failure, wherever it buried it.
+    private static func path(in error: NSError) -> String? {
+        for candidate in [error] + (error.userInfo[NSUnderlyingErrorKey] as? NSError).map({ [$0] }).orEmpty {
+            if let path = candidate.userInfo["_NSURLErrorNWPathKey"] {
+                return String(describing: path)
+            }
+        }
+        return nil
+    }
+}
+
+private extension Optional where Wrapped == [NSError] {
+    var orEmpty: [NSError] { self ?? [] }
 }

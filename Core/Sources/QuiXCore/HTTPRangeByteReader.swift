@@ -38,8 +38,7 @@ public final class HTTPRangeByteReader: ByteReader {
         guard count > 0, offset < length else { return [] }
         let last = min(offset + UInt64(count) - 1, length - 1)
 
-        var request = URLRequest(url: url)
-        request.timeoutInterval = timeout
+        var request = HTTP.request(url, timeout: timeout)
         request.setValue("bytes=\(offset)-\(last)", forHTTPHeaderField: "Range")
 
         let (data, response) = try HTTP.send(request)
@@ -62,8 +61,7 @@ public final class HTTPRangeByteReader: ByteReader {
     /// To be called once per session, before scanning: better to know straight away than to
     /// discover the problem at the sixtieth clip.
     public static func supportsRange(url: URL, timeout: TimeInterval = 15) -> Bool {
-        var request = URLRequest(url: url)
-        request.timeoutInterval = timeout
+        var request = HTTP.request(url, timeout: timeout)
         request.setValue("bytes=0-63", forHTTPHeaderField: "Range")
         guard let (_, response) = try? HTTP.send(request),
               let http = response as? HTTPURLResponse else { return false }

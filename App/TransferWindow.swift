@@ -56,6 +56,19 @@ struct TransferWindow: View {
                 }
             }
 
+        case .cameraUnreachable(let reason):
+            Waiting(title: "The camera does not answer",
+                    detail: "A GoPro network is here and macOS is letting QuiX through, but the camera is not answering. A firewall or a network filter — TripMode, Little Snitch, an antivirus — usually blocks a newly installed app by default. Allowing QuiX in it settles it.",
+                    warning: true) {
+                VStack(spacing: 10) {
+                    Button("Check again") { model.recheckCamera() }
+                        .buttonStyle(FilledBlue())
+                    Text(verbatim: reason)
+                        .font(Type.mono(11.5)).foregroundStyle(Ink.tertiary)
+                        .textSelection(.enabled)
+                }
+            }
+
         case .failed(let reason):
             Waiting(title: "Failed", detail: "\(reason)", warning: true) {
                 Button("Done") { model.dismissReport() }.buttonStyle(OutlinedDark())

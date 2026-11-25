@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuiX — importeur GoPro gratuit pour Mac qui trie vos highlights</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+html{scroll-behavior:smooth}
+body{margin:0;background:#101017;color:#F2F0EC;-webkit-font-smoothing:antialiased;overflow-x:clip}
+a{color:#5BBDEE;text-decoration:none}
+a:hover{color:#A9DCF5}
+::selection{background:#00A3E4;color:#fff}
+</style>
+</helmet>
+<div ref="{{ rootRef }}" id="top" style="position:relative; font-family:Archivo, -apple-system, 'Helvetica Neue', sans-serif; background:#101017; color:#F2F0EC;">
+
+<header style="position:sticky; top:0; z-index:50; background:rgba(16,16,23,.72); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-bottom:1px solid rgba(255,255,255,.07);">
+  <div style="max-width:1200px; margin:0 auto; padding:13px 28px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+    <a href="#top" style="display:flex; align-items:center; gap:11px; color:#F2F0EC;">
+      <img src="site/assets/icon-256.png" alt="QuiX" style="width:30px; height:30px; display:block;">
+      <span style="font-weight:700; font-size:17px; letter-spacing:-.02em;">QuiX</span>
+    </a>
+    <a href="#download" data-magnet="" style="display:inline-flex; align-items:center; white-space:nowrap; font-size:13.5px; font-weight:600; color:#fff; background:#00A3E4; padding:9px 18px; border-radius:10px; transition:background .2s, transform .3s cubic-bezier(.2,.8,.2,1);" style-hover="background:#0090CC; color:#fff">Téléchargement gratuit</a>
+  </div>
+  <div style="position:absolute; left:0; right:0; bottom:-1px; height:2px;">
+    <div data-m="progress" style="height:100%; background:linear-gradient(90deg, rgba(0,163,228,.3), #00A3E4 85%, #E6F7FF); transform-origin:left center; transform:scaleX(0); box-shadow:0 0 12px rgba(0,163,228,.8);"></div>
+  </div>
+</header>
+
+<section data-m="hero" data-screen-label="01 Hero" style="position:relative; overflow:hidden; min-height:calc(100vh - 57px); display:flex; flex-direction:column; justify-content:center; padding:110px 28px 170px; text-align:center; box-sizing:border-box;">
+  <div data-m="halo" style="position:absolute; top:50%; left:50%; width:900px; height:900px; margin:-520px 0 0 -450px; pointer-events:none;">
+    <div data-m="breathe" style="width:100%; height:100%; border-radius:50%; background:radial-gradient(circle, rgba(0,163,228,.22), rgba(0,163,228,.06) 40%, transparent 64%);"></div>
+  </div>
+  <div data-m="hero-flash" style="position:absolute; inset:0; pointer-events:none; opacity:0; background:radial-gradient(70% 55% at 50% 100%, rgba(0,163,228,.30), transparent 70%);"></div>
+
+  <sc-if value="{{ showHud }}" hint-placeholder-val="{{ true }}">
+    <div data-m="hud" aria-hidden="true" style="position:absolute; top:28px; left:28px; right:28px; bottom:128px; pointer-events:none; transform-origin:50% 50%;">
+      <i style="position:absolute; left:0; top:0; width:30px; height:30px; border-left:2px solid rgba(242,240,236,.4); border-top:2px solid rgba(242,240,236,.4);"></i>
+      <i style="position:absolute; right:0; top:0; width:30px; height:30px; border-right:2px solid rgba(242,240,236,.4); border-top:2px solid rgba(242,240,236,.4);"></i>
+      <i style="position:absolute; left:0; bottom:0; width:30px; height:30px; border-left:2px solid rgba(242,240,236,.4); border-bottom:2px solid rgba(242,240,236,.4);"></i>
+      <i style="position:absolute; right:0; bottom:0; width:30px; height:30px; border-right:2px solid rgba(242,240,236,.4); border-bottom:2px solid rgba(242,240,236,.4);"></i>
+      <div style="position:absolute; top:6px; left:46px; display:flex; align-items:center; gap:8px; font:500 11px 'JetBrains Mono', monospace; letter-spacing:.14em; color:#FF6B60;">
+        <i data-m="blink" style="display:block; width:9px; height:9px; border-radius:50%; background:#FF4B3E; box-shadow:0 0 10px rgba(255,75,62,.8);"></i>
+        <span>REC</span>
+      </div>
+      <div data-m="tc" style="position:absolute; top:6px; right:46px; font:500 11px 'JetBrains Mono', monospace; letter-spacing:.1em; color:rgba(242,240,236,.7); font-variant-numeric:tabular-nums;">00:00:21:00</div>
+    </div>
+  </sc-if>
+
+  <div data-m="hero-par" style="position:relative; z-index:2; transform-origin:50% 30%;">
+    <div data-reveal="blur" data-delay="0" style="width:124px; height:124px; margin:0 auto 34px;">
+      <img data-m="float" src="site/assets/icon-1024.png" alt="QuiX" style="display:block; width:124px; height:124px; filter:drop-shadow(0 24px 50px rgba(0,163,228,.35));">
+    </div>
+    <h1 style="margin:0 auto 26px; font-weight:800; font-stretch:88%; font-size:clamp(42px, 7vw, 120px); line-height:.9; letter-spacing:-.045em; text-transform:uppercase; text-wrap:balance; max-width:20ch;">
+      <span style="display:block; overflow:hidden; padding:.02em .04em .06em;"><span data-reveal="mask" data-delay="180" style="display:block;">Vos meilleures prises,</span></span>
+      <span style="display:block; overflow:hidden; padding:.02em .04em .08em;"><span data-reveal="mask" data-delay="320" style="display:block; color:#00A3E4;">déjà triées.</span></span>
+    </h1>
+    <p data-reveal="up" data-delay="520" style="font-size:18px; line-height:1.5; color:rgba(242,240,236,.62); margin:0 auto 34px; max-width:46ch; text-wrap:pretty;">Vous avez appuyé sur le bouton au bon moment. QuiX retrouve ces clips et les met à part, pendant qu'il importe le reste de la session. Aucun clic.</p>
+    <div data-reveal="up" data-delay="640" style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+      <a href="#download" data-magnet="" style="display:inline-flex; align-items:center; gap:10px; white-space:nowrap; font-size:15px; font-weight:600; color:#fff; background:#00A3E4; padding:16px 30px; border-radius:12px; box-shadow:0 14px 44px -12px rgba(0,163,228,.75); transition:background .2s, transform .3s cubic-bezier(.2,.8,.2,1);" style-hover="background:#0090CC; color:#fff">Télécharger gratuitement</a>
+    </div>
+    <p data-reveal="fade" data-delay="800" style="font:400 11.5px 'JetBrains Mono', monospace; letter-spacing:.04em; color:rgba(242,240,236,.55); margin:24px 0 0;">100 % gratuit · Sans compte · Sans pub · Pour Mac</p>
+  </div>
+
+  <div data-reveal="fade" data-delay="900" style="position:absolute; left:0; right:0; bottom:44px; padding:0 28px; z-index:2;">
+    <div style="max-width:1200px; margin:0 auto;">
+      <div style="display:flex; justify-content:space-between; gap:12px; font:400 10.5px 'JetBrains Mono', monospace; letter-spacing:.12em; text-transform:uppercase; color:rgba(242,240,236,.5); margin-bottom:30px;">
+        <span>GX010042.MP4</span>
+        <span>Votre clip</span>
+      </div>
+      <div style="position:relative; height:4px; border-radius:2px; background:rgba(255,255,255,.1);">
+        <div data-m="tl-fill" style="position:absolute; inset:0; border-radius:2px; background:linear-gradient(90deg, rgba(0,163,228,.15), #00A3E4); transform-origin:left center; transform:scaleX(.5);"></div>
+        <div data-m="tl-mark" data-pos="0.21" style="position:absolute; left:21%; top:50%; width:0; height:0;">
+          <i data-ripple="" style="position:absolute; left:-6px; top:-6px; width:12px; height:12px; border-radius:50%; border:1.5px solid #00A3E4; opacity:0; box-sizing:border-box;"></i>
+          <i style="position:absolute; left:-5px; top:-5px; width:10px; height:10px; background:#00A3E4; transform:rotate(45deg); box-shadow:0 0 14px rgba(0,163,228,.9);"></i>
+          <span data-label="" style="position:absolute; left:0; bottom:14px; transform:translate(-50%, 0); font:500 10px 'JetBrains Mono', monospace; color:#5BBDEE; white-space:nowrap;">HighLight</span>
+        </div>
+        <div data-m="tl-mark" data-pos="0.48" style="position:absolute; left:48%; top:50%; width:0; height:0;">
+          <i data-ripple="" style="position:absolute; left:-6px; top:-6px; width:12px; height:12px; border-radius:50%; border:1.5px solid #00A3E4; opacity:0; box-sizing:border-box;"></i>
+          <i style="position:absolute; left:-5px; top:-5px; width:10px; height:10px; background:#00A3E4; transform:rotate(45deg); box-shadow:0 0 14px rgba(0,163,228,.9);"></i>
+          <span data-label="" style="position:absolute; left:0; bottom:14px; transform:translate(-50%, 0); font:500 10px 'JetBrains Mono', monospace; color:#5BBDEE; white-space:nowrap;">HighLight</span>
+        </div>
+        <div data-m="tl-mark" data-pos="0.76" style="position:absolute; left:76%; top:50%; width:0; height:0;">
+          <i data-ripple="" style="position:absolute; left:-6px; top:-6px; width:12px; height:12px; border-radius:50%; border:1.5px solid #00A3E4; opacity:0; box-sizing:border-box;"></i>
+          <i style="position:absolute; left:-5px; top:-5px; width:10px; height:10px; background:#00A3E4; transform:rotate(45deg); box-shadow:0 0 14px rgba(0,163,228,.9);"></i>
+          <span data-label="" style="position:absolute; left:0; bottom:14px; transform:translate(-50%, 0); font:500 10px 'JetBrains Mono', monospace; color:#5BBDEE; white-space:nowrap;">HighLight</span>
+        </div>
+        <div data-m="tl-head" style="position:absolute; left:50%; top:50%; width:2px; height:24px; margin:-12px 0 0 -1px; border-radius:1px; background:#E6F7FF; box-shadow:0 0 12px #00A3E4, 0 0 2px #fff;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="comment" data-m="story" data-screen-label="02 Comment ça marche" style="position:relative; height:420vh;">
+  <div style="position:sticky; top:0; height:100vh; display:flex; align-items:center; overflow:hidden;">
+    <div data-m="story-inner" style="max-width:1200px; margin:0 auto; padding:64px 28px 16px; width:100%; box-sizing:border-box; display:flex; flex-wrap:wrap; gap:40px 56px; align-items:center; transform-origin:50% 50%;">
+
+      <div style="flex:1 1 320px; min-width:0;">
+        <div data-reveal="fade" style="font:400 10.5px 'JetBrains Mono', monospace; letter-spacing:1.2px; text-transform:uppercase; color:rgba(242,240,236,.55); margin-bottom:16px;">Comment ça marche</div>
+        <div style="overflow:hidden; padding-bottom:.06em; margin-bottom:34px;">
+          <h2 data-reveal="mask" style="margin:0; font-size:clamp(32px, 4.6vw, 58px); line-height:.98; letter-spacing:-.035em; font-weight:800; text-transform:uppercase; text-wrap:balance; max-width:12ch;">Filmez. Appuyez. Branchez.</h2>
+        </div>
+        <div style="display:flex; flex-direction:column;">
+          <div data-m="step" style="padding:0 0 18px; transition:opacity .45s;">
+            <div style="height:2px; background:rgba(255,255,255,.1); border-radius:1px; overflow:hidden; margin-bottom:16px;"><div data-m="step-fill" style="height:100%; background:#00A3E4; transform-origin:left center; transform:scaleX(0);"></div></div>
+            <div style="display:flex; gap:16px; align-items:baseline;">
+              <span style="font:500 12px 'JetBrains Mono', monospace; color:#5BBDEE;">01</span>
+              <div style="min-width:0;">
+                <h3 style="margin:0 0 6px; font-size:18px; font-weight:600; line-height:1.3;">Vous appuyez sur le bouton en filmant</h3>
+                <p data-m="step-body" style="margin:0; font-size:14px; line-height:1.55; color:rgba(242,240,236,.6); text-wrap:pretty;">Il se passe quelque chose — un saut, une vague, une courbe. Un appui court sur le bouton sur le côté de votre GoPro, et l'instant est marqué.</p>
+              </div>
+            </div>
+          </div>
+          <div data-m="step" style="padding:0 0 18px; transition:opacity .45s;">
+            <div style="height:2px; background:rgba(255,255,255,.1); border-radius:1px; overflow:hidden; margin-bottom:16px;"><div data-m="step-fill" style="height:100%; background:#00A3E4; transform-origin:left center; transform:scaleX(0);"></div></div>
+            <div style="display:flex; gap:16px; align-items:baseline;">
+              <span style="font:500 12px 'JetBrains Mono', monospace; color:#5BBDEE;">02</span>
+              <div style="min-width:0;">
+                <h3 style="margin:0 0 6px; font-size:18px; font-weight:600; line-height:1.3;">De retour chez vous, vous branchez</h3>
+                <p data-m="step-body" style="margin:0; font-size:14px; line-height:1.55; color:rgba(242,240,236,.6); text-wrap:pretty;">La caméra en USB-C, allumée. Ou la carte mémoire dans un lecteur. QuiX démarre tout seul.</p>
+              </div>
+            </div>
+          </div>
+          <div data-m="step" style="padding:0; transition:opacity .45s;">
+            <div style="height:2px; background:rgba(255,255,255,.1); border-radius:1px; overflow:hidden; margin-bottom:16px;"><div data-m="step-fill" style="height:100%; background:#00A3E4; transform-origin:left center; transform:scaleX(0);"></div></div>
+            <div style="display:flex; gap:16px; align-items:baseline;">
+              <span style="font:500 12px 'JetBrains Mono', monospace; color:#5BBDEE;">03</span>
+              <div style="min-width:0;">
+                <h3 style="margin:0 0 6px; font-size:18px; font-weight:600; line-height:1.3;">Vous ouvrez le dossier Highlights</h3>
+                <p data-m="step-body" style="margin:0; font-size:14px; line-height:1.55; color:rgba(242,240,236,.6); text-wrap:pretty;">Toute votre session est là, et les moments que vous avez marqués vous attendent déjà dans leur propre dossier.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex:1.5 1 440px; min-width:0;">
+        <div data-reveal="scale" style="position:relative; border-radius:18px; border:1px solid rgba(255,255,255,.12); background:#0E0E12; box-shadow:0 40px 120px -40px rgba(0,163,228,.4);">
+          <div style="display:flex; align-items:center; gap:12px; padding:11px 14px; background:#232327; border-bottom:1px solid rgba(255,255,255,.07); border-radius:18px 18px 0 0;">
+            <span style="display:flex; gap:7px;"><i style="display:block; width:12px; height:12px; border-radius:50%; background:#FF5F57;"></i><i style="display:block; width:12px; height:12px; border-radius:50%; background:#FEBC2E;"></i><i style="display:block; width:12px; height:12px; border-radius:50%; background:#28C840;"></i></span>
+            <span style="font:600 13px -apple-system, 'Helvetica Neue', sans-serif;">QuiX</span>
+          </div>
+          <div style="padding:18px 20px 20px; display:flex; flex-direction:column; gap:16px; font-family:-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Archivo, sans-serif;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+              <div>
+                <div style="font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:rgba(242,240,236,.45);">Source</div>
+                <div style="font-size:20px; font-weight:700; letter-spacing:-.02em; margin-top:3px;">GOPRO</div>
+              </div>
+              <div style="font:400 11px 'JetBrains Mono', monospace; color:rgba(242,240,236,.4);">/Volumes/GOPRO/DCIM</div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px;">
+              <div data-m="clip" data-tag="1" style="position:relative; min-width:0; will-change:transform;">
+                <div style="position:relative; aspect-ratio:16/9; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,.1); background:linear-gradient(#3DB4EE, #BFE9FB 70%);">
+                  <i style="position:absolute; width:18%; aspect-ratio:1; border-radius:50%; top:14%; right:14%; background:radial-gradient(#FFFDE8, #FFE9A8 60%, transparent 70%);"></i>
+                  <i style="position:absolute; left:-5%; right:-5%; bottom:0; height:46%; background:repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 6%, transparent 6% 12%), linear-gradient(#0B86C9, #055E96);"></i>
+                  <i style="position:absolute; left:-5%; right:-5%; bottom:0; height:20%; background:linear-gradient(#bfe7f5, #7cc9e8); clip-path:polygon(0 40%, 20% 20%, 45% 45%, 70% 15%, 100% 35%, 100% 100%, 0 100%);"></i>
+                  <i data-m="ride" style="position:absolute; width:10%; aspect-ratio:1; left:26%; top:18%; background:#FF6B3D; clip-path:polygon(0 60%, 100% 0, 70% 100%);"></i>
+                  <i data-ring="" style="position:absolute; inset:0; border-radius:8px; box-shadow:inset 0 0 0 2px #00A3E4, inset 0 0 22px rgba(0,163,228,.55); opacity:0;"></i>
+                  <b data-star="" style="position:absolute; top:6px; left:6px; font-size:10px; font-weight:600; padding:2px 6px; border-radius:5px; background:#00A3E4; color:#fff; transform-origin:left top;">★ 1</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; gap:6px; margin-top:6px; font:400 10.5px 'JetBrains Mono', monospace; color:rgba(242,240,236,.8);"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">GX010042.MP4</span><span data-ok="" style="color:rgba(242,240,236,.45);">ok</span></div>
+              </div>
+              <div data-m="clip" data-tag="0" style="position:relative; min-width:0; will-change:transform;">
+                <div style="position:relative; aspect-ratio:16/9; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,.1); background:linear-gradient(#78BDEB, #E4F2FB 75%);">
+                  <i style="position:absolute; width:18%; aspect-ratio:1; border-radius:50%; top:10%; right:14%; background:radial-gradient(#fff, #FFF3C4 55%, transparent 70%);"></i>
+                  <i style="position:absolute; left:-5%; right:-5%; bottom:0; height:58%; background:linear-gradient(#DDE7F0, #B7C6D6); clip-path:polygon(0 45%, 18% 10%, 32% 35%, 52% 0, 70% 40%, 86% 18%, 100% 38%, 100% 100%, 0 100%);"></i>
+                  <i style="position:absolute; left:-5%; right:-5%; bottom:0; height:38%; background:#fff; clip-path:polygon(0 60%, 100% 0, 100% 100%, 0 100%);"></i>
+                  <i data-m="ride" style="position:absolute; width:5%; aspect-ratio:1; left:48%; bottom:20%; background:#20252E; border-radius:50%;"></i>
+                </div>
+                <div style="display:flex; justify-content:space-between; gap:6px; margin-top:6px; font:400 10.5px 'JetBrains Mono', monospace; color:rgba(242,240,236,.8);"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">GX010043.MP4</span><span data-ok="" style="color:rgba(242,240,236,.45);">ok</span></div>
+              </div>
+              <div data-m="clip" data-tag="1" style="position:relative; min-width:0; will-change:transform;">
+                <div style="position:relative; aspect-ratio:16/9; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,.1); background:linear-gradient(#FF8A5B, #FFD08A 75%);">
+                  <i style="position:absolute; width:26%; aspect-ratio:1; border-radius:50%; top:34%; right:36%; background:radial-gradient(#FFF1C8, #FFB25C 60%, transparent 70%);"></i>
+                  <i style="position:absolute; left:-5%; right:-5%; bottom:0; height:40%; background:repeating-linear-gradient(0deg, rgba(255,180,120,.18) 0 4%, transparent 4% 10%), linear-gradient(#3B3D6B, #1F2346);"></i>
+                  <i style="position:absolute; left:-5%; right:-5%; bottom:0; height:16%; background:#14172E; clip-path:polygon(0 50%, 30% 0, 55% 55%, 100% 20%, 100% 100%, 0 100%);"></i>
+                  <i data-m="ride" style="position:absolute; width:6%; aspect-ratio:1; left:30%; bottom:26%; background:#0D0F1F; clip-path:polygon(40% 0, 60% 0, 70% 60%, 100% 100%, 0 100%, 30% 60%);"></i>
+                  <i data-ring="" style="position:absolute; inset:0; border-radius:8px; box-shadow:inset 0 0 0 2px #00A3E4, inset 0 0 22px rgba(0,163,228,.55); opacity:0;"></i>
+                  <b data-star="" style="position:absolute; top:6px; left:6px; font-size:10px; font-weight:600; padding:2px 6px; border-radius:5px; background:#00A3E4; color:#fff; transform-origin:left top;">★ 1</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; gap:6px; margin-top:6px; font:400 10.5px 'JetBrains Mono', monospace; color:rgba(242,240,236,.8);"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">GX010044.MP4</span><span data-ok="" style="color:rgba(242,240,236,.45);">ok</span></div>
+              </div>
+              <div data-m="clip" data-tag="0" style="position:relative; min-width:0; will-change:transform;">
+                <div style="position:relative; aspect-ratio:16/9; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,.1); background:linear-gradient(#9FD8C4, #E9F5DC 75%);">
+                  <i style="position:absolute; width:18%; aspect-ratio:1; border-radius:50%; top:14%; right:14%; background:radial-gradient(#FFFBE0, #FFF0A8 55%, transparent 70%);"></i>
+                  <i style="position:absolute; left:-5%; right:-5%; bottom:0; height:56%; background:linear-gradient(#4E9A5A, #2E6B3D); clip-path:polygon(0 30%, 25% 5%, 50% 30%, 75% 0, 100% 25%, 100% 100%, 0 100%);"></i>
+                  <i style="position:absolute; left:-5%; right:-5%; bottom:0; height:26%; background:linear-gradient(#9A6A3E, #6E4623); clip-path:polygon(0 30%, 100% 0, 100% 100%, 0 100%);"></i>
+                  <i data-m="ride" style="position:absolute; width:5%; aspect-ratio:1; left:42%; bottom:20%; background:#1B1B1B; border-radius:50%;"></i>
+                </div>
+                <div style="display:flex; justify-content:space-between; gap:6px; margin-top:6px; font:400 10.5px 'JetBrains Mono', monospace; color:rgba(242,240,236,.8);"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">GX010045.MP4</span><span data-ok="" style="color:rgba(242,240,236,.45);">ok</span></div>
+              </div>
+              <div data-m="clip" data-tag="1" style="position:relative; min-width:0; will-change:transform;">
+                <div style="position:relative; aspect-ratio:16/9; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,.1); background:linear-gradient(#5CC7DB, #C6F0F4 70%);">
+                  <i style="position:absolute; width:18%; aspect-ratio:1; border-radius:50%; top:14%; right:60%; background:radial-gradient(#fff, #FFF6CF 55%, transparent 70%);"></i>
+                  <i style="position:absolute; left:-5%; right:-5%; bottom:0; height:62%; background:linear-gradient(135deg, #0F9DAE, #06606E); clip-path:polygon(0 100%, 0 40%, 30% 20%, 55% 0, 70% 10%, 62% 40%, 80% 55%, 100% 50%, 100% 100%);"></i>
+                  <i style="position:absolute; left:-5%; right:-5%; bottom:0; height:22%; opacity:.9; background:repeating-linear-gradient(90deg, #fff 0 8%, #DDF6F9 8% 14%); clip-path:polygon(0 45%, 25% 20%, 50% 50%, 75% 25%, 100% 45%, 100% 100%, 0 100%);"></i>
+                  <i data-m="ride" style="position:absolute; width:6%; aspect-ratio:1; left:55%; bottom:36%; background:#102026; clip-path:polygon(40% 0, 60% 0, 70% 60%, 100% 100%, 0 100%, 30% 60%);"></i>
+                  <i data-ring="" style="position:absolute; inset:0; border-radius:8px; box-shadow:inset 0 0 0 2px #00A3E4, inset 0 0 22px rgba(0,163,228,.55); opacity:0;"></i>
+                  <b data-star="" style="position:absolute; top:6px; left:6px; font-size:10px; font-weight:600; padding:2px 6px; border-radius:5px; background:#00A3E4; color:#fff; transform-origin:left top;">★ 1</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; gap:6px; margin-top:6px; font:400 10.5px 'JetBrains Mono', monospace; color:rgba(242,240,236,.8);"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">GX010046.MP4</span><span data-ok="" style="color:rgba(242,240,236,.45);">ok</span></div>
+              </div>
+              <div data-m="clip" data-tag="0" style="position:relative; min-width:0; will-change:transform;">
+                <div style="position:relative; aspect-ratio:16/9; border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,.1); background:linear-gradient(#3C2F6E, #E07A6A 80%);">
+                  <i style="position:absolute; width:18%; aspect-ratio:1; border-radius:50%; top:38%; right:20%; background:radial-gradient(#FFD9C8, #FF9A8A 55%, transparent 70%);"></i>
+                  <i style="position:absolute; left:-5%; right:-5%; bottom:0; height:50%; background:#2A2244; clip-path:polygon(0 40%, 22% 10%, 40% 35%, 62% 5%, 80% 30%, 100% 12%, 100% 100%, 0 100%);"></i>
+                  <i style="position:absolute; left:-5%; right:-5%; bottom:0; height:20%; background:#17122A;"></i>
+                  <i data-m="ride" style="position:absolute; width:5%; aspect-ratio:1; left:62%; bottom:18%; background:#0B0916; border-radius:50%;"></i>
+                </div>
+                <div style="display:flex; justify-content:space-between; gap:6px; margin-top:6px; font:400 10.5px 'JetBrains Mono', monospace; color:rgba(242,240,236,.8);"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">GX010047.MP4</span><span data-ok="" style="color:rgba(242,240,236,.45);">ok</span></div>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:14px;">
+              <div style="flex:1; height:5px; border-radius:3px; background:rgba(255,255,255,.12); overflow:hidden;"><div data-m="fill" style="height:100%; background:#00A3E4; border-radius:3px; transform-origin:left center; transform:scaleX(1); box-shadow:0 0 10px rgba(0,163,228,.8);"></div></div>
+              <div data-m="mo" style="font-size:12.5px; color:rgba(242,240,236,.75); white-space:nowrap; font-variant-numeric:tabular-nums; min-width:150px; text-align:right;">720,2 Mo sur 720,2 Mo</div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; padding-top:4px;">
+              <div data-m="folder-hl" style="display:flex; align-items:center; gap:12px; padding:14px; border-radius:12px; background:rgba(0,163,228,.08); border:1px solid rgba(0,163,228,.35); transition:box-shadow .5s; min-width:0;">
+                <div data-target="" style="position:relative; width:40px; height:31px; flex:none;"><i style="position:absolute; left:0; top:0; width:17px; height:8px; border-radius:3px 3px 0 0; background:#0090CC;"></i><i style="position:absolute; left:0; right:0; top:5px; bottom:0; border-radius:3px 6px 6px 6px; background:#00A3E4;"></i></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-size:14.5px; font-weight:600;">Highlights</div>
+                  <div style="font:400 10.5px 'JetBrains Mono', monospace; color:rgba(242,240,236,.45); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">2026-09-22/Highlights</div>
+                </div>
+                <div data-m="count-hl" style="font:800 26px Archivo, sans-serif; color:#5BBDEE; font-variant-numeric:tabular-nums;">3</div>
+              </div>
+              <div data-m="folder-cl" style="display:flex; align-items:center; gap:12px; padding:14px; border-radius:12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); min-width:0;">
+                <div data-target="" style="position:relative; width:40px; height:31px; flex:none;"><i style="position:absolute; left:0; top:0; width:17px; height:8px; border-radius:3px 3px 0 0; background:#4A4A55;"></i><i style="position:absolute; left:0; right:0; top:5px; bottom:0; border-radius:3px 6px 6px 6px; background:#6B6B78;"></i></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="font-size:14.5px; font-weight:600;">Clips</div>
+                  <div style="font:400 10.5px 'JetBrains Mono', monospace; color:rgba(242,240,236,.45); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">2026-09-22/Clips</div>
+                </div>
+                <div data-m="count-cl" style="font:800 26px Archivo, sans-serif; color:#F2F0EC; font-variant-numeric:tabular-nums;">3</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p data-m="story-caption" style="font:400 12px 'JetBrains Mono', monospace; line-height:1.5; color:rgba(242,240,236,.6); text-align:center; margin:20px auto 0; max-width:60ch;">La fin d'un import : trois prises marquées, qui attendent déjà dans Highlights.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="03 Bouton GoPro" style="padding:120px 28px 0;">
+  <div style="max-width:1200px; margin:0 auto; display:flex; flex-wrap:wrap; gap:56px 64px; align-items:center;">
+    <div style="flex:1 1 340px; min-width:0;">
+      <div data-reveal="fade" style="font:400 10.5px 'JetBrains Mono', monospace; letter-spacing:1.2px; text-transform:uppercase; color:rgba(242,240,236,.55); margin-bottom:16px;">Le bouton de la GoPro</div>
+      <div style="overflow:hidden; padding-bottom:.06em; margin-bottom:22px;">
+        <h2 data-reveal="mask" style="margin:0; font-size:clamp(32px, 4.6vw, 58px); line-height:.98; letter-spacing:-.035em; font-weight:800; text-transform:uppercase; text-wrap:balance; max-width:14ch;">Un appui, un highlight.</h2>
+      </div>
+      <p data-reveal="up" data-delay="100" style="font-size:16.5px; line-height:1.62; color:rgba(242,240,236,.62); margin:0 0 18px; max-width:44ch; text-wrap:pretty;">Pendant que votre GoPro enregistre, donnez un appui court sur le bouton de son côté — celui qui sert à l'allumer. La caméra continue de filmer et écrit l'instant à l'intérieur du fichier vidéo. Vous pouvez aussi dire « GoPro, HighLight », sans les mains.</p>
+      <p data-reveal="up" data-delay="180" style="font-size:13.5px; line-height:1.6; color:rgba(242,240,236,.5); margin:0; max-width:44ch; text-wrap:pretty;">Ça ne marche que pour les appuis faits pendant le tournage. Les highlights ajoutés après coup dans l'app Quik du téléphone restent dans l'app, et QuiX ne peut pas les voir.</p>
+    </div>
+    <div data-reveal="scale" data-delay="120" style="flex:1.2 1 400px; min-width:0; position:relative; text-align:center;">
+      <div style="position:absolute; inset:-10% -5%; background:radial-gradient(closest-side, rgba(0,163,228,.12), transparent); pointer-events:none;"></div>
+      <svg viewBox="44 0 470 330" role="img" aria-label="GoPro HERO12 Black, vue de face" style="position:relative; width:100%; max-width:540px; margin:0 auto; display:block; overflow:visible;">
+        <text x="226" y="22" style="fill:#F2F0EC; font:600 13px Archivo, sans-serif; text-anchor:middle;">Déclencheur</text>
+        <text x="226" y="38" style="fill:rgba(242,240,236,.45); font:400 11px 'JetBrains Mono', monospace; text-anchor:middle;">lance et arrête l'enregistrement</text>
+        <path d="M226 46 V66" style="stroke:rgba(255,255,255,.28); stroke-width:1.2; stroke-dasharray:3 4; fill:none;"></path>
+        <rect x="204" y="64" width="44" height="12" rx="5" style="fill:#2B2B31; stroke:rgba(255,255,255,.16); stroke-width:1.2;"></rect>
+        <rect x="216" y="61" width="20" height="6" rx="3" style="fill:#E8453C;"></rect>
+        <rect x="100" y="74" width="224" height="164" rx="22" style="fill:#1D1D22; stroke:rgba(255,255,255,.16); stroke-width:1.5;"></rect>
+        <g onClick="{{ press }}" style="cursor:pointer;">
+          <circle data-m="pulse-ring" cx="329" cy="120" r="18" style="fill:none; stroke:#00A3E4; stroke-width:1.5; transform-box:fill-box; transform-origin:center;"></circle>
+          <circle data-m="gp-halo" cx="330" cy="120" r="15" style="fill:rgba(0,163,228,.45); opacity:0; transform-box:fill-box; transform-origin:center;"></circle>
+          <rect data-m="gp-btn" x="322" y="104" width="14" height="32" rx="6" style="fill:#00A3E4;"></rect>
+          <rect x="306" y="90" width="44" height="60" style="fill:transparent;"></rect>
+        </g>
+        <path d="M346 120 H368" style="stroke:rgba(255,255,255,.28); stroke-width:1.2; stroke-dasharray:3 4; fill:none;"></path>
+        <text x="372" y="112" style="fill:#F2F0EC; font:600 13px Archivo, sans-serif;">Power / Mode</text>
+        <text x="372" y="128" style="fill:#5BBDEE; font:400 11px 'JetBrains Mono', monospace;">appui court en</text>
+        <text x="372" y="143" style="fill:#5BBDEE; font:400 11px 'JetBrains Mono', monospace;">filmant = HighLight</text>
+        <rect x="120" y="94" width="78" height="66" rx="8" style="fill:#0B0C10; stroke:rgba(255,255,255,.08);"></rect>
+        <rect data-m="gp-flash" x="120" y="94" width="78" height="66" rx="8" style="fill:#00A3E4; opacity:0;"></rect>
+        <circle data-m="blink" cx="134" cy="110" r="4.5" style="fill:#FF4B3E;"></circle>
+        <text x="143" y="114" style="fill:#FF6B60; font:600 10px 'JetBrains Mono', monospace;">REC</text>
+        <text data-m="gp-time" x="159" y="142" style="fill:rgba(242,240,236,.85); font:500 15px 'JetBrains Mono', monospace; text-anchor:middle;">00:21</text>
+        <circle cx="124" cy="222" r="3" style="fill:#FF4B3E; opacity:.8;"></circle>
+        <text x="142" y="225" style="fill:rgba(242,240,236,.28); font:700 12px Archivo, sans-serif; letter-spacing:.5px;">GoPro</text>
+        <rect x="214" y="92" width="94" height="94" rx="16" style="fill:#121216; stroke:rgba(255,255,255,.1);"></rect>
+        <circle cx="261" cy="139" r="33" style="fill:#0B0C10; stroke:rgba(255,255,255,.12); stroke-width:1.5;"></circle>
+        <circle cx="261" cy="139" r="22" style="fill:#04060B; stroke:rgba(0,163,228,.45); stroke-width:1.5;"></circle>
+        <circle cx="253" cy="130" r="6" style="fill:rgba(169,220,245,.3);"></circle>
+        <text x="100" y="274" style="fill:rgba(242,240,236,.45); font:400 11px 'JetBrains Mono', monospace;">Votre clip</text>
+        <rect x="100" y="284" width="224" height="10" rx="5" style="fill:rgba(255,255,255,.1);"></rect>
+        <rect data-m="gp-played" x="100" y="284" width="112" height="10" rx="5" style="fill:#00A3E4;"></rect>
+        <g data-m="gp-marks"></g>
+        <g data-m="gp-head"><rect x="99" y="279" width="2" height="20" rx="1" style="fill:#E6F7FF;"></rect></g>
+      </svg>
+      <button type="button" onClick="{{ press }}" data-magnet="" style="margin-top:28px; display:inline-flex; align-items:center; gap:10px; padding:12px 20px; border-radius:999px; border:1px solid rgba(0,163,228,.45); background:rgba(0,163,228,.1); color:#F2F0EC; font:500 12.5px 'JetBrains Mono', monospace; letter-spacing:.02em; cursor:pointer; transition:background .2s, transform .3s cubic-bezier(.2,.8,.2,1);" style-hover="background:rgba(0,163,228,.2)">
+        <i style="display:block; width:8px; height:8px; border-radius:50%; background:#00A3E4; box-shadow:0 0 0 4px rgba(0,163,228,.25);"></i>
+        <span>Marquer un HighLight</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="04 Qualités" style="padding:150px 28px 0;">
+  <div style="max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap:16px;">
+    <div data-spot="" data-tilt="" data-reveal="tilt" data-delay="0" style="position:relative; padding:28px 24px 30px; border-radius:16px; border:1px solid rgba(255,255,255,.1); background:radial-gradient(380px circle at var(--mx, -400px) var(--my, -400px), rgba(0,163,228,.17), transparent 45%), rgba(255,255,255,.035); transition:transform .35s cubic-bezier(.2,.8,.2,1), border-color .3s;" style-hover="border-color:rgba(0,163,228,.5)">
+      <span style="display:grid; place-items:center; width:44px; height:44px; border-radius:12px; margin-bottom:22px; color:#00A3E4; background:rgba(0,163,228,.12);"><svg viewBox="0 0 24 24" style="width:22px; height:22px;"><path d="M13.2 2 4.6 13.4h6.1L9.9 22l8.6-11.6h-6.2z" fill="currentColor"></path></svg></span>
+      <h3 style="margin:0 0 10px; font-size:18px; font-weight:600; line-height:1.3;">Ça démarre tout seul</h3>
+      <p style="margin:0; font-size:14px; line-height:1.55; color:rgba(242,240,236,.6);">Vous branchez, l'import tourne déjà. Aucune fenêtre à chercher, aucun dossier à rechoisir.</p>
+    </div>
+    <div data-spot="" data-tilt="" data-reveal="tilt" data-delay="90" style="position:relative; padding:28px 24px 30px; border-radius:16px; border:1px solid rgba(255,255,255,.1); background:radial-gradient(380px circle at var(--mx, -400px) var(--my, -400px), rgba(0,163,228,.17), transparent 45%), rgba(255,255,255,.035); transition:transform .35s cubic-bezier(.2,.8,.2,1), border-color .3s;" style-hover="border-color:rgba(0,163,228,.5)">
+      <span style="display:grid; place-items:center; width:44px; height:44px; border-radius:12px; margin-bottom:22px; color:#00A3E4; background:rgba(0,163,228,.12);"><svg viewBox="0 0 24 24" style="width:22px; height:22px;"><path d="M12 2.2 4.4 5.1v5.6c0 5 3.2 9.2 7.6 11 4.4-1.8 7.6-6 7.6-11V5.1z" fill="currentColor"></path><path d="m8.4 12.1 2.5 2.5 4.8-5" style="fill:none; stroke:#1C1C21; stroke-width:2.1; stroke-linecap:round; stroke-linejoin:round;"></path></svg></span>
+      <h3 style="margin:0 0 10px; font-size:18px; font-weight:600; line-height:1.3;">Rien ne se perd</h3>
+      <p style="margin:0; font-size:14px; line-height:1.55; color:rgba(242,240,236,.6);">Chaque clip est vérifié après la copie. Si quelque chose s'est mal passé, QuiX vous le dit au lieu de faire comme si de rien n'était.</p>
+    </div>
+    <div data-spot="" data-tilt="" data-reveal="tilt" data-delay="180" style="position:relative; padding:28px 24px 30px; border-radius:16px; border:1px solid rgba(255,255,255,.1); background:radial-gradient(380px circle at var(--mx, -400px) var(--my, -400px), rgba(0,163,228,.17), transparent 45%), rgba(255,255,255,.035); transition:transform .35s cubic-bezier(.2,.8,.2,1), border-color .3s;" style-hover="border-color:rgba(0,163,228,.5)">
+      <span style="display:grid; place-items:center; width:44px; height:44px; border-radius:12px; margin-bottom:22px; color:#00A3E4; background:rgba(0,163,228,.12);"><svg viewBox="0 0 24 24" style="width:22px; height:22px;"><path d="M7.6 12.2V6a1.5 1.5 0 0 1 3 0v5M10.6 11V4.4a1.5 1.5 0 0 1 3 0V11M13.6 11V5.6a1.5 1.5 0 0 1 3 0V12M16.6 12V8.8a1.5 1.5 0 0 1 3 0v5.4c0 4.4-3.1 7.8-7.4 7.8-2.8 0-4.3-1.1-5.9-3.4l-3-4.3a1.5 1.5 0 0 1 2.4-1.8l2 2.4" style="fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round;"></path></svg></span>
+      <h3 style="margin:0 0 10px; font-size:18px; font-weight:600; line-height:1.3;">Votre carte n'est jamais vidée dans votre dos</h3>
+      <p style="margin:0; font-size:14px; line-height:1.55; color:rgba(242,240,236,.6);">QuiX ne la vide que si vous appuyez sur le bouton — et seulement quand tous les clips sont bien sur votre Mac.</p>
+    </div>
+    <div data-spot="" data-tilt="" data-reveal="tilt" data-delay="270" style="position:relative; padding:28px 24px 30px; border-radius:16px; border:1px solid rgba(255,255,255,.1); background:radial-gradient(380px circle at var(--mx, -400px) var(--my, -400px), rgba(0,163,228,.17), transparent 45%), rgba(255,255,255,.035); transition:transform .35s cubic-bezier(.2,.8,.2,1), border-color .3s;" style-hover="border-color:rgba(0,163,228,.5)">
+      <span style="display:grid; place-items:center; width:44px; height:44px; border-radius:12px; margin-bottom:22px; color:#00A3E4; background:rgba(0,163,228,.12);"><svg viewBox="0 0 24 24" style="width:22px; height:22px;"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z" style="fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;"></path><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor"></circle></svg></span>
+      <h3 style="margin:0 0 10px; font-size:18px; font-weight:600; line-height:1.3;">Gratuit, pour de bon</h3>
+      <p style="margin:0; font-size:14px; line-height:1.55; color:rgba(242,240,236,.6);">Pas de prix, pas d'essai, pas d'abonnement, pas de pub. Vous le téléchargez, il est à vous.</p>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="05 Premier lancement" style="padding:150px 28px 0;">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div data-reveal="fade" style="font:400 10.5px 'JetBrains Mono', monospace; letter-spacing:1.2px; text-transform:uppercase; color:rgba(242,240,236,.55); margin-bottom:16px;">Premier lancement</div>
+    <div style="overflow:hidden; padding-bottom:.06em; margin-bottom:44px;">
+      <h2 data-reveal="mask" style="margin:0; font-size:clamp(32px, 4.6vw, 58px); line-height:.98; letter-spacing:-.035em; font-weight:800; text-transform:uppercase; text-wrap:balance; max-width:20ch;">Prêt en moins d'une minute.</h2>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap:20px;">
+
+      <div data-reveal="tilt" data-delay="0" style="border:1px solid rgba(255,255,255,.12); border-radius:18px; overflow:hidden; background:#1A191D; transition:border-color .3s;" style-hover="border-color:rgba(0,163,228,.45)">
+        <div style="padding:26px 16px; background:#131318; display:flex; justify-content:center; overflow:hidden;">
+          <div data-par="0.05" style="font-size:clamp(4.4px, .46vw, 6.2px);">
+            <div style="width:60em; height:42em; display:flex; flex-direction:column; background:#0E0E12; border:.08em solid rgba(255,255,255,.13); border-radius:1em; overflow:hidden; box-shadow:0 1.6em 4em -1.4em rgba(0,0,0,.9); font-family:-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Archivo, sans-serif; line-height:1.35; color:#F2F0EC;">
+              <div style="display:flex; align-items:center; gap:.9em; padding:.85em 1.1em; background:#232327; border-bottom:.08em solid rgba(255,255,255,.07);"><span style="display:flex; gap:.5em;"><i style="display:block; width:.95em; height:.95em; border-radius:50%; background:#FF5F57;"></i><i style="display:block; width:.95em; height:.95em; border-radius:50%; background:#FEBC2E;"></i><i style="display:block; width:.95em; height:.95em; border-radius:50%; background:#28C840;"></i></span><span style="font-size:1.05em; font-weight:600;">QuiX</span></div>
+              <div style="flex:1; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2em 4em; background:#1A1A1E;">
+                <img src="site/assets/icon-256.png" alt="" style="width:4.6em; height:4.6em; margin-bottom:1.4em; border-radius:1em;">
+                <div style="font-size:1.85em; font-weight:700; letter-spacing:-.02em; margin-bottom:.6em;">QuiX trie les highlights de votre GoPro</div>
+                <div style="font-size:1.05em; line-height:1.45; color:rgba(242,240,236,.55); max-width:42em; margin-bottom:1.8em;">Branchez la caméra en USB-C et allumez-la, ou mettez la carte dans un lecteur. QuiX lit les tags posés pendant le tournage et range chaque prise dans Highlights ou dans Clips. Il ne modifie jamais la carte.</div>
+                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:1em; width:100%; text-align:left;">
+                  <div style="background:#242429; border:.08em solid rgba(255,255,255,.08); border-radius:.8em; padding:1.2em 1.25em 1.3em;"><svg viewBox="0 0 24 24" style="width:1.5em; height:1.5em; color:#00A3E4; margin-bottom:.7em; display:block;"><path d="M13.2 2 4.6 13.4h6.1L9.9 22l8.6-11.6h-6.2z" fill="currentColor"></path></svg><div style="font-size:1.1em; font-weight:600; margin-bottom:.35em;">Sans attendre</div><div style="font-size:.92em; line-height:1.4; color:rgba(242,240,236,.5);">Le tri lit 34 Ko par clip, pas le fichier entier.</div></div>
+                  <div style="background:#242429; border:.08em solid rgba(255,255,255,.08); border-radius:.8em; padding:1.2em 1.25em 1.3em;"><svg viewBox="0 0 24 24" style="width:1.5em; height:1.5em; color:#00A3E4; margin-bottom:.7em; display:block;"><path d="M12 2.2 4.4 5.1v5.6c0 5 3.2 9.2 7.6 11 4.4-1.8 7.6-6 7.6-11V5.1z" fill="currentColor"></path></svg><div style="font-size:1.1em; font-weight:600; margin-bottom:.35em;">Vérifié</div><div style="font-size:.92em; line-height:1.4; color:rgba(242,240,236,.5);">Chaque copie porte une empreinte, relue ensuite sur le disque.</div></div>
+                  <div style="background:#242429; border:.08em solid rgba(255,255,255,.08); border-radius:.8em; padding:1.2em 1.25em 1.3em;"><svg viewBox="0 0 24 24" style="width:1.5em; height:1.5em; color:#00A3E4; margin-bottom:.7em; display:block;"><path d="M7.6 12.2V6a1.5 1.5 0 0 1 3 0v5M10.6 11V4.4a1.5 1.5 0 0 1 3 0V11M13.6 11V5.6a1.5 1.5 0 0 1 3 0V12M16.6 12V8.8a1.5 1.5 0 0 1 3 0v5.4c0 4.4-3.1 7.8-7.4 7.8-2.8 0-4.3-1.1-5.9-3.4l-3-4.3a1.5 1.5 0 0 1 2.4-1.8l2 2.4" style="fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round;"></path></svg><div style="font-size:1.1em; font-weight:600; margin-bottom:.35em;">N'efface jamais</div><div style="font-size:.92em; line-height:1.4; color:rgba(242,240,236,.5);">La carte ne se vide que par un bouton sur lequel vous appuyez.</div></div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:1.2em 1.7em; background:#1A1A1E; border-top:.08em solid rgba(255,255,255,.07);">
+                <span style="display:flex; gap:.55em;"><i style="display:block; width:.5em; height:.5em; border-radius:50%; background:#00A3E4;"></i><i style="display:block; width:.5em; height:.5em; border-radius:50%; background:rgba(255,255,255,.22);"></i><i style="display:block; width:.5em; height:.5em; border-radius:50%; background:rgba(255,255,255,.22);"></i></span>
+                <span style="background:#00A3E4; color:#fff; font-weight:600; padding:.65em 1.3em; border-radius:.55em;">Continuer</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:22px 24px 26px; border-top:1px solid rgba(255,255,255,.08);">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;"><i style="display:block; width:6px; height:6px; border-radius:50%; background:#00A3E4;"></i><span style="font:400 10.5px 'JetBrains Mono', monospace; letter-spacing:1.2px; color:rgba(242,240,236,.55);">01</span></div>
+          <h3 style="margin:0 0 7px; font-size:17px; font-weight:600;">Ce que fait QuiX</h3>
+          <p style="margin:0; font-size:13.5px; line-height:1.5; color:rgba(242,240,236,.55);">Votre GoPro en USB-C, ou sa carte dans un lecteur. Vos vidéos ne sont jamais modifiées.</p>
+        </div>
+      </div>
+
+      <div data-reveal="tilt" data-delay="110" style="border:1px solid rgba(255,255,255,.12); border-radius:18px; overflow:hidden; background:#1A191D; transition:border-color .3s;" style-hover="border-color:rgba(0,163,228,.45)">
+        <div style="padding:26px 16px; background:#131318; display:flex; justify-content:center; overflow:hidden;">
+          <div data-par="0.09" style="font-size:clamp(4.4px, .46vw, 6.2px);">
+            <div style="width:60em; height:42em; display:flex; flex-direction:column; background:#0E0E12; border:.08em solid rgba(255,255,255,.13); border-radius:1em; overflow:hidden; box-shadow:0 1.6em 4em -1.4em rgba(0,0,0,.9); font-family:-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Archivo, sans-serif; line-height:1.35; color:#F2F0EC;">
+              <div style="display:flex; align-items:center; gap:.9em; padding:.85em 1.1em; background:#232327; border-bottom:.08em solid rgba(255,255,255,.07);"><span style="display:flex; gap:.5em;"><i style="display:block; width:.95em; height:.95em; border-radius:50%; background:#FF5F57;"></i><i style="display:block; width:.95em; height:.95em; border-radius:50%; background:#FEBC2E;"></i><i style="display:block; width:.95em; height:.95em; border-radius:50%; background:#28C840;"></i></span><span style="font-size:1.05em; font-weight:600;">QuiX</span></div>
+              <div style="flex:1; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2em 4em; background:#1A1A1E;">
+                <img src="site/assets/icon-256.png" alt="" style="width:4.6em; height:4.6em; margin-bottom:1.4em; border-radius:1em;">
+                <div style="font-size:1.85em; font-weight:700; letter-spacing:-.02em; margin-bottom:.6em;">Où ranger les clips ?</div>
+                <div style="font-size:1.05em; line-height:1.45; color:rgba(242,240,236,.55); max-width:42em; margin-bottom:1.8em;">QuiX crée un dossier daté par import, avec Highlights et Clips dedans. Choisissez un endroit où vous rangez déjà vos rushes — QuiX n'inventera pas de dossier à votre place.</div>
+                <span style="background:#00A3E4; color:#fff; font-size:1.1em; font-weight:600; padding:.75em 1.5em; border-radius:.55em;">Choisir un dossier…</span>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:1.2em 1.7em; background:#1A1A1E; border-top:.08em solid rgba(255,255,255,.07);">
+                <span style="display:flex; gap:.55em;"><i style="display:block; width:.5em; height:.5em; border-radius:50%; background:rgba(255,255,255,.22);"></i><i style="display:block; width:.5em; height:.5em; border-radius:50%; background:#00A3E4;"></i><i style="display:block; width:.5em; height:.5em; border-radius:50%; background:rgba(255,255,255,.22);"></i></span>
+                <span style="display:flex; gap:.7em;"><span style="padding:.6em 1.2em; border-radius:.55em; background:rgba(255,255,255,.07); border:.08em solid rgba(255,255,255,.14);">Retour</span><span style="background:#0F3C52; color:rgba(255,255,255,.55); font-weight:600; padding:.65em 1.3em; border-radius:.55em;">Continuer</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:22px 24px 26px; border-top:1px solid rgba(255,255,255,.08);">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;"><i style="display:block; width:6px; height:6px; border-radius:50%; background:#00A3E4;"></i><span style="font:400 10.5px 'JetBrains Mono', monospace; letter-spacing:1.2px; color:rgba(242,240,236,.55);">02</span></div>
+          <h3 style="margin:0 0 7px; font-size:17px; font-weight:600;">Où vont vos clips</h3>
+          <p style="margin:0; font-size:13.5px; line-height:1.5; color:rgba(242,240,236,.55);">Choisissez le dossier que vous utilisez déjà. Chaque import a son dossier daté, avec Highlights et Clips dedans.</p>
+        </div>
+      </div>
+
+      <div data-reveal="tilt" data-delay="220" style="border:1px solid rgba(255,255,255,.12); border-radius:18px; overflow:hidden; background:#1A191D; transition:border-color .3s;" style-hover="border-color:rgba(0,163,228,.45)">
+        <div style="padding:26px 16px; background:#131318; display:flex; justify-content:center; overflow:hidden;">
+          <div data-par="0.13" style="font-size:clamp(4.4px, .46vw, 6.2px);">
+            <div style="width:60em; height:42em; display:flex; flex-direction:column; background:#0E0E12; border:.08em solid rgba(255,255,255,.13); border-radius:1em; overflow:hidden; box-shadow:0 1.6em 4em -1.4em rgba(0,0,0,.9); font-family:-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Archivo, sans-serif; line-height:1.35; color:#F2F0EC;">
+              <div style="display:flex; align-items:center; gap:.9em; padding:.85em 1.1em; background:#232327; border-bottom:.08em solid rgba(255,255,255,.07);"><span style="display:flex; gap:.5em;"><i style="display:block; width:.95em; height:.95em; border-radius:50%; background:#FF5F57;"></i><i style="display:block; width:.95em; height:.95em; border-radius:50%; background:#FEBC2E;"></i><i style="display:block; width:.95em; height:.95em; border-radius:50%; background:#28C840;"></i></span><span style="font-size:1.05em; font-weight:600;">QuiX</span></div>
+              <div style="flex:1; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2em 4em; background:#1A1A1E;">
+                <div style="font-size:1.85em; font-weight:700; letter-spacing:-.02em; margin-bottom:.6em;">Deux autorisations que macOS va demander</div>
+                <div style="font-size:1.05em; line-height:1.45; color:rgba(242,240,236,.55); max-width:42em; margin-bottom:1.6em;">Aucune n'est facultative, et les deux échouent de la même façon trompeuse : QuiX voit le matériel et n'y trouve rien.</div>
+                <div style="width:100%; max-width:46em; text-align:left; display:flex; flex-direction:column; gap:1em;">
+                  <div style="display:flex; gap:1.1em;"><svg viewBox="0 0 24 24" style="flex:none; width:1.55em; height:1.55em; color:#00A3E4;"><g style="fill:none; stroke:currentColor; stroke-width:1.7;"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"></path></g></svg><div><div style="font-size:1.1em; font-weight:500; margin-bottom:.2em;">Réseau local</div><div style="font-size:.92em; line-height:1.4; color:rgba(242,240,236,.5);">En USB-C, la GoPro est un périphérique réseau. macOS la demande la première fois que QuiX lui parle ; en cas de refus, la caméra paraît vide.</div></div></div>
+                  <div style="display:flex; gap:1.1em;"><svg viewBox="0 0 24 24" style="flex:none; width:1.55em; height:1.55em; color:#00A3E4;"><path d="M9 3h7.5A2.5 2.5 0 0 1 19 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 18.5V7zM10 3.5v3.8M13 3.5v3.8M16 3.5v3.8" style="fill:none; stroke:currentColor; stroke-width:1.7; stroke-linejoin:round;"></path></svg><div><div style="font-size:1.1em; font-weight:500; margin-bottom:.2em;">Volumes amovibles</div><div style="font-size:.92em; line-height:1.4; color:rgba(242,240,236,.5);">Pour une carte dans un lecteur. macOS la demande à la première carte ; sans elle, la carte paraît vide.</div></div></div>
+                  <div style="display:flex; gap:1.1em; align-items:center;"><svg viewBox="0 0 24 24" style="flex:none; width:1.55em; height:1.55em; color:#00A3E4; align-self:flex-start;"><path d="M6 16.5V11a6 6 0 0 1 9.5-4.9M18 11v5.5l1.5 1.5h-15L6 16.5M10 20.5a2 2 0 0 0 4 0" style="fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round;"></path><circle cx="18" cy="6" r="2.6" fill="currentColor"></circle></svg><div style="flex:1; min-width:0;"><div style="font-size:1.1em; font-weight:500; margin-bottom:.2em;">Notifications</div><div style="font-size:.92em; line-height:1.4; color:rgba(242,240,236,.5);">Pour savoir quand un import est fini et quand débrancher la caméra.</div></div><span style="flex:none; padding:.6em 1.2em; border-radius:.55em; background:rgba(255,255,255,.07); border:.08em solid rgba(255,255,255,.14); white-space:nowrap;">Autoriser les notifications…</span></div>
+                </div>
+                <div style="display:flex; align-items:center; gap:.7em; width:100%; max-width:46em; text-align:left; font-size:1.05em; margin-top:1.3em; padding-top:1.2em; border-top:.08em solid rgba(255,255,255,.12);"><span style="display:grid; place-items:center; width:1.25em; height:1.25em; border-radius:.3em; background:#00A3E4; color:#fff;"><svg viewBox="0 0 24 24" style="width:.9em; height:.9em;"><path d="m6 12.5 4 4 8-9" style="fill:none; stroke:currentColor; stroke-width:3; stroke-linecap:round; stroke-linejoin:round;"></path></svg></span><span>Ouvrir QuiX quand la GoPro est branchée</span></div>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:1.2em 1.7em; background:#1A1A1E; border-top:.08em solid rgba(255,255,255,.07);">
+                <span style="display:flex; gap:.55em;"><i style="display:block; width:.5em; height:.5em; border-radius:50%; background:rgba(255,255,255,.22);"></i><i style="display:block; width:.5em; height:.5em; border-radius:50%; background:rgba(255,255,255,.22);"></i><i style="display:block; width:.5em; height:.5em; border-radius:50%; background:#00A3E4;"></i></span>
+                <span style="display:flex; gap:.7em;"><span style="padding:.6em 1.2em; border-radius:.55em; background:rgba(255,255,255,.07); border:.08em solid rgba(255,255,255,.14);">Retour</span><span style="background:#00A3E4; color:#fff; font-weight:600; padding:.65em 1.3em; border-radius:.55em;">Branchez et allumez votre GoPro</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:22px 24px 26px; border-top:1px solid rgba(255,255,255,.08);">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;"><i style="display:block; width:6px; height:6px; border-radius:50%; background:#00A3E4;"></i><span style="font:400 10.5px 'JetBrains Mono', monospace; letter-spacing:1.2px; color:rgba(242,240,236,.55);">03</span></div>
+          <h3 style="margin:0 0 7px; font-size:17px; font-weight:600;">Dites oui à votre Mac</h3>
+          <p style="margin:0; font-size:13.5px; line-height:1.5; color:rgba(242,240,236,.55);">Une fois pour la caméra, une fois pour le lecteur de cartes. C'est toute l'installation.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section data-m="pop-section" data-screen-label="06 Barre de menus" style="padding:150px 28px 0;">
+  <div style="max-width:1200px; margin:0 auto; display:flex; flex-wrap:wrap; gap:56px 64px; align-items:center;">
+    <div style="flex:1 1 320px; min-width:0;">
+      <div style="overflow:hidden; padding-bottom:.06em; margin-bottom:22px;">
+        <h2 data-reveal="mask" style="margin:0; font-size:clamp(32px, 4.6vw, 58px); line-height:.98; letter-spacing:-.035em; font-weight:800; text-transform:uppercase; text-wrap:balance; max-width:16ch;">Jetez un œil sans arrêter ce que vous faites.</h2>
+      </div>
+      <p data-reveal="up" data-delay="100" style="font-size:16.5px; line-height:1.62; color:rgba(242,240,236,.62); margin:0; max-width:44ch; text-wrap:pretty;">QuiX vit dans la barre de menus. Un clic dit où en est l'import, et ce qu'il a trouvé. Allez vous faire un café.</p>
+    </div>
+    <div style="flex:1 1 380px; min-width:0;">
+      <div data-reveal="scale" style="position:relative; min-height:430px; border-radius:18px; border:1px solid rgba(255,255,255,.12); overflow:hidden; background:radial-gradient(90% 80% at 85% 0%, rgba(0,163,228,.2), transparent 60%), #1A191D;">
+        <div style="display:flex; justify-content:flex-end; align-items:center; gap:16px; height:30px; padding:0 14px; background:rgba(255,255,255,.06); border-bottom:1px solid rgba(255,255,255,.06); font:500 12px -apple-system, 'Helvetica Neue', sans-serif; color:rgba(242,240,236,.85);">
+          <button type="button" data-m="pop-icon" onClick="{{ replayPop }}" aria-label="QuiX" style="position:relative; display:grid; place-items:center; width:28px; height:22px; padding:0; border:0; border-radius:5px; background:rgba(255,255,255,.14); cursor:pointer;">
+            <img src="site/assets/icon-256.png" alt="" style="width:16px; height:16px; display:block;">
+            <i data-m="pulse-ring" style="position:absolute; inset:0; border-radius:5px; border:1.5px solid #00A3E4;"></i>
+          </button>
+          <span>mar. 22 sept.  10:42</span>
+        </div>
+        <div data-m="pop" style="position:absolute; top:42px; right:14px; width:min(320px, calc(100% - 28px)); box-sizing:border-box; transform-origin:calc(100% - 20px) 0; background:#16161A; border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:22px; box-shadow:0 30px 80px -20px rgba(0,0,0,.85); font-family:-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Archivo, sans-serif;">
+          <div style="font-size:20px; font-weight:700; letter-spacing:-.02em;">Import terminé</div>
+          <div style="font-size:13px; color:rgba(242,240,236,.55); margin-top:4px;">6 clips — 720,2 Mo — tous vérifiés</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:18px 0;">
+            <div data-m="pop-tile" style="background:rgba(0,163,228,.1); border-radius:10px; padding:14px 14px 15px;"><div data-m="pop-num" data-to="3" style="font-size:30px; font-weight:700; line-height:1; color:#00A3E4; font-variant-numeric:tabular-nums;">3</div><div style="font-size:12.5px; color:rgba(242,240,236,.6); margin-top:5px;">Highlights</div></div>
+            <div data-m="pop-tile" style="background:rgba(255,255,255,.055); border-radius:10px; padding:14px 14px 15px;"><div data-m="pop-num" data-to="3" style="font-size:30px; font-weight:700; line-height:1; font-variant-numeric:tabular-nums;">3</div><div style="font-size:12.5px; color:rgba(242,240,236,.6); margin-top:5px;">Clips</div></div>
+          </div>
+          <div style="display:block; text-align:center; background:#00A3E4; color:#fff; font-size:13.5px; font-weight:600; padding:11px; border-radius:8px;">Ouvrir les highlights</div>
+          <div style="font-size:12px; color:rgba(242,240,236,.45); margin-top:14px;">La carte n'a pas été modifiée.</div>
+        </div>
+      </div>
+      <p data-reveal="fade" style="font:400 12px 'JetBrains Mono', monospace; color:rgba(242,240,236,.55); text-align:center; margin:20px 0 0;">La barre de menus, une fois l'import terminé</p>
+    </div>
+  </div>
+</section>
+
+<section id="download" data-screen-label="07 Téléchargement" style="padding:170px 28px 0;">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div data-reveal="scale" style="position:relative; border-radius:24px; border:1px solid rgba(0,163,228,.25); background:radial-gradient(120% 140% at 50% 0%, rgba(0,163,228,.17), rgba(255,255,255,.02) 60%); padding:76px 28px 64px; text-align:center;">
+      <svg aria-hidden="true" style="position:absolute; left:-1px; top:-1px; width:calc(100% + 2px); height:calc(100% + 2px); overflow:visible; pointer-events:none;">
+        <rect data-m="orbit" data-delay="-7480" pathLength="100" x="1" y="1" rx="24" style="width:calc(100% - 2px); height:calc(100% - 2px); fill:none; stroke:#00A3E4; stroke-width:1.6px; stroke-linecap:round; stroke-dasharray:30 70; opacity:.12;"></rect>
+        <rect data-m="orbit" data-delay="-8560" pathLength="100" x="1" y="1" rx="24" style="width:calc(100% - 2px); height:calc(100% - 2px); fill:none; stroke:#00A3E4; stroke-width:1.8px; stroke-linecap:round; stroke-dasharray:18 82; opacity:.26;"></rect>
+        <rect data-m="orbit" data-delay="-280" pathLength="100" x="1" y="1" rx="24" style="width:calc(100% - 2px); height:calc(100% - 2px); fill:none; stroke:#00A3E4; stroke-width:2px; stroke-linecap:round; stroke-dasharray:10 90; opacity:.5;"></rect>
+        <rect data-m="orbit" data-delay="-730" pathLength="100" x="1" y="1" rx="24" style="width:calc(100% - 2px); height:calc(100% - 2px); fill:none; stroke:#5BBDEE; stroke-width:2.3px; stroke-linecap:round; stroke-dasharray:5 95; opacity:.8;"></rect>
+        <rect data-m="orbit" data-delay="-1000" pathLength="100" x="1" y="1" rx="24" style="width:calc(100% - 2px); height:calc(100% - 2px); fill:none; stroke:#E6F7FF; stroke-width:2.6px; stroke-linecap:round; stroke-dasharray:2 98; filter:drop-shadow(0 0 4px #00A3E4) drop-shadow(0 0 12px rgba(0,163,228,.8));"></rect>
+      </svg>
+      <img data-m="float" src="site/assets/icon-256.png" alt="" style="width:66px; height:66px; margin:0 auto 26px; display:block;">
+      <h2 style="margin:0 auto 16px; font-size:clamp(34px, 5.8vw, 68px); line-height:.96; letter-spacing:-.04em; font-weight:800; text-transform:uppercase; max-width:16ch; text-wrap:balance;">Obtenez QuiX. C'est gratuit.</h2>
+      <p style="font-size:16px; line-height:1.6; color:rgba(242,240,236,.62); margin:0 auto 38px; max-width:42ch; text-wrap:pretty;">Pas de prix, pas d'essai, pas d'abonnement, pas de pub. Dites-moi juste où envoyer le lien.</p>
+      <form onSubmit="{{ submit }}" method="post" action="telechargement.php" style="display:grid; gap:14px; max-width:420px; margin:0 auto; text-align:left;">
+        <div>
+          <label for="prenom" style="display:block; font-size:12.5px; color:rgba(242,240,236,.6); margin-bottom:6px;">Prénom</label>
+          <input id="prenom" name="prenom" type="text" autoComplete="given-name" required="{{ true }}" maxLength="80" style="width:100%; box-sizing:border-box; font:inherit; font-size:14px; color:#F2F0EC; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:12px 14px; outline:none; transition:border-color .2s, box-shadow .2s;" style-focus="border-color:#00A3E4; box-shadow:0 0 0 4px rgba(0,163,228,.18)">
+        </div>
+        <div>
+          <label for="email" style="display:block; font-size:12.5px; color:rgba(242,240,236,.6); margin-bottom:6px;">E-mail</label>
+          <input id="email" name="email" type="email" autoComplete="email" required="{{ true }}" maxLength="160" style="width:100%; box-sizing:border-box; font:inherit; font-size:14px; color:#F2F0EC; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:12px 14px; outline:none; transition:border-color .2s, box-shadow .2s;" style-focus="border-color:#00A3E4; box-shadow:0 0 0 4px rgba(0,163,228,.18)">
+        </div>
+        <div aria-hidden="true" style="position:absolute; left:-9999px;"><input type="text" name="site" tabIndex="-1" autoComplete="off"></div>
+        <label style="display:flex; gap:10px; align-items:flex-start; font-size:12.5px; line-height:1.45; color:rgba(242,240,236,.6);">
+          <input type="checkbox" name="nouvelles" value="1" defaultChecked="{{ true }}" style="accent-color:#00A3E4; margin:2px 0 0;">
+          <span>Prévenez-moi quand une nouvelle version sort. Un e-mail par version, rien d'autre, et vous arrêtez quand vous voulez.</span>
+        </label>
+        <button type="submit" style="display:flex; justify-content:center; align-items:center; font:inherit; font-size:15px; font-weight:600; color:#fff; background:#00A3E4; border:0; padding:15px 26px; border-radius:12px; cursor:pointer; box-shadow:0 14px 44px -14px rgba(0,163,228,.8); transition:background .2s;" style-hover="background:#0090CC">
+          <sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}">Envoyez-moi le lien gratuit</sc-if>
+          <sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">✓</sc-if>
+        </button>
+        <p style="font-size:12px; line-height:1.5; color:rgba(242,240,236,.55); margin:0;">Votre adresse sert seulement à vous envoyer le lien, et les nouveautés si vous cochez la case. Elle n'est ni vendue ni transmise.</p>
+      </form>
+      <p style="font:400 11.5px 'JetBrains Mono', monospace; color:rgba(242,240,236,.55); margin:26px 0 0;">Pour macOS 15 et plus · Votre GoPro en USB-C, ou sa carte dans un lecteur</p>
+    </div>
+  </div>
+</section>
+
+<footer style="max-width:1200px; margin:120px auto 0; padding:22px 28px 40px; border-top:1px solid rgba(255,255,255,.08); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; font:400 11.5px 'JetBrains Mono', monospace; color:rgba(242,240,236,.55);">
+  <span>QuiX — importeur GoPro gratuit pour Mac</span>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showHud&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;intensity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;min&quot;:0,&quot;max&quot;:1.6,&quot;step&quot;:0.1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;autoHighlight&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
+class Component extends DCLogic {
+  rootRef = React.createRef();
+  state = { sent: false };
+
+  componentDidMount() {
+    const root = this.rootRef.current;
+    if (!root) return;
+    this.root = root;
+    this.reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    this.anims = [];
+    this.looped = new WeakSet();
+    this.ptr = { x: -9999, y: -9999 };
+    this.frame = 0;
+    this.hx = 0; this.hy = 0;
+    this.gp = { lastUser: -1e9, cycle: -1, auto: false, ph: 0.5, lastX: -999 };
+    this.hero = { cycle: -1, fired: [] };
+    this.pop = { done: false, start: 0, hold: null };
+    this.counts = { hl: -1, cl: -1 };
+    this.lastP = -1;
+    this._cache();
+    this._prepReveals();
+    this._measure();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (this.root) this._measure(); });
+    this.onResize = () => this._measure();
+    this.onMove = (ev) => { this.ptr.x = ev.clientX; this.ptr.y = ev.clientY; };
+    window.addEventListener('resize', this.onResize);
+    window.addEventListener('pointermove', this.onMove, { passive: true });
+    const tick = (now) => {
+      if (!this.root) return;
+      try { this._tick(now); } catch (err) { if (!this.errLogged) { this.errLogged = true; console.error(err); } }
+      this.raf = requestAnimationFrame(tick);
+    };
+    this.raf = requestAnimationFrame(tick);
+  }
+
+  componentWillUnmount() {
+    cancelAnimationFrame(this.raf);
+    window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('pointermove', this.onMove);
+    (this.anims || []).forEach(a => a.cancel());
+    this.root = null;
+  }
+
+  _cl(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  _seg(p, a, b) { return this._cl((p - a) / (b - a)); }
+  _eio(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  _back(t) { if (t <= 0) return 0; const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
+
+  _cache() {
+    const r = this.root;
+    const q = n => r.querySelector('[data-m="' + n + '"]');
+    const qa = n => Array.from(r.querySelectorAll('[data-m="' + n + '"]'));
+    const all = s => Array.from(r.querySelectorAll(s));
+    const clips = qa('clip');
+    this.el = {
+      progress: q('progress'), hero: q('hero'), heroPar: q('hero-par'), hud: q('hud'), halo: q('halo'), flash: q('hero-flash'),
+      tc: q('tc'), tlFill: q('tl-fill'), tlHead: q('tl-head'), tlMarks: qa('tl-mark'),
+      story: q('story'), steps: qa('step'), stepFills: qa('step-fill'), stepBodies: qa('step-body'),
+      clips, parts: clips.map(c => ({ tag: c.getAttribute('data-tag') === '1', star: c.querySelector('[data-star]'), ring: c.querySelector('[data-ring]'), ok: c.querySelector('[data-ok]') })),
+      fill: q('fill'), mo: q('mo'), fHl: q('folder-hl'), fCl: q('folder-cl'), cHl: q('count-hl'), cCl: q('count-cl'), caption: q('story-caption'),
+      gpPlayed: q('gp-played'), gpHead: q('gp-head'), gpMarks: q('gp-marks'), gpHalo: q('gp-halo'), gpBtn: q('gp-btn'), gpFlash: q('gp-flash'), gpTime: q('gp-time'),
+      spots: all('[data-spot]'), magnets: all('[data-magnet]'), pars: all('[data-par]'),
+      popSec: q('pop-section'), pop: q('pop'), popIcon: q('pop-icon'), popNums: qa('pop-num'), popTiles: qa('pop-tile')
+    };
+    if (this.el.hud !== this.lastHud) { this.lastHud = this.el.hud; this.hero.cycle = -1; }
+    this._loops();
+  }
+
+  _loops() {
+    if (this.reduced) return;
+    const r = this.root;
+    const L = (n, kf, opt) => r.querySelectorAll('[data-m="' + n + '"]').forEach((el, i) => {
+      if (this.looped.has(el)) return;
+      this.looped.add(el);
+      const o = typeof opt === 'function' ? opt(el, i) : opt;
+      this.anims.push(el.animate(kf, Object.assign({ iterations: Infinity }, o)));
+    });
+    L('float', [{ transform: 'translateY(0px)' }, { transform: 'translateY(-12px)' }, { transform: 'translateY(0px)' }], { duration: 6000, easing: 'ease-in-out' });
+    L('breathe', [{ transform: 'scale(1)', opacity: .8 }, { transform: 'scale(1.1)', opacity: 1 }, { transform: 'scale(1)', opacity: .8 }], { duration: 7000, easing: 'ease-in-out' });
+    L('blink', [{ opacity: 1 }, { opacity: .2 }, { opacity: 1 }], { duration: 1600, easing: 'ease-in-out' });
+    L('orbit', [{ strokeDashoffset: 0 }, { strokeDashoffset: -100 }], el => ({ duration: 9000, easing: 'linear', delay: +el.getAttribute('data-delay') || 0 }));
+    L('pulse-ring', [{ transform: 'scale(1)', opacity: .7 }, { transform: 'scale(1.9)', opacity: 0 }], (el, i) => ({ duration: 2000, easing: 'cubic-bezier(.2,.6,.3,1)', delay: i * 400 }));
+    L('ride', [{ transform: 'translate(0px, 0px) rotate(0deg)' }, { transform: 'translate(3px, -4px) rotate(-5deg)' }], (el, i) => ({ duration: 1500 + i * 230, easing: 'ease-in-out', direction: 'alternate' }));
+  }
+
+  _kf(type) {
+    switch (type) {
+      case 'mask': return [{ transform: 'translateY(108%) skewY(5deg)' }, { transform: 'translateY(0%) skewY(0deg)' }];
+      case 'tilt': return [{ opacity: 0, transform: 'perspective(1000px) rotateX(22deg) translateY(70px) scale(.96)' }, { opacity: 1, transform: 'perspective(1000px) rotateX(0deg) translateY(0px) scale(1)' }];
+      case 'scale': return [{ opacity: 0, transform: 'scale(.92) translateY(30px)' }, { opacity: 1, transform: 'scale(1) translateY(0px)' }];
+      case 'blur': return [{ opacity: 0, transform: 'scale(.6)', filter: 'blur(18px)' }, { opacity: 1, transform: 'scale(1)', filter: 'blur(0px)' }];
+      case 'fade': return [{ opacity: 0 }, { opacity: 1 }];
+      default: return [{ opacity: 0, transform: 'translateY(44px)' }, { opacity: 1, transform: 'translateY(0px)' }];
+    }
+  }
+
+  _prepReveals() {
+    this.reveals = Array.from(this.root.querySelectorAll('[data-reveal]')).map(el => ({ el, type: el.getAttribute('data-reveal'), delay: +el.getAttribute('data-delay') || 0, shown: this.reduced }));
+    if (this.reduced) return;
+    this.reveals.forEach(rv => { rv.hold = rv.el.animate([this._kf(rv.type)[0]], { duration: 1, fill: 'forwards' }); });
+  }
+
+  _measure() {
+    const e = this.el;
+    if (!e || !e.clips.length || !e.fHl || !e.fCl) return;
+    const inner = this.root.querySelector('[data-m="story-inner"]');
+    e.stepBodies.forEach(b => { b.style.display = ''; });
+    if (inner) {
+      inner.style.transform = 'none';
+      const avail = innerHeight - 8;
+      if (innerWidth < 820 || inner.scrollHeight > avail) e.stepBodies.forEach(b => { b.style.display = 'none'; });
+      const h = inner.scrollHeight;
+      this.storyScale = h > avail ? avail / h : 1;
+      inner.style.transform = this.storyScale < 1 ? 'scale(' + this.storyScale.toFixed(4) + ')' : 'none';
+    }
+    const sc = this.storyScale || 1;
+    const saved = e.clips.map(c => c.style.transform);
+    e.clips.forEach(c => { c.style.transform = 'none'; });
+    const ctr = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+    const H = ctr(e.fHl.querySelector('[data-target]') || e.fHl), C = ctr(e.fCl.querySelector('[data-target]') || e.fCl);
+    this.flights = e.clips.map((c, i) => { const p = ctr(c), T = e.parts[i].tag ? H : C; return [(T[0] - p[0]) / sc, (T[1] - p[1]) / sc]; });
+    e.clips.forEach((c, i) => { c.style.transform = saved[i]; });
+    this.lastP = -1;
+  }
+
+  _tick(now) {
+    const e = this.el, vh = innerHeight, t = now / 1000, k = this.props.intensity ?? 1;
+    if (++this.frame % 120 === 0) { this._cache(); this._measure(); }
+    this._reveals(vh);
+    const rr = this.root.getBoundingClientRect();
+    if (e.progress) e.progress.style.transform = 'scaleX(' + this._cl(-rr.top / Math.max(1, rr.height - vh)).toFixed(4) + ')';
+    this._hero(t, vh, k);
+    this._story(vh);
+    this._gopro(t);
+    this._pointer(k);
+    this._par(vh, k);
+    this._popTick(now, vh);
+  }
+
+  _reveals(vh) {
+    for (const rv of this.reveals) {
+      if (rv.shown) continue;
+      const box = (rv.type === 'mask' ? rv.el.parentElement : rv.el).getBoundingClientRect();
+      if (box.bottom < 0) { rv.shown = true; rv.hold.cancel(); continue; }
+      if (box.top < vh * .9) {
+        rv.shown = true;
+        rv.el.animate(this._kf(rv.type), { duration: rv.type === 'fade' ? 800 : 1150, delay: rv.delay, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
+        rv.hold.cancel();
+      }
+    }
+  }
+
+  _hero(t, vh, k) {
+    const e = this.el;
+    if (!e.hero) return;
+    const hr = e.hero.getBoundingClientRect();
+    if (hr.bottom < -50) return;
+    const s = this._cl(-hr.top / Math.max(1, hr.height));
+    if (e.heroPar) {
+      e.heroPar.style.transform = 'translateY(' + (s * 160 * k).toFixed(1) + 'px) scale(' + (1 - s * .1 * k).toFixed(4) + ')';
+      e.heroPar.style.opacity = Math.max(0, 1 - s * 1.5).toFixed(3);
+    }
+    if (e.hud) {
+      e.hud.style.transform = 'scale(' + (1 + s * .35 * k).toFixed(4) + ')';
+      e.hud.style.opacity = Math.max(0, 1 - s * 1.8).toFixed(3);
+    }
+    if (e.halo && this.ptr.x > -999) {
+      this.hx += (((this.ptr.x / innerWidth) - .5) * 140 * k - this.hx) * .05;
+      this.hy += (((this.ptr.y / vh) - .5) * 90 * k - this.hy) * .05;
+      e.halo.style.transform = 'translate(' + this.hx.toFixed(1) + 'px,' + this.hy.toFixed(1) + 'px)';
+    }
+    if (this.reduced) return;
+    const P = 9, ph = (t % P) / P, cyc = Math.floor(t / P);
+    if (e.tlFill) e.tlFill.style.transform = 'scaleX(' + ph.toFixed(4) + ')';
+    if (e.tlHead) e.tlHead.style.left = (ph * 100).toFixed(3) + '%';
+    if (e.tc) {
+      const sec = ph * 42, pad = n => String(n).padStart(2, '0');
+      e.tc.textContent = '00:00:' + pad(Math.floor(sec)) + ':' + pad(Math.floor((sec % 1) * 30));
+    }
+    if (cyc !== this.hero.cycle) {
+      this.hero.cycle = cyc;
+      this.hero.fired = e.tlMarks.map(m => ph >= +m.getAttribute('data-pos') + .03);
+      e.tlMarks.forEach((m, i) => {
+        if (this.hero.fired[i]) return;
+        m.style.transition = 'opacity .5s, transform .5s';
+        m.style.opacity = '0';
+        m.style.transform = 'scale(.3)';
+      });
+    }
+    e.tlMarks.forEach((m, i) => {
+      if (!this.hero.fired[i] && ph >= +m.getAttribute('data-pos')) { this.hero.fired[i] = true; this._heroFire(m); }
+    });
+  }
+
+  _heroFire(m) {
+    m.style.transition = 'opacity .25s, transform .6s cubic-bezier(.3,1.8,.5,1)';
+    m.style.opacity = '1';
+    m.style.transform = 'scale(1)';
+    const rip = m.querySelector('[data-ripple]');
+    if (rip) rip.animate([{ transform: 'scale(1)', opacity: .9 }, { transform: 'scale(6)', opacity: 0 }], { duration: 900, easing: 'cubic-bezier(.2,.6,.3,1)' });
+    const lab = m.querySelector('[data-label]');
+    if (lab) lab.animate([{ opacity: 0, transform: 'translate(-50%, 8px)' }, { opacity: 1, transform: 'translate(-50%, 0px)' }], { duration: 500, easing: 'cubic-bezier(.16,1,.3,1)' });
+    if (this.el.flash) this.el.flash.animate([{ opacity: 0 }, { opacity: 1, offset: .15 }, { opacity: 0 }], { duration: 1100, easing: 'ease-out' });
+  }
+
+  _story(vh) {
+    const e = this.el;
+    if (!e.story || !this.flights) return;
+    const r = e.story.getBoundingClientRect();
+    const p = this._cl(-r.top / Math.max(1, r.height - vh));
+    if (p === this.lastP) return;
+    this.lastP = p;
+    const a = this._seg(p, .03, .28), b = this._seg(p, .34, .62), c = this._seg(p, .66, .92);
+    const phase = p < .31 ? 0 : p < .64 ? 1 : 2;
+    e.steps.forEach((s, i) => { s.style.opacity = i === phase ? '1' : '.3'; });
+    e.stepFills.forEach((f, i) => { f.style.transform = 'scaleX(' + [a, b, c][i].toFixed(4) + ')'; });
+    if (e.fill) e.fill.style.transform = 'scaleX(' + b.toFixed(4) + ')';
+    if (e.mo) e.mo.textContent = (720.2 * b).toFixed(1).replace('.', ',') + ' Mo sur 720,2 Mo';
+    let tagN = 0, hl = 0, cl = 0;
+    e.clips.forEach((clip, i) => {
+      const pt = e.parts[i];
+      if (pt.tag) {
+        const v = this._seg(a, tagN * .3, tagN * .3 + .34);
+        tagN++;
+        if (pt.star) { pt.star.style.transform = 'scale(' + this._back(v).toFixed(3) + ')'; pt.star.style.opacity = v > 0 ? '1' : '0'; }
+        if (pt.ring) pt.ring.style.opacity = v.toFixed(3);
+      }
+      const done = b >= (i + 1) / 6 - 1e-4, active = !done && b > i / 6;
+      if (pt.ok) { pt.ok.textContent = done ? 'ok' : '…'; pt.ok.style.color = done ? '#5BBDEE' : active ? '#F2F0EC' : 'rgba(242,240,236,.45)'; }
+      const ci = this._seg(c, i * .09, i * .09 + .46), ee = this._eio(ci), f = this.flights[i] || [0, 0];
+      clip.style.transform = ci > 0
+        ? 'translate(' + (f[0] * ee).toFixed(1) + 'px,' + (f[1] * ee).toFixed(1) + 'px) scale(' + (1 - .8 * ee).toFixed(3) + ') rotate(' + ((i % 2 ? 1 : -1) * 10 * Math.sin(ee * Math.PI)).toFixed(2) + 'deg)'
+        : '';
+      clip.style.opacity = ci > .82 ? (1 - this._seg(ci, .82, 1)).toFixed(3) : '1';
+      clip.style.zIndex = ci > 0 ? '5' : '';
+      if (ci >= .96) { if (pt.tag) hl++; else cl++; }
+    });
+    if (hl !== this.counts.hl) { if (this.counts.hl >= 0 && hl > this.counts.hl) this._bump(e.fHl); this.counts.hl = hl; if (e.cHl) e.cHl.textContent = hl; }
+    if (cl !== this.counts.cl) { if (this.counts.cl >= 0 && cl > this.counts.cl) this._bump(e.fCl); this.counts.cl = cl; if (e.cCl) e.cCl.textContent = cl; }
+    if (e.fHl) e.fHl.style.boxShadow = c >= 1 ? '0 0 0 1px #00A3E4, 0 24px 70px -20px rgba(0,163,228,.75)' : 'none';
+    if (e.caption) { const v = this._seg(p, .9, .97); e.caption.style.opacity = v.toFixed(3); e.caption.style.transform = 'translateY(' + ((1 - v) * 16).toFixed(1) + 'px)'; }
+  }
+
+  _bump(el) {
+    if (el && !this.reduced) el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.07)' }, { transform: 'scale(1)' }], { duration: 380, easing: 'cubic-bezier(.3,1.6,.5,1)' });
+  }
+
+  _gopro(t) {
+    const e = this.el;
+    if (!e.gpPlayed || this.reduced) return;
+    const svg = e.gpPlayed.ownerSVGElement;
+    if (svg) { const b = svg.getBoundingClientRect(); if (b.bottom < 0 || b.top > innerHeight) return; }
+    const P = 4.2, ph = (t % P) / P, cyc = Math.floor(t / P), w = 224 * ph;
+    this.gp.ph = ph;
+    e.gpPlayed.setAttribute('width', w.toFixed(1));
+    if (e.gpHead) e.gpHead.setAttribute('transform', 'translate(' + w.toFixed(1) + ' 0)');
+    if (e.gpTime) e.gpTime.textContent = '00:' + String(Math.floor(ph * 42)).padStart(2, '0');
+    if (cyc !== this.gp.cycle) { this.gp.cycle = cyc; this.gp.auto = false; this._clearMarks(); }
+    if ((this.props.autoHighlight ?? true) && !this.gp.auto && ph >= .5 && performance.now() - this.gp.lastUser > 6000) { this.gp.auto = true; this.press(false); }
+  }
+
+  _clearMarks() {
+    const g = this.el.gpMarks;
+    if (!g) return;
+    Array.from(g.children).forEach(ch => { const a = ch.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' }); a.onfinish = () => ch.remove(); });
+    this.gp.lastX = -999;
+  }
+
+  press(user) {
+    const e = this.el;
+    if (!e || !e.gpMarks) return;
+    if (user) this.gp.lastUser = performance.now();
+    const x = 100 + 224 * (this.gp.ph ?? .5), NS = 'http://www.w3.org/2000/svg';
+    const g = document.createElementNS(NS, 'g');
+    const showLabel = Math.abs(x - this.gp.lastX) > 58;
+    g.innerHTML = '<path d="M' + (x - 6).toFixed(1) + ' 300 l6 -9 l6 9 z" fill="#00A3E4"></path>' +
+      (showLabel ? '<text x="' + x.toFixed(1) + '" y="318" fill="#5BBDEE" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11">HighLight</text>' : '');
+    if (showLabel) this.gp.lastX = x;
+    e.gpMarks.appendChild(g);
+    g.animate([{ opacity: 0, transform: 'translateY(-16px)' }, { opacity: 1, transform: 'translateY(0px)' }], { duration: 550, easing: 'cubic-bezier(.3,1.6,.5,1)' });
+    if (e.gpHalo) e.gpHalo.animate([{ transform: 'scale(.6)', opacity: .95 }, { transform: 'scale(2.6)', opacity: 0 }], { duration: 900, easing: 'cubic-bezier(.2,.6,.3,1)' });
+    if (e.gpBtn) e.gpBtn.animate([{ transform: 'translateX(0px)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(0px)' }], { duration: 240 });
+    if (e.gpFlash) e.gpFlash.animate([{ opacity: 0 }, { opacity: .85 }, { opacity: 0 }], { duration: 550, easing: 'ease-out' });
+  }
+
+  _pointer(k) {
+    const e = this.el, x = this.ptr.x, y = this.ptr.y;
+    if (x < -999) return;
+    const vh = innerHeight;
+    e.spots.forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > vh) return;
+      el.style.setProperty('--mx', (x - r.left).toFixed(0) + 'px');
+      el.style.setProperty('--my', (y - r.top).toFixed(0) + 'px');
+      if (el.hasAttribute('data-tilt') && !this.reduced) {
+        const inside = x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+        const rx = inside ? (((y - r.top) / r.height) - .5) * -9 * k : 0, ry = inside ? (((x - r.left) / r.width) - .5) * 11 * k : 0;
+        el.style.transform = 'perspective(900px) rotateX(' + rx.toFixed(2) + 'deg) rotateY(' + ry.toFixed(2) + 'deg) translateY(' + (inside ? -4 * k : 0).toFixed(1) + 'px)';
+      }
+    });
+    if (this.reduced) return;
+    e.magnets.forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > vh) return;
+      el._mx = el._mx || 0; el._my = el._my || 0;
+      const cx = r.left + r.width / 2 - el._mx, cy = r.top + r.height / 2 - el._my;
+      const dx = x - cx, dy = y - cy, near = Math.hypot(dx, dy) < Math.max(r.width, r.height) * .5 + 60;
+      el._mx += ((near ? dx * .28 * k : 0) - el._mx) * .2;
+      el._my += ((near ? dy * .38 * k : 0) - el._my) * .2;
+      el.style.transform = 'translate(' + el._mx.toFixed(2) + 'px,' + el._my.toFixed(2) + 'px)';
+    });
+  }
+
+  _par(vh, k) {
+    if (this.reduced) return;
+    this.el.pars.forEach(el => {
+      const r = el.parentElement.getBoundingClientRect();
+      if (r.bottom < -200 || r.top > vh + 200) return;
+      const f = +el.getAttribute('data-par') || .05, off = r.top + r.height / 2 - vh / 2;
+      const y = Math.max(-18, Math.min(18, -off * f * k));
+      el.style.transform = 'translateY(' + y.toFixed(1) + 'px)';
+    });
+  }
+
+  _popTick(now, vh) {
+    const e = this.el;
+    if (!e.popSec || !e.pop) return;
+    if (!this.pop.done) {
+      if (!this.pop.hold && !this.reduced) this.pop.hold = e.pop.animate([{ opacity: 0, transform: 'translateY(-24px) scale(.88)' }], { duration: 1, fill: 'forwards' });
+      const r = e.popSec.getBoundingClientRect();
+      if (r.top < vh * .55 && r.bottom > 0) this.replayPop();
+    }
+    if (this.pop.start) {
+      const v = this._cl((now - this.pop.start - 650) / 900);
+      e.popNums.forEach(n => { n.textContent = String(Math.round(this._eio(v) * (+n.getAttribute('data-to') || 0))); });
+      if (v >= 1) this.pop.start = 0;
+    }
+  }
+
+  replayPop() {
+    const e = this.el;
+    if (!e || !e.pop) return;
+    this.pop.done = true;
+    if (this.reduced) return;
+    this.pop.start = performance.now();
+    e.popNums.forEach(n => { n.textContent = '0'; });
+    e.pop.animate([{ opacity: 0, transform: 'translateY(-24px) scale(.88)' }, { opacity: 1, transform: 'translateY(0px) scale(1)' }], { duration: 950, delay: 350, easing: 'cubic-bezier(.2,1.45,.35,1)', fill: 'backwards' });
+    if (this.pop.hold) { this.pop.hold.cancel(); this.pop.hold = null; }
+    e.popTiles.forEach((tl, i) => tl.animate([{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'translateY(0px)' }], { duration: 700, delay: 650 + i * 110, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' }));
+    if (e.popIcon) e.popIcon.animate([{ background: 'rgba(255,255,255,.14)' }, { background: 'rgba(0,163,228,.9)' }, { background: 'rgba(255,255,255,.14)' }], { duration: 700 });
+  }
+
+  renderVals() {
+    return {
+      rootRef: this.rootRef,
+      showHud: this.props.showHud ?? true,
+      press: () => this.press(true),
+      replayPop: () => this.replayPop(),
+      sent: this.state.sent,
+      notSent: !this.state.sent,
+      submit: (ev) => { ev.preventDefault(); this.setState({ sent: true }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

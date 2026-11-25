@@ -183,10 +183,9 @@ public enum RemoteVerifiedCopy {
         func download(_ url: URL) throws {
             let session = URLSession(configuration: HTTP.downloadConfiguration(),
                                      delegate: self, delegateQueue: nil)
-            var request = URLRequest(url: url)
-            // A clip of several gigabytes takes its time; it is the absence of data that must fail,
-            // not the total duration.
-            request.timeoutInterval = 3600
+            // A clip of several gigabytes takes its time; it is the absence of data that must
+            // fail, not the total duration.
+            var request = HTTP.request(url, timeout: 3600)
             if resumeFrom > 0 {
                 request.setValue("bytes=\(resumeFrom)-", forHTTPHeaderField: "Range")
             }

@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 import QuiXCore
 
 /// Surveille la GoPro branchée en USB-C.
@@ -18,6 +19,13 @@ final class CameraWatcher {
         /// Un réseau caméra existe, mais macOS interdit à QuiX de s'y adresser.
         /// C'est la permission « Réseau local », et c'est le seul état qui demande une action.
         case denied
+        /// Un réseau caméra existe, macOS laisse passer, et pourtant rien ne répond.
+        ///
+        /// Cet état a coûté une soirée. L'app disait « aucune carte » pour une caméra branchée,
+        /// allumée, qui répondait à `curl` en trente millisecondes — c'était un filtre réseau
+        /// tiers qui coupait les connexions de QuiX, et rien à l'écran ne pouvait le laisser
+        /// deviner. Une caméra qu'on voit et qu'on n'atteint pas n'est pas une caméra absente.
+        case unreachable(String)
         /// La caméra répond.
         case connected(GoProCamera, GoProCamera.Info)
     }
@@ -39,27 +47,29 @@ final class CameraWatcher {
     deinit { timer?.invalidate() }
 
     func poll() {
-        let hosts = GoProCamera.candidateHosts()
-        guard !hosts.isEmpty else {
+        guard !GoProCamera.candidateHosts().isEmpty else {
             update(.absent)
             return
         }
 
         Task.detached(priority: .utility) {
-            var next: State = .absent
-            for host in hosts {
-                let camera = GoProCamera(host: host)
-                do {
-                    let info = try camera.info(timeout: 3)
-                    next = .connected(camera, info)
-                    break
-                } catch let error as NSError where LocalNetwork.isPermissionDenial(error) {
-                    // Un réseau caméra existe et QuiX n'a pas le droit de lui parler : c'est une
-                    // caméra branchée, pas une caméra absente. Les deux ne se disent pas pareil à
-                    // l'utilisateur.
-                    next = .denied
-                } catch {
-                    continue
+            let next: State
+            switch GoProCamera.probe(timeout: 3) {
+            case .found(let camera, let info):
+                next = .connected(camera, info)
+            case .denied:
+                // A camera network exists and QuiX is not allowed to talk to it: that is a camera
+                // plugged in, not a camera absent. The two do not read the same to the user.
+                next = .denied
+            case .absent(let reason):
+                // A camera that is plugged in, switched on, and silent is the hardest thing to
+                // diagnose after the fact. "No card" on screen says nothing about why; this line
+                // does, and it costs nothing when there is nothing to say.
+                if let reason {
+                    Log.camera.info("no camera answered — \(reason, privacy: .public)")
+                    next = .unreachable(reason)
+                } else {
+                    next = .absent
                 }
             }
             await MainActor.run { self.update(next) }
@@ -73,21 +83,18 @@ final class CameraWatcher {
     }
 }
 
-/// Reconnaissance du refus de la permission « Réseau local ».
+/// The "Local Network" permission panel in System Settings.
 ///
-/// macOS ne la distingue pas d'une panne réseau dans le code d'erreur : il rend `-1009`, « la
-/// connexion Internet semble hors service ». La seule marque du refus est dans le `userInfo`, sous
-/// une clé non publiée. On la lit sans s'y fier aveuglément — d'où le repli sur le code seul, qui
-/// pour une adresse 172.2x en USB ne peut de toute façon signifier qu'une chose.
+/// Recognising a refusal lives in `LocalNetworkDenial`, in the engine, next to the code that
+/// makes the requests — see the note there on why matching the error code alone was wrong.
 enum LocalNetwork {
-    static func isPermissionDenial(_ error: NSError) -> Bool {
-        guard error.domain == NSURLErrorDomain, error.code == NSURLErrorNotConnectedToInternet
-        else { return false }
-        return true
-    }
-
-    /// Ouvre le panneau « Réseau local » des Réglages Système.
     static var settingsURL: URL {
         URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocalNetwork")!
     }
+}
+
+/// One channel, so `log show --predicate 'subsystem == "fr.xavier-kain.quix"'` shows what QuiX
+/// decided and nothing else.
+enum Log {
+    static let camera = Logger(subsystem: "fr.xavier-kain.quix", category: "camera")
 }

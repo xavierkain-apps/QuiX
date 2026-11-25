@@ -432,6 +432,26 @@
         }
       }
     },
+    "A GoPro network is here and macOS is letting QuiX through, but the camera is not answering. A firewall or a network filter — TripMode, Little Snitch, an antivirus — usually blocks a newly installed app by default. Allowing QuiX in it settles it.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un réseau GoPro est bien là et macOS laisse passer QuiX, mais la caméra ne répond pas. Un pare-feu ou un filtre réseau — TripMode, Little Snitch, un antivirus — bloque en général par défaut une app fraîchement installée. L'y autoriser règle la question."
+          }
+        }
+      }
+    },
+    "A GoPro network is here, but the camera is not answering. A firewall or a network filter usually blocks a newly installed app by default.": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un réseau GoPro est bien là, mais la caméra ne répond pas. Un pare-feu ou un filtre réseau bloque en général par défaut une app fraîchement installée."
+          }
+        }
+      }
+    },
     "All": {
       "localizations": {
         "fr": {
@@ -1518,6 +1538,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tags"
+          }
+        }
+      }
+    },
+    "The camera does not answer": {
+      "localizations": {
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La caméra ne répond pas"
           }
         }
       }

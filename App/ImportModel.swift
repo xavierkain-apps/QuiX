@@ -13,6 +13,9 @@ final class ImportModel {
         /// Une caméra est branchée mais macOS interdit à QuiX de lui parler.
         /// La caméra étant un périphérique réseau, c'est la permission « Réseau local ».
         case needsLocalNetwork
+        /// Un réseau caméra est là et QuiX n'arrive pas à lui parler, sans que macOS l'ait
+        /// interdit. Porte la raison technique : c'est la seule chose qui permette de chercher.
+        case cameraUnreachable(String)
         /// Lecture des en-têtes. Quelques secondes pour une carte entière.
         case scanning(done: Int, total: Int)
         /// Carte lue, mais aucun dossier d'import n'a encore été choisi.
@@ -43,12 +46,13 @@ final class ImportModel {
     var lastScanResult: CardScanner.Result? { lastScan }
 
     /// L'état, réduit à son genre — de quoi comparer sans déballer les valeurs associées.
-    enum StageKind { case waiting, needsLocalNetwork, scanning, needsLibrary, ready, importing, finished, failed }
+    enum StageKind { case waiting, needsLocalNetwork, cameraUnreachable, scanning, needsLibrary, ready, importing, finished, failed }
 
     var stageKind: StageKind {
         switch stage {
         case .waiting: .waiting
         case .needsLocalNetwork: .needsLocalNetwork
+        case .cameraUnreachable: .cameraUnreachable
         case .scanning: .scanning
         case .needsLibrary: .needsLibrary
         case .ready: .ready
@@ -99,6 +103,12 @@ final class ImportModel {
             guard card == nil, !isBusy else { return }
             stage = .needsLocalNetwork
 
+        case .unreachable(let reason):
+            camera = nil
+            cameraName = nil
+            guard card == nil, !isBusy else { return }
+            stage = .cameraUnreachable(reason)
+
         case .connected(let found, let info):
             guard card == nil else { return }
             camera = found
@@ -112,7 +122,7 @@ final class ImportModel {
     /// parce qu'une sonde périodique a changé d'avis.
     private var isBusy: Bool {
         switch stage {
-        case .waiting, .needsLocalNetwork: return false
+        case .waiting, .needsLocalNetwork, .cameraUnreachable: return false
         default: return true
         }
     }

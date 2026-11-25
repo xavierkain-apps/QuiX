@@ -160,7 +160,8 @@ private struct MenuBarLabel: View {
             // montrent une table : une app qui attend un dossier d'import doit le demander là où
             // l'on regarde, et pas dans un popover qu'il faut penser à ouvrir.
             switch kind {
-            case .scanning, .ready, .importing, .needsLibrary, .needsLocalNetwork:
+            case .scanning, .ready, .importing, .needsLibrary, .needsLocalNetwork,
+                 .cameraUnreachable:
                 router.tab = .transfer
                 openWindow(id: WindowID.main)
                 // L'activation au démarrage ne suffit pas : la fenêtre n'existe pas encore à ce

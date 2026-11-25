@@ -22,6 +22,7 @@ struct MenuBarPopover: View {
             case .ready(let result, let plan): ready(result, plan)
             case .importing(let progress): importing(progress)
             case .finished(let report): finished(report)
+            case .cameraUnreachable: unreachable
             case .failed(let reason): failed(reason)
             }
         }
@@ -68,6 +69,19 @@ struct MenuBarPopover: View {
                 .buttonStyle(FilledBlue(fullWidth: true))
             Button("Check again") { model.recheckCamera() }
                 .buttonStyle(OutlinedDark(fullWidth: true))
+        }
+        .padding(.init(top: 22, leading: 18, bottom: 16, trailing: 18))
+    }
+
+    /// Une caméra qu'on voit et qu'on n'atteint pas.
+    private var unreachable: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("The camera does not answer").font(Type.section).foregroundStyle(.orange)
+            Text("A GoPro network is here, but the camera is not answering. A firewall or a network filter usually blocks a newly installed app by default.")
+                .font(Type.small).foregroundStyle(Ink.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Button("Check again") { model.recheckCamera() }
+                .buttonStyle(FilledBlue(fullWidth: true))
         }
         .padding(.init(top: 22, leading: 18, bottom: 16, trailing: 18))
     }

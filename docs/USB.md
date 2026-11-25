@@ -166,3 +166,46 @@ before it has released anything. A delegate holding non-escaping closures keeps 
 their scope, and Swift traps — the app crashed after the first imported clip, while all 85 tests
 of the time passed. `RemoteVerifiedCopy` therefore releases its closures as soon as the transfer
 ends, and `RemoteCopyTests` stands up a real HTTP server to prove it.
+
+## When the camera is there and does not answer
+
+Three things can make a plugged-in, switched-on camera look absent, and they are not the same:
+
+| What the app sees | What it means |
+|---|---|
+| No `172.2X.1YZ.0/24` interface | nothing is plugged in, or the camera is off |
+| `-1009`, or a path saying *local network prohibited* | the **Local Network** permission is refused |
+| An error on a path macOS reports as **satisfied** | something outside macOS is cutting the connection |
+
+The third one cost an evening. The app said "no card" while the camera answered `curl` in thirty
+milliseconds; the path was satisfied, so the permission was not at fault, and nothing on screen
+could hint at the rest. It was **TripMode**, a network filter, blocking QuiX's flows:
+
+```
+New TCP 172.27.102.54:60129 <-> 172.27.102.51:8080  C3501325811702.local  Block
+```
+
+A filter of that kind — TripMode, Little Snitch, an antivirus — blocks a newly installed app by
+default. And QuiX had just changed its bundle identifier, so to every one of them it *was* a new
+app.
+
+Two things came out of it, and both are kept:
+
+- **The app now says what it sees.** A camera network with nothing answering is its own state,
+  with the technical reason shown under it. A window that waits in silence is worse than one that
+  admits it does not know.
+- **It writes one line per failed poll**, under the `fr.xavier-kain.quix` subsystem:
+
+  ```sh
+  log show --last 5m --info --predicate 'subsystem == "fr.xavier-kain.quix"'
+  ```
+
+  That line is what ended the search, after an hour of looking at the wrong things.
+
+## Probing the candidates at once
+
+Candidates used to be tried one after another. An iPhone personal hotspot hands out
+`172.20.10.x`, nothing answers at `.51`, and every poll spent the whole timeout there before even
+reaching the camera. The subnet filter now requires the third octet to be 100–199 — GoPro's
+documented `172.2X.1YZ.51` — which rules that case out, and the remaining candidates are raced
+rather than queued so no future stray subnet can cost the same.
